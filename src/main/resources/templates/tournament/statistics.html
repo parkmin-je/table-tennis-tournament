@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}">
+<head>
+    <title>대회 통계</title>
+    <th:block layout:fragment="css">
+        <style>
+            .stat-card {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border-radius: 16px;
+                padding: 2rem;
+                height: 100%;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+                transition: transform 0.3s ease;
+            }
+            .stat-card:hover {
+                transform: translateY(-5px);
+            }
+            .stat-number {
+                font-size: 3rem;
+                font-weight: 900;
+                line-height: 1;
+            }
+            .stat-label {
+                font-size: 1.1rem;
+                opacity: 0.9;
+                margin-top: 0.5rem;
+            }
+            .progress-bar-animated {
+                animation: progress-animation 2s ease-out;
+            }
+            @keyframes progress-animation {
+                from { width: 0%; }
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+<div layout:fragment="content" class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="section-title mb-0">
+            <i class="bi bi-graph-up me-2"></i>
+            <span th:text="${tournament.title}">대회명</span> 통계
+        </h2>
+        <a th:href="@{/tournament/detail/{id}(id=${tournament.id})}" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-left me-1"></i>대회로 돌아가기
+        </a>
+    </div>
+
+    <!-- 주요 통계 카드 -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                <i class="bi bi-clipboard-check" style="font-size: 2.5rem;"></i>
+                <div class="stat-number" th:text="${totalMatches}">0</div>
+                <div class="stat-label">전체 경기 수</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                <i class="bi bi-check-circle" style="font-size: 2.5rem;"></i>
+                <div class="stat-number" th:text="${completedMatches}">0</div>
+                <div class="stat-label">완료된 경기</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                <i class="bi bi-hourglass-split" style="font-size: 2.5rem;"></i>
+                <div class="stat-number" th:text="${totalMatches - completedMatches}">0</div>
+                <div class="stat-label">남은 경기</div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+                <i class="bi bi-speedometer2" style="font-size: 2.5rem;"></i>
+                <div class="stat-number" th:text="${progressRate + '%'}">0%</div>
+                <div class="stat-label">진행률</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 진행률 바 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <h5 class="card-title mb-3"><i class="bi bi-bar-chart-line me-2"></i>대회 진행 상황</h5>
+            <div class="progress" style="height: 30px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
+                     role="progressbar"
+                     th:style="'width: ' + ${progressRate} + '%'"
+                     th:text="${progressRate + '%'}">0%</div>
+            </div>
+            <p class="text-muted mt-2 mb-0">
+                <span th:text="${completedMatches}">0</span> / <span th:text="${totalMatches}">0</span> 경기 완료
+            </p>
+        </div>
+    </div>
+
+    <!-- 최고 득점 경기 -->
+    <div class="card shadow-sm" th:if="${highestScoreMatch != null}">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="bi bi-star-fill me-2"></i>최고 득점 경기</h5>
+        </div>
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-4 text-center">
+                    <h3 th:text="${highestScoreMatch.player1 != null ? highestScoreMatch.player1.name : 'BYE'}">선수1</h3>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h1 class="display-3 text-primary mb-0">
+                        <span th:text="${highestScoreMatch.score1}">0</span>
+                        :
+                        <span th:text="${highestScoreMatch.score2}">0</span>
+                    </h1>
+                    <p class="text-muted" th:text="${highestScoreMatch.roundName}">라운드명</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h3 th:text="${highestScoreMatch.player2 != null ? highestScoreMatch.player2.name : 'BYE'}">선수2</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

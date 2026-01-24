@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>클럽 상세</title>
+</head>
+<body>
+<div layout:fragment="content" class="container my-5">
+    <!-- 성공/에러 메시지 -->
+    <div th:if="${message}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>
+        <span th:text="${message}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <span th:text="${error}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- 클럽 정보 카드 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">
+                    <i class="bi bi-people-fill me-2"></i>
+                    <span th:text="${club.name}">클럽명</span>
+                </h2>
+                <div sec:authorize="hasRole('ADMIN')">
+                    <a th:href="@{|/club/edit/${club.id}|}" class="btn btn-warning me-2">
+                        <i class="bi bi-pencil me-1"></i>수정
+                    </a>
+                    <button type="button" class="btn btn-danger delete-btn"
+                            th:data-club-id="${club.id}"
+                            th:data-club-name="${club.name}">
+                        <i class="bi bi-trash me-1"></i>삭제
+                    </button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <p class="mb-2">
+                        <strong><i class="bi bi-geo-alt-fill me-2"></i>지역:</strong>
+                        <span th:text="${club.region}">-</span>
+                    </p>
+                    <p class="mb-2">
+                        <strong><i class="bi bi-calendar-fill me-2"></i>등록일:</strong>
+                        <span th:text="${#temporals.format(club.createdAt, 'yyyy-MM-dd HH:mm')}">-</span>
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p class="mb-2">
+                        <strong><i class="bi bi-clock-fill me-2"></i>수정일:</strong>
+                        <span th:text="${#temporals.format(club.updatedAt, 'yyyy-MM-dd HH:mm')}">-</span>
+                    </p>
+                    <p class="mb-2">
+                        <strong><i class="bi bi-person-badge-fill me-2"></i>소속 선수:</strong>
+                        <span class="badge bg-primary" th:text="${players.size()} + '명'">0명</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 소속 선수 목록 -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-person-badge me-2"></i>소속 선수 목록
+                <span class="badge bg-light text-dark ms-2" th:text="${players.size()}">0</span>
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive" th:if="${!#lists.isEmpty(players)}">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>선수명</th>
+                        <th>나이</th>
+                        <th>성별</th>
+                        <th>랭킹</th>
+                        <th>포지션</th>
+                        <th class="text-center">상세</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="player : ${players}">
+                        <td>
+                            <strong th:text="${player.name}">선수명</strong>
+                        </td>
+                        <td th:text="${player.age}">-</td>
+                        <td>
+                                <span class="badge"
+                                      th:classappend="${player.gender == 'MALE' ? 'bg-primary' : 'bg-danger'}"
+                                      th:text="${player.gender == 'MALE' ? '남' : '여'}">남</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success" th:text="${player.ranking}">-</span>
+                        </td>
+                        <td th:text="${player.position != null ? player.position : '-'}">-</td>
+                        <td class="text-center">
+                            <a th:href="@{|/player/detail/${player.id}|}" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-eye"></i> 보기
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="text-center py-5" th:if="${#lists.isEmpty(players)}">
+                <i class="bi bi-person-x" style="font-size: 3rem; color: #dee2e6;"></i>
+                <p class="mt-3 text-muted">소속 선수가 없습니다.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 뒤로 가기 -->
+    <div class="mt-4">
+        <a th:href="@{/club/list}" class="btn btn-secondary">
+            <i class="bi bi-arrow-left me-1"></i>목록으로
+        </a>
+    </div>
+
+    <!-- 삭제 확인 폼 -->
+    <form id="deleteForm" method="post" style="display: none;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    </form>
+</div>
+
+<th:block layout:fragment="script">
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteBtn = document.querySelector('.delete-btn');
+
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', function() {
+                    const clubId = this.getAttribute('data-club-id');
+                    const clubName = this.getAttribute('data-club-name');
+
+                    if (confirm('정말로 "' + clubName + '" 클럽을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
+                        const form = document.getElementById('deleteForm');
+                        form.action = '/club/delete/' + clubId;
+                        form.submit();
+                    }
+                });
+            }
+        });
+    </script>
+</th:block>
+</body>
+</html>

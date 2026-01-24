@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>대회 목록 관리</title>
+    <style>
+        /* 상태 드롭다운 스타일 개선 */
+        .status-select {
+            min-width: 110px;
+            font-size: 0.875rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.375rem;
+            border: 2px solid #e5e7eb;
+            transition: all 0.2s;
+        }
+
+        .status-select:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .status-select:focus {
+            border-color: #3b82f6;
+            outline: none;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.2);
+        }
+
+        /* 상태별 배경색 */
+        .status-select option[value="READY"] {
+            background-color: #f3f4f6;
+        }
+        .status-select option[value="RECRUITING"] {
+            background-color: #dbeafe;
+        }
+        .status-select option[value="IN_PROGRESS"] {
+            background-color: #fef3c7;
+        }
+        .status-select option[value="MAIN_READY"] {
+            background-color: #e0e7ff;
+        }
+        .status-select option[value="COMPLETED"] {
+            background-color: #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+<div layout:fragment="content" class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="section-title mb-0">
+            <i class="bi bi-trophy-fill me-2"></i>대회 목록 관리
+        </h2>
+        <a th:href="@{/tournament/create}" class="btn btn-success">
+            <i class="bi bi-plus-circle-fill me-2"></i>새 대회 등록
+        </a>
+    </div>
+
+    <!-- 알림 메시지 표시 -->
+    <div th:if="${message}"
+         th:classappend="${alertType != null ? 'alert-' + alertType : 'alert-info'}"
+         class="alert alert-dismissible fade show"
+         role="alert">
+        <i class="bi"
+           th:classappend="${alertType == 'success' ? 'bi-check-circle-fill' :
+                           (alertType == 'danger' ? 'bi-exclamation-triangle-fill' : 'bi-info-circle-fill')}"></i>
+        <span th:text="${message}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- 대회 목록 테이블 -->
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-primary">
+                    <tr>
+                        <th scope="col" style="width: 5%;">ID</th>
+                        <th scope="col" style="width: 20%;">대회명</th>
+                        <th scope="col" style="width: 12%;">주최 단체</th>
+                        <th scope="col" style="width: 10%;">경기 유형</th>
+                        <th scope="col" style="width: 18%;">기간</th>
+                        <th scope="col" style="width: 12%;">상태</th>
+                        <th scope="col" style="width: 10%;">등록자</th>
+                        <th scope="col" style="width: 13%;" class="text-center">관리</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="tournament : ${tournaments}">
+                        <td th:text="${tournament.id}">1</td>
+                        <td>
+                            <a th:href="@{|/tournament/detail/${tournament.id}|}"
+                               class="text-decoration-none fw-bold"
+                               th:text="${tournament.title}">대회명</a>
+                        </td>
+                        <td th:text="${tournament.name}">주최 단체</td>
+                        <td>
+                            <span class="badge bg-info" th:text="${tournament.type.description}">단식</span>
+                        </td>
+                        <td>
+                            <small>
+                                <span th:text="${#temporals.format(tournament.startDate, 'yyyy-MM-dd')}">2025-01-01</span>
+                                ~
+                                <span th:text="${#temporals.format(tournament.endDate, 'yyyy-MM-dd')}">2025-01-05</span>
+                            </small>
+                        </td>
+                        <td>
+                            <!-- ⭐⭐⭐ 상태 드롭다운으로 변경 - 즉시 변경 가능 ⭐⭐⭐ -->
+                            <form th:action="@{/admin/tournament/updateStatus/{id}(id=${tournament.id})}"
+                                  method="post"
+                                  style="display: inline;">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <select name="status"
+                                        class="status-select form-select-sm"
+                                        th:data-current="${tournament.status.name()}"
+                                        onchange="confirmStatusChange(this)">
+                                    <option value="READY"
+                                            th:selected="${tournament.status.name() == 'READY'}"
+                                            style="background-color: #f3f4f6;">
+                                        준비중
+                                    </option>
+                                    <option value="RECRUITING"
+                                            th:selected="${tournament.status.name() == 'RECRUITING'}"
+                                            style="background-color: #dbeafe;">
+                                        접수중
+                                    </option>
+                                    <option value="IN_PROGRESS"
+                                            th:selected="${tournament.status.name() == 'IN_PROGRESS'}"
+                                            style="background-color: #fef3c7;">
+                                        진행중
+                                    </option>
+                                    <option value="MAIN_READY"
+                                            th:selected="${tournament.status.name() == 'MAIN_READY'}"
+                                            style="background-color: #e0e7ff;">
+                                        본선 준비
+                                    </option>
+                                    <option value="COMPLETED"
+                                            th:selected="${tournament.status.name() == 'COMPLETED'}"
+                                            style="background-color: #e5e7eb;">
+                                        종료
+                                    </option>
+                                </select>
+                            </form>
+                        </td>
+                        <td>
+                            <small th:text="${tournament.creator != null ? tournament.creator.name : '-'}">관리자</small>
+                        </td>
+                        <td class="text-center">
+                            <div class="btn-group btn-group-sm" role="group">
+                                <a th:href="@{|/tournament/detail/${tournament.id}|}"
+                                   class="btn btn-outline-primary"
+                                   title="상세보기">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a th:href="@{|/tournament/edit/${tournament.id}|}"
+                                   class="btn btn-outline-warning"
+                                   title="수정">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <button type="button"
+                                        class="btn btn-outline-danger delete-btn"
+                                        title="삭제"
+                                        th:data-tournament-id="${tournament.id}"
+                                        th:data-tournament-title="${tournament.title}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(tournaments)}">
+                        <td colspan="8" class="text-center text-muted py-5">
+                            <i class="bi bi-inbox" style="font-size: 3rem;"></i>
+                            <p class="mt-3">등록된 대회가 없습니다.</p>
+                            <a th:href="@{/tournament/create}" class="btn btn-primary mt-2">
+                                <i class="bi bi-plus-circle me-2"></i>첫 대회 등록하기
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 대회 통계 카드 -->
+    <div class="row mt-4 g-3">
+        <div class="col-md-3">
+            <div class="card text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div class="card-body py-4">
+                    <i class="bi bi-trophy-fill" style="font-size: 2.5rem;"></i>
+                    <h4 class="mt-3 mb-1" th:text="${tournaments.size()}">0</h4>
+                    <p class="mb-0">전체 대회</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                <div class="card-body py-4">
+                    <i class="bi bi-clock-fill" style="font-size: 2.5rem;"></i>
+                    <h4 class="mt-3 mb-1"
+                        th:text="${#lists.size(tournaments.?[status.name() == 'RECRUITING'])}">0</h4>
+                    <p class="mb-0">접수 중</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                <div class="card-body py-4">
+                    <i class="bi bi-lightning-fill" style="font-size: 2.5rem;"></i>
+                    <h4 class="mt-3 mb-1"
+                        th:text="${#lists.size(tournaments.?[status.name() == 'IN_PROGRESS'])}">0</h4>
+                    <p class="mb-0">진행 중</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <div class="card-body py-4">
+                    <i class="bi bi-check-circle-fill" style="font-size: 2.5rem;"></i>
+                    <h4 class="mt-3 mb-1"
+                        th:text="${#lists.size(tournaments.?[status.name() == 'COMPLETED'])}">0</h4>
+                    <p class="mb-0">종료</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 삭제 확인 모달 (숨김) -->
+    <form id="deleteForm" method="post" style="display: none;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+    </form>
+</div>
+
+<th:block layout:fragment="script">
+    <script th:inline="javascript">
+        // ⭐⭐⭐ 상태 변경 확인 함수 ⭐⭐⭐
+        function confirmStatusChange(selectElement) {
+            const currentStatus = selectElement.dataset.current;
+            const newStatus = selectElement.value;
+
+            // 상태가 실제로 변경되었는지 확인
+            if (currentStatus === newStatus) {
+                return; // 변경 없음
+            }
+
+            // 상태 이름 매핑
+            const statusNames = {
+                'READY': '준비중',
+                'RECRUITING': '접수중',
+                'IN_PROGRESS': '진행중',
+                'MAIN_READY': '본선 준비',
+                'COMPLETED': '종료'
+            };
+
+            const currentName = statusNames[currentStatus];
+            const newName = statusNames[newStatus];
+
+            if (confirm(`대회 상태를 "${currentName}"에서 "${newName}"로 변경하시겠습니까?`)) {
+                // 확인하면 폼 제출
+                selectElement.form.submit();
+            } else {
+                // 취소하면 이전 값으로 복원
+                selectElement.value = currentStatus;
+            }
+        }
+
+        // 삭제 버튼 이벤트 리스너 등록
+        document.addEventListener('DOMContentLoaded', function() {
+            const deleteButtons = document.querySelectorAll('.delete-btn');
+
+            deleteButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const tournamentId = this.getAttribute('data-tournament-id');
+                    const tournamentTitle = this.getAttribute('data-tournament-title');
+
+                    if (confirm('정말로 "' + tournamentTitle + '" 대회를 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
+                        const form = document.getElementById('deleteForm');
+                        form.action = '/admin/tournament/delete/' + tournamentId;
+                        form.submit();
+                    }
+                });
+            });
+
+            // 알림 메시지 자동 사라지기 (5초 후)
+            const alerts = document.querySelectorAll('.alert');
+            alerts.forEach(alert => {
+                setTimeout(() => {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
+</th:block>
+</body>
+</html>

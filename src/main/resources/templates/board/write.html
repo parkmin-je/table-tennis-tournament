@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" 
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout}" 
+      lang="ko">
+<head>
+    <title>글쓰기</title>
+    <th:block layout:fragment="css">
+        <style>
+            .write-container {
+                max-width: 900px;
+                margin: 0 auto;
+            }
+            .form-label {
+                font-weight: 600;
+                color: #212529;
+            }
+            .category-select {
+                max-width: 200px;
+            }
+            #content {
+                min-height: 400px;
+                font-family: inherit;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container my-5">
+        <div class="write-container">
+            <h2 class="fw-bold mb-4">
+                <i class="bi bi-pencil-square me-2"></i>글쓰기
+            </h2>
+
+            <form th:action="@{/board/write}" method="post">
+                <!-- 카테고리 선택 -->
+                <div class="mb-3">
+                    <label for="category" class="form-label">카테고리</label>
+                    <select id="category" 
+                            name="category" 
+                            class="form-select category-select" 
+                            required>
+                        <option value="">선택하세요</option>
+                        <!-- 공지사항은 관리자만 보이게 -->
+                        <option value="NOTICE" 
+                                sec:authorize="hasRole('ADMIN')"
+                                th:selected="${selectedCategory?.name() == 'NOTICE'}">
+                            공지사항
+                        </option>
+                        <option value="FREE" 
+                                th:selected="${selectedCategory?.name() == 'FREE'}">
+                            자유게시판
+                        </option>
+                    </select>
+                </div>
+
+                <!-- 제목 -->
+                <div class="mb-3">
+                    <label for="title" class="form-label">제목</label>
+                    <input type="text" 
+                           id="title" 
+                           name="title" 
+                           class="form-control" 
+                           placeholder="제목을 입력하세요"
+                           required>
+                </div>
+
+                <!-- 내용 -->
+                <div class="mb-4">
+                    <label for="content" class="form-label">내용</label>
+                    <textarea id="content" 
+                              name="content" 
+                              class="form-control" 
+                              placeholder="내용을 입력하세요"
+                              required></textarea>
+                </div>
+
+                <!-- 버튼 -->
+                <div class="d-flex justify-content-between">
+                    <a th:href="@{/board/list}" class="btn btn-secondary">
+                        <i class="bi bi-arrow-left me-2"></i>목록으로
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-2"></i>작성완료
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

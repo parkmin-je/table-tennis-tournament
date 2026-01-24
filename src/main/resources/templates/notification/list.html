@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}">
+<head>
+    <title>알림</title>
+    <th:block layout:fragment="css">
+        <style>
+            .notification-item {
+                transition: all 0.3s ease;
+                border-left: 4px solid transparent;
+            }
+            .notification-item:hover {
+                background-color: #f8f9fa;
+                transform: translateX(5px);
+            }
+            .notification-item.unread {
+                background-color: #fff3cd;
+                border-left-color: #ffc107;
+            }
+            .notification-icon {
+                font-size: 2rem;
+            }
+            .notification-icon.success { color: #28a745; }
+            .notification-icon.info { color: #17a2b8; }
+            .notification-icon.warning { color: #ffc107; }
+            .notification-icon.danger { color: #dc3545; }
+        </style>
+    </th:block>
+</head>
+<body>
+<div layout:fragment="content" class="container my-5">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="section-title mb-0"><i class="bi bi-bell-fill me-2"></i>알림</h2>
+                <form th:action="@{/notification/readAll}" method="post" style="display:inline;">
+                    <button type="submit" class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-check-all me-1"></i>모두 읽음 처리
+                    </button>
+                </form>
+            </div>
+
+            <div th:if="${notifications != null && !notifications.empty}">
+                <div class="card mb-3 notification-item"
+                     th:each="notification : ${notifications}"
+                     th:classappend="${!notification.isRead ? 'unread' : ''}">
+                    <div class="card-body">
+                        <div class="row align-items-center">
+                            <div class="col-auto">
+                                <i class="bi notification-icon"
+                                   th:classappend="${notification.type == 'SUCCESS' ? 'bi-check-circle-fill success' :
+                                                   (notification.type == 'INFO' ? 'bi-info-circle-fill info' :
+                                                   (notification.type == 'WARNING' ? 'bi-exclamation-triangle-fill warning' :
+                                                   'bi-x-circle-fill danger'))}"></i>
+                            </div>
+                            <div class="col">
+                                <h5 class="card-title mb-1" th:text="${notification.title}">알림 제목</h5>
+                                <p class="card-text mb-2" th:text="${notification.message}">알림 내용</p>
+                                <small class="text-muted">
+                                    <i class="bi bi-clock me-1"></i>
+                                    <span th:text="${#temporals.format(notification.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-20 14:30</span>
+                                </small>
+                                <a th:if="${notification.tournament != null}"
+                                   th:href="@{/tournament/detail/{id}(id=${notification.tournament.id})}"
+                                   class="btn btn-sm btn-link">
+                                    대회 보기
+                                </a>
+                            </div>
+                            <div class="col-auto">
+                                <form th:action="@{/notification/delete/{id}(id=${notification.id})}"
+                                      method="post" style="display:inline;">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                            onclick="return confirm('알림을 삭제하시겠습니까?');">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${notifications == null || notifications.empty}" class="alert alert-info text-center py-5">
+                <i class="bi bi-bell-slash" style="font-size: 3rem; opacity: 0.5;"></i>
+                <p class="mt-3 mb-0">새로운 알림이 없습니다.</p>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

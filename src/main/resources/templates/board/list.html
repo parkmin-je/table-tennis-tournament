@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout}"
+      lang="ko">
+<head>
+    <title>게시판</title>
+    <th:block layout:fragment="css">
+        <style>
+            .category-tabs {
+                display: flex;
+                gap: 0.5rem;
+                margin-bottom: 2rem;
+                border-bottom: 2px solid #dee2e6;
+            }
+            .category-tab {
+                padding: 0.75rem 1.5rem;
+                background: transparent;
+                border: none;
+                color: #6c757d;
+                font-weight: 600;
+                cursor: pointer;
+                transition: all 0.3s;
+                border-bottom: 3px solid transparent;
+            }
+            .category-tab:hover {
+                color: #0066cc;
+            }
+            .category-tab.active {
+                color: #0066cc;
+                border-bottom-color: #0066cc;
+            }
+            .post-table {
+                width: 100%;
+            }
+            .post-row {
+                border-bottom: 1px solid #e9ecef;
+                transition: background 0.2s;
+            }
+            .post-row:hover {
+                background: #f8f9fa;
+            }
+            .post-title {
+                font-weight: 600;
+                color: #212529;
+                text-decoration: none;
+            }
+            .post-title:hover {
+                color: #0066cc;
+            }
+            .badge-pinned {
+                background: #dc3545;
+                color: white;
+                padding: 0.25rem 0.5rem;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                margin-right: 0.5rem;
+            }
+            .badge-notice {
+                background: #ffc107;
+                color: #000;
+                padding: 0.25rem 0.5rem;
+                border-radius: 4px;
+                font-size: 0.75rem;
+                margin-right: 0.5rem;
+            }
+            .post-meta {
+                font-size: 0.875rem;
+                color: #6c757d;
+            }
+            .search-box {
+                max-width: 400px;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container my-5">
+        <!-- 헤더 -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="fw-bold">
+                <i class="bi bi-chat-dots me-2"></i>커뮤니티
+            </h1>
+            <a th:href="@{/board/write}"
+               class="btn btn-primary"
+               sec:authorize="isAuthenticated()">
+                <i class="bi bi-pencil-square me-2"></i>글쓰기
+            </a>
+        </div>
+
+        <!-- 카테고리 탭 -->
+        <div class="category-tabs">
+            <a th:href="@{/board/list}"
+               class="category-tab"
+               th:classappend="${category == null ? 'active' : ''}">
+                전체
+            </a>
+            <a th:each="cat : ${categories}"
+               th:href="@{/board/list(category=${cat})}"
+               class="category-tab"
+               th:classappend="${category == cat ? 'active' : ''}"
+               th:text="${cat.description}">
+            </a>
+        </div>
+
+        <!-- 검색 -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <form th:action="@{/board/list}" method="get" class="d-flex gap-2">
+                    <input type="hidden" name="category" th:value="${category}">
+                    <input type="text"
+                           name="keyword"
+                           class="form-control search-box"
+                           placeholder="제목 + 내용 검색"
+                           th:value="${keyword}">
+                    <button type="submit" class="btn btn-outline-primary">
+                        <i class="bi bi-search"></i> 검색
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- 게시글 목록 -->
+        <div class="card shadow-sm">
+            <div class="card-body p-0">
+                <table class="post-table">
+                    <thead class="bg-light">
+                    <tr>
+                        <th class="p-3 text-center" style="width: 80px;">번호</th>
+                        <th class="p-3">제목</th>
+                        <th class="p-3 text-center" style="width: 120px;">작성자</th>
+                        <th class="p-3 text-center" style="width: 100px;">작성일</th>
+                        <th class="p-3 text-center" style="width: 80px;">조회</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${posts.isEmpty()}" class="post-row">
+                        <td colspan="5" class="p-4 text-center text-muted">
+                            게시글이 없습니다.
+                        </td>
+                    </tr>
+                    <tr th:each="post : ${posts}" class="post-row">
+                        <td class="p-3 text-center">
+                            <span th:if="${post.isPinned}" class="badge-pinned">공지</span>
+                            <span th:unless="${post.isPinned}" th:text="${post.id}"></span>
+                        </td>
+                        <td class="p-3">
+                            <a th:href="@{/board/detail/{id}(id=${post.id})}"
+                               class="post-title">
+                                <span th:if="${post.category.name() == 'NOTICE'}" class="badge-notice">공지</span>
+                                <span th:text="${post.title}"></span>
+                                <!-- ✅ post.comments.size() 대신 post.commentCount 사용 -->
+                                <span th:if="${post.commentCount != null and post.commentCount > 0}"
+                                      class="text-primary ms-1"
+                                      th:text="'[' + ${post.commentCount} + ']'">
+                                    </span>
+                            </a>
+                        </td>
+                        <td class="p-3 text-center post-meta" th:text="${post.author.name}"></td>
+                        <td class="p-3 text-center post-meta"
+                            th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}">
+                        </td>
+                        <td class="p-3 text-center post-meta" th:text="${post.viewCount}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <nav th:if="${posts.totalPages > 1}" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item" th:classappend="${posts.first ? 'disabled' : ''}">
+                    <a class="page-link"
+                       th:href="@{/board/list(category=${category}, page=${posts.number - 1}, keyword=${keyword})}">
+                        이전
+                    </a>
+                </li>
+                <li th:each="i : ${#numbers.sequence(0, posts.totalPages - 1)}"
+                    class="page-item"
+                    th:classappend="${i == posts.number ? 'active' : ''}">
+                    <a class="page-link"
+                       th:href="@{/board/list(category=${category}, page=${i}, keyword=${keyword})}"
+                       th:text="${i + 1}">
+                    </a>
+                </li>
+                <li class="page-item" th:classappend="${posts.last ? 'disabled' : ''}">
+                    <a class="page-link"
+                       th:href="@{/board/list(category=${category}, page=${posts.number + 1}, keyword=${keyword})}">
+                        다음
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+</div>
+</body>
+</html>

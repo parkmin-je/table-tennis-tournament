@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>대회 목록</title>
+</head>
+<body>
+<div layout:fragment="content" class="container my-5">
+    <!-- 페이지 헤더 -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="section-title mb-2" style="text-align: left;">안산시 탁구 대회</h1>
+            <p class="text-muted mb-0">
+                <i class="bi bi-trophy-fill me-2"></i>
+                진행 중인 대회 <strong th:text="${tournaments.size()}">0</strong>개
+            </p>
+        </div>
+        <a th:href="@{/tournament/create}"
+           class="btn btn-primary btn-lg fw-bold"
+           sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+            <i class="bi bi-plus-circle-fill me-2"></i>새 대회 등록
+        </a>
+    </div>
+
+    <!-- 대회가 없을 때 -->
+    <div th:if="${tournaments.isEmpty()}"
+         class="alert alert-info text-center py-5"
+         style="border-radius: 16px; border: 2px dashed var(--primary-color);">
+        <i class="bi bi-info-circle-fill" style="font-size: 4rem; color: var(--primary-color); margin-bottom: 1rem;"></i>
+        <h4 class="fw-bold mb-3">등록된 대회가 없습니다</h4>
+        <p class="mb-4">새로운 대회를 등록하고 참가자들을 모집해보세요!</p>
+        <a th:href="@{/tournament/create}"
+           class="btn btn-primary btn-lg"
+           sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+            <i class="bi bi-plus-circle-fill me-2"></i>첫 대회 만들기
+        </a>
+    </div>
+
+    <!-- 대회 카드 목록 -->
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" th:if="${!tournaments.isEmpty()}">
+        <div class="col" th:each="tournament : ${tournaments}">
+            <div class="card h-100" style="transition: all 0.3s ease;">
+                <!-- 카드 헤더 -->
+                <div class="card-header d-flex justify-content-between align-items-start"
+                     style="background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);">
+                    <h5 class="card-title mb-0 text-white fw-bold"
+                        style="flex: 1; line-height: 1.4;"
+                        th:text="${tournament.title}">대회명</h5>
+                    <!-- ✅ Enum 사용 -->
+                    <span th:classappend="${tournament.status.name() == 'READY' ? 'badge bg-secondary' :
+                                          (tournament.status.name() == 'RECRUITING' ? 'badge bg-success' :
+                                          (tournament.status.name() == 'IN_PROGRESS' ? 'badge bg-warning text-dark' : 'badge bg-dark'))}"
+                          style="margin-left: 0.5rem; white-space: nowrap; font-size: 0.8rem;"
+                          th:text="${tournament.status.description}">상태</span>
+                </div>
+
+                <!-- 카드 본문 -->
+                <div class="card-body d-flex flex-column">
+                    <p class="card-text text-muted mb-4"
+                       style="flex-grow: 1; line-height: 1.6;"
+                       th:text="${tournament.description}">대회 설명</p>
+
+                    <!-- 대회 정보 -->
+                    <ul class="list-unstyled mb-3 small">
+                        <li class="mb-2 d-flex align-items-start">
+                            <i class="bi bi-calendar-event me-2 text-primary" style="font-size: 1.1rem; margin-top: 2px;"></i>
+                            <div>
+                                <strong>기간:</strong><br>
+                                <span th:text="${#temporals.format(tournament.startDate, 'yyyy년 MM월 dd일')}"></span>
+                                ~
+                                <span th:text="${#temporals.format(tournament.endDate, 'yyyy년 MM월 dd일')}"></span>
+                            </div>
+                        </li>
+                        <li class="mb-2 d-flex align-items-center">
+                            <i class="bi bi-trophy me-2 text-warning" style="font-size: 1.1rem;"></i>
+                            <span>
+                                <strong>유형:</strong>
+                                <!-- ✅ Enum 사용 -->
+                                <span th:text="${tournament.type.description}">단식</span>
+                            </span>
+                        </li>
+                        <li class="mb-2 d-flex align-items-center">
+                            <i class="bi bi-people me-2 text-success" style="font-size: 1.1rem;"></i>
+                            <span>
+                                <strong>참가자:</strong>
+                                <!-- ✅ participations 사용 -->
+                                <span th:text="${tournament.participations != null ? tournament.participations.size() : 0}">0</span>명
+                            </span>
+                        </li>
+                        <li class="d-flex align-items-center" th:if="${tournament.creator != null}">
+                            <i class="bi bi-person-badge me-2 text-info" style="font-size: 1.1rem;"></i>
+                            <span>
+                                <strong>주최:</strong>
+                                <span th:text="${tournament.creator.name != null ? tournament.creator.name : tournament.creator.username}">주최자</span>
+                            </span>
+                        </li>
+                    </ul>
+
+                    <!-- 상태별 알림 메시지 -->
+                    <div class="alert alert-success mb-3 py-2"
+                         th:if="${tournament.status.name() == 'RECRUITING'}"
+                         style="font-size: 0.85rem;">
+                        <i class="bi bi-megaphone-fill me-1"></i>
+                        <strong>참가 신청 가능!</strong>
+                    </div>
+                    <div class="alert alert-warning mb-3 py-2 text-dark"
+                         th:if="${tournament.status.name() == 'IN_PROGRESS'}"
+                         style="font-size: 0.85rem;">
+                        <i class="bi bi-play-circle-fill me-1"></i>
+                        <strong>경기 진행 중</strong>
+                    </div>
+                    <div class="alert alert-secondary mb-3 py-2"
+                         th:if="${tournament.status.name() == 'COMPLETED'}"
+                         style="font-size: 0.85rem;">
+                        <i class="bi bi-check-circle-fill me-1"></i>
+                        <strong>대회 종료</strong>
+                    </div>
+                </div>
+
+                <!-- 카드 푸터 -->
+                <div class="card-footer d-flex gap-2 justify-content-end"
+                     style="background-color: var(--bg-light);">
+                    <!-- 참가 신청 버튼 (로그인 사용자만) -->
+                    <form th:action="@{|/participation/apply/${tournament.id}|}"
+                          method="post"
+                          style="display: inline-block;"
+                          sec:authorize="isAuthenticated()"
+                          th:if="${tournament.status.name() == 'RECRUITING'}">
+                        <button type="submit"
+                                class="btn btn-success btn-sm"
+                                onclick="return confirm('이 대회에 참가 신청하시겠습니까?');">
+                            <i class="bi bi-pencil-square me-1"></i>참가 신청
+                        </button>
+                    </form>
+
+                    <!-- 상세보기 버튼 -->
+                    <a th:href="@{|/tournament/detail/${tournament.id}|}"
+                       class="btn btn-primary btn-sm">
+                        <i class="bi bi-info-circle me-1"></i>자세히 보기
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 추가 안내 섹션 -->
+    <div class="row mt-5" th:if="${!tournaments.isEmpty()}">
+        <div class="col-12">
+            <div class="card" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border: none;">
+                <div class="card-body text-center py-5">
+                    <h4 class="fw-bold mb-3">
+                        <i class="bi bi-lightbulb-fill text-warning me-2"></i>
+                        대회 참가 안내
+                    </h4>
+                    <div class="row g-4">
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <div class="mb-2" style="font-size: 2rem; color: var(--primary-color);">
+                                    <i class="bi bi-1-circle-fill"></i>
+                                </div>
+                                <h6 class="fw-bold">대회 선택</h6>
+                                <p class="small text-muted mb-0">원하는 대회를 찾아보세요</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <div class="mb-2" style="font-size: 2rem; color: var(--primary-color);">
+                                    <i class="bi bi-2-circle-fill"></i>
+                                </div>
+                                <h6 class="fw-bold">참가 신청</h6>
+                                <p class="small text-muted mb-0">로그인 후 신청하기</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <div class="mb-2" style="font-size: 2rem; color: var(--primary-color);">
+                                    <i class="bi bi-3-circle-fill"></i>
+                                </div>
+                                <h6 class="fw-bold">승인 대기</h6>
+                                <p class="small text-muted mb-0">관리자 승인을 기다립니다</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="p-3">
+                                <div class="mb-2" style="font-size: 2rem; color: var(--accent-color);">
+                                    <i class="bi bi-4-circle-fill"></i>
+                                </div>
+                                <h6 class="fw-bold">대회 참가</h6>
+                                <p class="small text-muted mb-0">일정에 맞춰 참가하세요</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<th:block layout:fragment="script">
+<script>
+    // 카드 호버 효과
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+                this.style.boxShadow = '0 12px 40px rgba(0,0,0,0.15)';
+            });
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '';
+            });
+        });
+    });
+</script>
+</th:block>
+
+</body>
+</html>

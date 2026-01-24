@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}">
+<head>
+    <title>예선 조 편성 결과</title>
+    <!-- groupList.html 전용 CSS는 여기에 넣거나, layout.html의 layout:fragment="css"에 주입 -->
+    <th:block layout:fragment="css">
+        <style>
+            .group-section {
+                border: 1px solid #dee2e6;
+                border-radius: 8px;
+                padding: 20px;
+                margin-bottom: 30px;
+                background-color: #ffffff;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            }
+            .group-title {
+                font-size: 1.8rem;
+                font-weight: bold;
+                color: #007bff;
+                margin-bottom: 25px;
+                border-bottom: 2px solid #007bff;
+                padding-bottom: 10px;
+                display: flex;
+                align-items: center;
+            }
+            .group-title i {
+                margin-right: 10px;
+            }
+            .section-subtitle {
+                font-size: 1.4rem;
+                font-weight: bold;
+                color: #343a40;
+                margin-top: 30px;
+                margin-bottom: 20px;
+                padding-left: 5px;
+                border-left: 4px solid #6c757d;
+            }
+            /* 스코어 입력 필드 스타일 */
+            .match-score-input {
+                width: 45px;
+                text-align: center;
+                margin: 0 2px;
+                padding: 0.25rem 0.5rem;
+                font-size: 0.875rem;
+                line-height: 1.5;
+                border-radius: 0.2rem;
+                border: 1px solid #ced4da;
+            }
+            /* 승자 점수 하이라이트 */
+            .winner-highlight {
+                font-weight: bold;
+                color: #28a745; /* 초록색 */
+                font-size: 1.1em;
+            }
+            /* match-status 뱃지 스타일 */
+            .match-status {
+                padding: .3em .6em;
+                border-radius: .25rem;
+                font-size: .75em;
+                font-weight: 700;
+                color: #fff;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+<div layout:fragment="content" class="container mt-4">
+    <h2 class="mb-4 text-center">
+        <span th:text="${tournament.title}">대회명</span>
+        <br><small class="text-muted">(예선 조 편성 결과 및 경기 진행)</small>
+    </h2>
+
+    <div id="bracketContainer" class="mb-5">
+        <!-- JS로 동적으로 조 편성 결과가 로드될 영역 -->
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">대진표를 불러오는 중입니다...</p>
+        </div>
+    </div>
+
+    <div class="d-grid gap-2 col-6 mx-auto mb-4">
+        <a th:href="@{/tournament/detail/{id}(id=${tournament.id})}" class="btn btn-outline-secondary">대회 상세 페이지로 돌아가기</a>
+    </div>
+
+</div>
+
+<!-- ⭐⭐⭐ layout.html의 'script' 프래그먼트에 스크립트 주입! ⭐⭐⭐ -->
+<th:block layout:fragment="script">
+    <!-- jQuery는 layout.html에서 이미 로드됨 -->
+    <!-- group-bracket.js 스크립트 추가 -->
+    <script th:src="@{/js/group-bracket.js}"></script>
+
+    <script th:inline="javascript">
+        $(document).ready(function() {
+            // ⭐⭐ tournamentId를 글로벌 변수 또는 쉽게 접근할 수 있는 방식으로 추출 ⭐⭐
+            const tournamentId = /*[[${tournament.id}]]*/ '1';
+            window.currentTournamentId = tournamentId; // 나중에 필요할 경우를 대비해 window 객체에 저장
+
+            console.log('FRONTEND DEBUG: groupList.html inline script block started.');
+            console.log('FRONTEND DEBUG: jQuery ready function started.');
+            console.log('FRONTEND DEBUG: Tournament ID fetched from HTML data attribute:', tournamentId);
+
+            if (tournamentId) {
+                renderGroupBrackets(tournamentId, '#bracketContainer');
+            } else {
+                $('#bracketContainer').html(`
+                    <div class="alert alert-warning text-center py-4 rounded-3 shadow-sm">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i> 토너먼트 ID를 찾을 수 없습니다.
+                    </div>
+                `);
+            }
+        });
+    </script>
+</th:block>
+
+</body>
+</html>

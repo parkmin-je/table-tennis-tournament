@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}">
+<head>
+    <title>대회 등록</title>
+</head>
+<body>
+<div layout:fragment="content" class="container my-3">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="text-center mb-4 text-primary fw-bold">대회 등록</h2>
+            <form th:action="@{/tournament/create}" th:object="${tournamentDto}" method="post">
+
+                <!-- 대회명 -->
+                <div class="mb-3">
+                    <label for="title" class="form-label">대회명</label>
+                    <input type="text" th:field="*{title}" class="form-control"
+                           th:classappend="${#fields.hasErrors('title')} ? 'is-invalid' : ''"
+                           placeholder="대회명을 입력하세요">
+                    <div th:if="${#fields.hasErrors('title')}" th:errors="*{title}" class="invalid-feedback"></div>
+                </div>
+
+                <!-- 설명 -->
+                <div class="mb-3">
+                    <label for="description" class="form-label">설명</label>
+                    <textarea th:field="*{description}" class="form-control"
+                              th:classappend="${#fields.hasErrors('description')} ? 'is-invalid' : ''"
+                              rows="3" placeholder="대회 설명을 입력하세요"></textarea>
+                    <div th:if="${#fields.hasErrors('description')}" th:errors="*{description}" class="invalid-feedback"></div>
+                </div>
+
+                <!-- 시작일시 -->
+                <div class="mb-3">
+                    <label for="startDate" class="form-label">시작일시</label>
+                    <input type="datetime-local" th:field="*{startDate}" class="form-control"
+                           th:classappend="${#fields.hasErrors('startDate')} ? 'is-invalid' : ''">
+                    <div th:if="${#fields.hasErrors('startDate')}" th:errors="*{startDate}" class="invalid-feedback"></div>
+                </div>
+
+                <!-- 종료일시 -->
+                <div class="mb-3">
+                    <label for="endDate" class="form-label">종료일시</label>
+                    <input type="datetime-local" th:field="*{endDate}" class="form-control"
+                           th:classappend="${#fields.hasErrors('endDate')} ? 'is-invalid' : ''">
+                    <div th:if="${#fields.hasErrors('endDate')}" th:errors="*{endDate}" class="invalid-feedback"></div>
+                </div>
+
+                <!-- 경기 유형 -->
+                <div class="mb-3">
+                    <label for="type" class="form-label">경기 유형</label>
+                    <select th:field="*{type}" class="form-select"
+                            th:classappend="${#fields.hasErrors('type')} ? 'is-invalid' : ''">
+                        <option value="">경기 유형을 선택하세요</option>
+                        <option value="SINGLES">단식</option>
+                        <option value="DOUBLES">복식</option>
+                        <option value="MIXED_DOUBLES">혼합복식</option>
+                        <option value="TEAM">단체전</option>
+                    </select>
+                    <div th:if="${#fields.hasErrors('type')}" th:errors="*{type}" class="invalid-feedback"></div>
+                </div>
+
+                <!-- 주최 단체 -->
+                <div class="mb-3">
+                    <label for="name" class="form-label">주최 단체</label>
+                    <input type="text" th:field="*{name}" class="form-control"
+                           th:classappend="${#fields.hasErrors('name')} ? 'is-invalid' : ''"
+                           placeholder="주최 단체명을 입력하세요">
+                    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}" class="invalid-feedback"></div>
+                </div>
+
+                <!-- 대회 상태 -->
+                <div class="mb-3">
+                    <label for="status" class="form-label">대회 상태</label>
+                    <select th:field="*{status}" class="form-select"
+                            th:classappend="${#fields.hasErrors('status')} ? 'is-invalid' : ''">
+                        <option value="READY">준비중</option>
+                        <option value="RECRUITING">접수중</option>
+                        <option value="IN_PROGRESS">진행중</option>
+                        <option value="COMPLETED">종료</option>
+                    </select>
+                    <div th:if="${#fields.hasErrors('status')}" th:errors="*{status}" class="invalid-feedback"></div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100">대회 등록</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>
