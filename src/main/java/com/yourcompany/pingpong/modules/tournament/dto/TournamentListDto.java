@@ -1,4 +1,3 @@
-// ===== TournamentListDto.java (새 파일) =====
 package com.yourcompany.pingpong.modules.tournament.dto;
 
 import com.yourcompany.pingpong.domain.Tournament;
@@ -9,6 +8,11 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 
+/**
+ * 대회 목록 조회용 DTO
+ * 
+ * <p>대회 목록 페이지에서 사용되며, 참가자 수를 포함합니다.</p>
+ */
 @Getter
 @Setter
 public class TournamentListDto {
@@ -20,9 +24,13 @@ public class TournamentListDto {
     private TournamentStatus status;
     private TournamentType type;
     private String creatorName;
-    private int participationCount; // ✅ 참가자 수를 미리 계산
+    private int participationCount;
 
-    // ✅ Tournament 엔티티에서 DTO로 변환하는 생성자
+    /**
+     * Tournament 엔티티를 DTO로 변환
+     * 
+     * @param tournament 대회 엔티티
+     */
     public TournamentListDto(Tournament tournament) {
         this.id = tournament.getId();
         this.title = tournament.getTitle();
@@ -35,8 +43,6 @@ public class TournamentListDto {
             (tournament.getCreator().getName() != null ? 
                 tournament.getCreator().getName() : 
                 tournament.getCreator().getUsername()) : "알 수 없음";
-        // ✅ participations 컬렉션을 직접 접근하지 않고 Repository에서 COUNT 쿼리로 가져옴
-        this.participationCount = 0; // Service에서 설정
+        this.participationCount = 0; // Service에서 별도로 설정
     }
 }
-
