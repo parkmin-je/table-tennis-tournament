@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>대회 목록</title>
+    <th:block layout:fragment="css">
+        <style>
+            .page-hero {
+                background: linear-gradient(135deg, #0056b3 0%, #003d82 100%);
+                color: white;
+                padding: 3rem 0 2rem;
+                margin-bottom: 2rem;
+                position: relative;
+                overflow: hidden;
+            }
+            .page-hero::after {
+                content: '';
+                position: absolute;
+                bottom: -1px; left: 0; right: 0;
+                height: 40px;
+                background: var(--bg-light);
+                clip-path: ellipse(55% 100% at 50% 100%);
+            }
+
+            /* 필터 바 */
+            .filter-bar {
+                background: var(--bg-white);
+                border-radius: 14px;
+                padding: 1rem 1.5rem;
+                box-shadow: var(--shadow-sm);
+                border: 1px solid var(--border-color);
+                display: flex;
+                align-items: center;
+                gap: 0.75rem;
+                flex-wrap: wrap;
+                margin-bottom: 1.5rem;
+            }
+
+            .filter-chip {
+                padding: 0.45rem 1.2rem;
+                border-radius: 20px;
+                border: 2px solid var(--border-color);
+                background: transparent;
+                color: var(--text-secondary);
+                font-weight: 600;
+                font-size: 0.88rem;
+                cursor: pointer;
+                transition: all 0.25s ease;
+                white-space: nowrap;
+            }
+            .filter-chip:hover { border-color: var(--primary-color); color: var(--primary-color); }
+            .filter-chip.active {
+                background: var(--primary-color);
+                border-color: var(--primary-color);
+                color: white;
+                box-shadow: 0 4px 12px rgba(0,102,204,0.25);
+            }
+            .filter-chip.chip-recruiting.active { background:#28a745; border-color:#28a745; box-shadow:0 4px 12px rgba(40,167,69,0.25); }
+            .filter-chip.chip-progress.active  { background:#f57c00; border-color:#f57c00; color:white; box-shadow:0 4px 12px rgba(245,124,0,0.25); }
+            .filter-chip.chip-completed.active { background:#495057; border-color:#495057; box-shadow:0 4px 12px rgba(73,80,87,0.25); }
+
+            /* 대회 카드 */
+            .tournament-card {
+                background: var(--bg-white);
+                border-radius: 16px;
+                overflow: hidden;
+                border: 1px solid var(--border-color);
+                box-shadow: var(--shadow-sm);
+                transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                position: relative;
+            }
+            .tournament-card:hover {
+                transform: translateY(-8px);
+                box-shadow: 0 20px 50px rgba(0,102,204,0.13);
+                border-color: rgba(0,102,204,0.3);
+            }
+            .tournament-card.hidden { display: none; }
+
+            .card-ribbon {
+                position: absolute;
+                top: 16px; right: -10px;
+                background: #28a745;
+                color: white;
+                font-size: 0.72rem;
+                font-weight: 800;
+                padding: 0.3rem 1.2rem 0.3rem 0.8rem;
+                border-radius: 4px 0 0 4px;
+                letter-spacing: 0.05em;
+                text-transform: uppercase;
+                box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+                z-index: 5;
+            }
+            .card-ribbon.in-progress { background: #f57c00; }
+            .card-ribbon.completed   { background: #495057; }
+            .card-ribbon.ready       { background: #6c757d; }
+
+            .card-header-tournament {
+                background: linear-gradient(135deg, #0056b3, #003d82);
+                color: white;
+                padding: 1.4rem 1.5rem;
+                position: relative;
+            }
+
+            .card-type-badge {
+                display: inline-block;
+                padding: 0.2rem 0.6rem;
+                background: rgba(255,255,255,0.2);
+                border-radius: 6px;
+                font-size: 0.75rem;
+                font-weight: 600;
+                margin-bottom: 0.5rem;
+            }
+
+            .card-title-text {
+                font-size: 1.1rem;
+                font-weight: 800;
+                line-height: 1.3;
+                margin: 0;
+                color: white;
+            }
+
+            .card-body-tournament {
+                padding: 1.4rem 1.5rem;
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .card-desc {
+                font-size: 0.88rem;
+                color: var(--text-secondary);
+                line-height: 1.7;
+                flex-grow: 1;
+                margin-bottom: 1rem;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+            }
+
+            .info-list { list-style: none; padding: 0; margin: 0; }
+            .info-list li {
+                display: flex; align-items: center; gap: 0.6rem;
+                font-size: 0.88rem; color: var(--text-secondary);
+                padding: 0.3rem 0;
+                border-bottom: 1px solid var(--bg-light);
+            }
+            .info-list li:last-child { border-bottom: none; }
+            .info-list i { width: 16px; text-align: center; color: var(--primary-color); }
+
+            .card-footer-tournament {
+                padding: 1rem 1.5rem;
+                background: var(--bg-light);
+                border-top: 1px solid var(--border-color);
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            .participant-chip {
+                display: flex; align-items: center; gap: 0.4rem;
+                font-size: 0.82rem; color: var(--text-secondary);
+                background: var(--bg-white);
+                padding: 0.25rem 0.7rem;
+                border-radius: 12px;
+                border: 1px solid var(--border-color);
+            }
+
+            /* 빈 상태 */
+            .empty-state {
+                text-align: center;
+                padding: 5rem 2rem;
+                color: var(--text-secondary);
+            }
+            .empty-state-icon {
+                font-size: 5rem;
+                opacity: 0.25;
+                margin-bottom: 1.5rem;
+                display: block;
+            }
+
+            /* 대회 개수 카운터 */
+            .count-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                background: rgba(255,255,255,0.2);
+                padding: 0.3rem 0.9rem;
+                border-radius: 20px;
+                font-size: 0.9rem;
+                font-weight: 600;
+            }
+
+            /* 정렬 */
+            .sort-select {
+                padding: 0.4rem 0.8rem;
+                border-radius: 8px;
+                border: 2px solid var(--border-color);
+                font-size: 0.88rem;
+                font-weight: 600;
+                color: var(--text-secondary);
+                background: var(--bg-white);
+                cursor: pointer;
+                outline: none;
+            }
+            .sort-select:focus { border-color: var(--primary-color); }
+
+            /* 검색 */
+            .search-input {
+                flex: 1;
+                min-width: 180px;
+                max-width: 300px;
+                padding: 0.45rem 1rem;
+                border-radius: 20px;
+                border: 2px solid var(--border-color);
+                font-size: 0.88rem;
+                outline: none;
+                transition: all 0.2s;
+                background: var(--bg-white);
+                color: var(--text-primary);
+            }
+            .search-input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,102,204,0.1); }
+
+            /* 참가 안내 */
+            .guide-card {
+                background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+                border-radius: 16px;
+                padding: 2.5rem;
+                border: none;
+            }
+            [data-theme="dark"] .guide-card { background: linear-gradient(135deg, #1e1e30, #252540); }
+
+            .guide-step {
+                text-align: center;
+                padding: 1rem;
+            }
+            .guide-step-icon {
+                width: 56px; height: 56px;
+                border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                margin: 0 auto 1rem;
+                font-size: 1.6rem;
+                font-weight: 900;
+                color: white;
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- 페이지 히어로 -->
+    <div class="page-hero">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="fw-black mb-1" style="font-size:2.3rem; letter-spacing:-0.02em;">
+                        <i class="bi bi-trophy-fill me-2" style="color:#ffd700;"></i>안산시 탁구 대회
+                    </h1>
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="count-badge">
+                            <i class="bi bi-list-ul"></i>
+                            <span>전체 <strong th:text="${tournaments.size()}">0</strong>개</span>
+                        </span>
+                    </div>
+                </div>
+                <a th:href="@{/tournament/create}"
+                   class="btn btn-light fw-bold px-4"
+                   sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+                    <i class="bi bi-plus-circle-fill me-2" style="color:#0066cc;"></i>새 대회 등록
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+
+        <!-- 필터 & 검색 바 -->
+        <div class="filter-bar">
+            <button class="filter-chip active" data-filter="all" onclick="filterCards(this, 'all')">
+                <i class="bi bi-grid me-1"></i>전체
+            </button>
+            <button class="filter-chip chip-recruiting" data-filter="RECRUITING" onclick="filterCards(this, 'RECRUITING')">
+                <i class="bi bi-megaphone me-1"></i>접수중
+            </button>
+            <button class="filter-chip chip-progress" data-filter="IN_PROGRESS" onclick="filterCards(this, 'IN_PROGRESS')">
+                <i class="bi bi-play-circle me-1"></i>진행중
+            </button>
+            <button class="filter-chip chip-completed" data-filter="COMPLETED" onclick="filterCards(this, 'COMPLETED')">
+                <i class="bi bi-check-circle me-1"></i>종료
+            </button>
+            <button class="filter-chip" data-filter="READY" onclick="filterCards(this, 'READY')">
+                <i class="bi bi-clock me-1"></i>준비중
+            </button>
+
+            <div class="ms-auto d-flex align-items-center gap-2">
+                <i class="bi bi-search text-muted"></i>
+                <input type="text" class="search-input" id="tournamentSearch"
+                       placeholder="대회명 검색..." oninput="searchCards(this.value)">
+            </div>
+        </div>
+
+        <!-- 결과 없음 표시 -->
+        <div id="noResults" class="empty-state" style="display:none;">
+            <span class="empty-state-icon"><i class="bi bi-search"></i></span>
+            <h4 class="fw-bold mb-2">검색 결과가 없습니다</h4>
+            <p class="mb-0">다른 키워드나 필터를 사용해보세요.</p>
+        </div>
+
+        <!-- 대회가 없을 때 -->
+        <div th:if="${tournaments.isEmpty()}" class="empty-state">
+            <span class="empty-state-icon"><i class="bi bi-trophy"></i></span>
+            <h4 class="fw-bold mb-2">등록된 대회가 없습니다</h4>
+            <p class="mb-4">새로운 대회를 등록하고 참가자들을 모집해보세요!</p>
+            <a th:href="@{/tournament/create}" class="btn btn-primary btn-lg"
+               sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+                <i class="bi bi-plus-circle-fill me-2"></i>첫 대회 만들기
+            </a>
+        </div>
+
+        <!-- 대회 카드 목록 -->
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="tournamentGrid" th:if="${!tournaments.isEmpty()}">
+            <div class="col tournament-item"
+                 th:each="tournament : ${tournaments}"
+                 th:attr="data-status=${tournament.status.name()}, data-title=${tournament.title}">
+                <div class="tournament-card h-100">
+
+                    <!-- 리본 -->
+                    <div class="card-ribbon"
+                         th:classappend="${tournament.status.name() == 'RECRUITING' ? '' :
+                                          (tournament.status.name() == 'IN_PROGRESS' ? ' in-progress' :
+                                          (tournament.status.name() == 'COMPLETED' ? ' completed' : ' ready'))}"
+                         th:text="${tournament.status.description}">접수중</div>
+
+                    <!-- 카드 헤더 -->
+                    <div class="card-header-tournament">
+                        <div class="card-type-badge" th:text="${tournament.type.description}">단식</div>
+                        <h5 class="card-title-text" th:text="${tournament.title}">대회명</h5>
+                    </div>
+
+                    <!-- 카드 바디 -->
+                    <div class="card-body-tournament">
+                        <p class="card-desc" th:text="${tournament.description}">대회 설명</p>
+
+                        <ul class="info-list">
+                            <li>
+                                <i class="bi bi-calendar-event"></i>
+                                <span>
+                                    <span th:text="${#temporals.format(tournament.startDate, 'yyyy.MM.dd')}"></span>
+                                    <span class="mx-1 text-muted">~</span>
+                                    <span th:text="${#temporals.format(tournament.endDate, 'yyyy.MM.dd')}"></span>
+                                </span>
+                            </li>
+                            <li th:if="${tournament.creator != null}">
+                                <i class="bi bi-person-badge"></i>
+                                <span th:text="${tournament.creator.name != null ? tournament.creator.name : tournament.creator.username}">주최자</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- 카드 푸터 -->
+                    <div class="card-footer-tournament">
+                        <div class="participant-chip">
+                            <i class="bi bi-people-fill text-success"></i>
+                            <strong th:text="${tournament.participations != null ? tournament.participations.size() : 0}">0</strong>
+                            <span>명 참가</span>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <form th:action="@{|/participation/apply/${tournament.id}|}" method="post"
+                                  sec:authorize="isAuthenticated()"
+                                  th:if="${tournament.status.name() == 'RECRUITING'}">
+                                <button type="submit" class="btn btn-success btn-sm fw-bold"
+                                        onclick="return confirm('이 대회에 참가 신청하시겠습니까?');">
+                                    <i class="bi bi-pencil-square me-1"></i>신청
+                                </button>
+                            </form>
+                            <a th:href="@{|/tournament/detail/${tournament.id}|}"
+                               class="btn btn-primary btn-sm fw-bold">
+                                <i class="bi bi-arrow-right-circle me-1"></i>상세보기
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 참가 안내 -->
+        <div class="mt-5" th:if="${!tournaments.isEmpty()}">
+            <div class="guide-card">
+                <h4 class="fw-bold text-center mb-4">
+                    <i class="bi bi-lightbulb-fill text-warning me-2"></i>대회 참가 안내
+                </h4>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="guide-step">
+                            <div class="guide-step-icon" style="background:linear-gradient(135deg,#0066cc,#4d94ff);">1</div>
+                            <h6 class="fw-bold">대회 선택</h6>
+                            <p class="small text-muted mb-0">원하는 대회를 찾아보세요</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="guide-step">
+                            <div class="guide-step-icon" style="background:linear-gradient(135deg,#28a745,#20c997);">2</div>
+                            <h6 class="fw-bold">참가 신청</h6>
+                            <p class="small text-muted mb-0">로그인 후 신청하기</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="guide-step">
+                            <div class="guide-step-icon" style="background:linear-gradient(135deg,#f57c00,#ffa000);">3</div>
+                            <h6 class="fw-bold">승인 대기</h6>
+                            <p class="small text-muted mb-0">관리자 승인을 기다립니다</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="guide-step">
+                            <div class="guide-step-icon" style="background:linear-gradient(135deg,#dc3545,#c82333);">4</div>
+                            <h6 class="fw-bold">대회 참가</h6>
+                            <p class="small text-muted mb-0">일정에 맞춰 참가하세요</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<th:block layout:fragment="script">
+<script>
+    let currentFilter = 'all';
+    let currentSearch = '';
+
+    function filterCards(btn, filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-chip').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyFilters();
+    }
+
+    function searchCards(value) {
+        currentSearch = value.toLowerCase().trim();
+        applyFilters();
+    }
+
+    function applyFilters() {
+        const items = document.querySelectorAll('.tournament-item');
+        let visibleCount = 0;
+
+        items.forEach(function(item) {
+            const status = item.getAttribute('data-status');
+            const title  = (item.getAttribute('data-title') || '').toLowerCase();
+            const matchesFilter = currentFilter === 'all' || status === currentFilter;
+            const matchesSearch = !currentSearch || title.includes(currentSearch);
+
+            if (matchesFilter && matchesSearch) {
+                item.style.display = '';
+                visibleCount++;
+                // 카드 등장 애니메이션
+                item.style.animation = 'none';
+                item.offsetHeight; // reflow
+                item.style.animation = 'scaleIn 0.3s ease-out';
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        const noResults = document.getElementById('noResults');
+        if (noResults) {
+            noResults.style.display = visibleCount === 0 && items.length > 0 ? 'block' : 'none';
+        }
+    }
+
+    // 카드 진입 애니메이션
+    document.addEventListener('DOMContentLoaded', function() {
+        const cards = document.querySelectorAll('.tournament-item');
+        cards.forEach(function(card, i) {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(function() {
+                card.style.transition = 'all 0.4s ease-out';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, i * 80);
+        });
+    });
+</script>
+</th:block>
+
+</body>
+</html>

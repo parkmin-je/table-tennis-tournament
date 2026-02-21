@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>안산시 탁구 협회</title>
+    <th:block layout:fragment="css">
+        <style>
+            /* ====== HERO ====== */
+            .hero-section {
+                position: relative;
+                background: linear-gradient(135deg, #0056b3 0%, #003d82 50%, #001f50 100%);
+                color: white;
+                padding: 120px 0 280px;
+                overflow: hidden;
+                min-height: 550px;
+            }
+
+            .hero-section h1 {
+                font-size: 3.8rem;
+                font-weight: 900;
+                text-shadow: 0 4px 20px rgba(0,0,0,0.35);
+                margin-bottom: 1rem;
+                animation: fadeInDown 0.9s ease-out;
+                letter-spacing: -0.02em;
+            }
+
+            .hero-sub {
+                font-size: 1.3rem;
+                font-weight: 300;
+                opacity: 0.9;
+                margin-bottom: 2.5rem;
+                animation: fadeInDown 0.9s ease-out 0.15s both;
+            }
+
+            .hero-buttons {
+                animation: fadeInUp 0.9s ease-out 0.3s both;
+            }
+
+            .hero-section .btn {
+                box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+                padding: 0.85rem 2.5rem;
+                font-size: 1.05rem;
+                transition: all 0.3s ease;
+            }
+
+            .hero-section .btn:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 10px 28px rgba(0,0,0,0.35);
+            }
+
+            /* 탁구대 */
+            .ping-pong-table {
+                position: absolute;
+                bottom: 80px;
+                left: 50%;
+                transform: translateX(-50%) perspective(600px) rotateX(30deg);
+                width: 620px;
+                height: 310px;
+                background: linear-gradient(to bottom, #1a6b3c 0%, #0d4a28 50%, #0a3d20 100%);
+                border: 8px solid #0a2d18;
+                border-radius: 8px;
+                box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 0 60px rgba(0,0,0,0.2);
+                z-index: 1;
+            }
+
+            .ping-pong-table::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 50%;
+                transform: translateX(-50%);
+                width: 4px; height: 100%;
+                background: rgba(255,255,255,0.6);
+            }
+
+            .ping-pong-table::after {
+                content: '';
+                position: absolute;
+                top: -14px; left: 8%;
+                width: 84%; height: 14px;
+                background: linear-gradient(90deg, rgba(255,255,255,0.1), rgba(255,255,255,0.5), rgba(255,255,255,0.1));
+                border-radius: 2px;
+            }
+
+            .ping-pong-ball {
+                position: absolute;
+                width: 22px; height: 22px;
+                background: radial-gradient(circle at 30% 30%, #fff8f0, #ffcc88, #ff9800);
+                border-radius: 50%;
+                box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset -3px -3px 6px rgba(0,0,0,0.15), inset 2px 2px 5px rgba(255,255,255,0.6);
+                z-index: 10;
+                animation: ballBounce 3s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+            }
+
+            @keyframes ballBounce {
+                0%   { left:15%; bottom:200px; transform:scale(1); }
+                12.5%{ left:30%; bottom:330px; transform:scale(0.88); }
+                25%  { left:50%; bottom:258px; transform:scale(1); }
+                37.5%{ left:70%; bottom:348px; transform:scale(0.83); }
+                50%  { left:85%; bottom:215px; transform:scale(1); }
+                62.5%{ left:70%; bottom:338px; transform:scale(0.9); }
+                75%  { left:50%; bottom:268px; transform:scale(1); }
+                87.5%{ left:30%; bottom:318px; transform:scale(0.94); }
+                100% { left:15%; bottom:200px; transform:scale(1); }
+            }
+
+            .paddle-left {
+                position: absolute; left: 10%; bottom: 180px;
+                width: 62px; height: 74px;
+                background: radial-gradient(ellipse at center, #e53935 0%, #b71c1c 100%);
+                border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+                border: 4px solid #7b1111; z-index: 2;
+                animation: paddleLeftSwing 3s ease-in-out infinite;
+                box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+            }
+            .paddle-left::after {
+                content: ''; position: absolute;
+                bottom: -34px; left: 50%; transform: translateX(-50%);
+                width: 10px; height: 34px;
+                background: linear-gradient(to bottom, #4e342e, #6d4c41);
+                border-radius: 5px;
+            }
+            @keyframes paddleLeftSwing {
+                0%, 100% { transform: rotate(-15deg) translateY(0); }
+                10%  { transform: rotate(18deg) translateY(-12px); }
+                50%  { transform: rotate(-10deg) translateY(0); }
+                85%  { transform: rotate(22deg) translateY(-16px); }
+            }
+
+            .paddle-right {
+                position: absolute; right: 10%; bottom: 192px;
+                width: 62px; height: 74px;
+                background: radial-gradient(ellipse at center, #1e88e5 0%, #0d47a1 100%);
+                border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+                border: 4px solid #0a2d6e; z-index: 2;
+                animation: paddleRightSwing 3s ease-in-out infinite;
+                box-shadow: 0 6px 16px rgba(0,0,0,0.35);
+            }
+            .paddle-right::after {
+                content: ''; position: absolute;
+                bottom: -34px; left: 50%; transform: translateX(-50%);
+                width: 10px; height: 34px;
+                background: linear-gradient(to bottom, #4e342e, #6d4c41);
+                border-radius: 5px;
+            }
+            @keyframes paddleRightSwing {
+                0%, 100% { transform: rotate(10deg) translateY(0); }
+                45% { transform: rotate(-22deg) translateY(-16px); }
+                55% { transform: rotate(18deg) translateY(-12px); }
+            }
+
+            /* 배경 원 */
+            .bg-circle {
+                position: absolute; border-radius: 50%;
+                background: rgba(255,255,255,0.04);
+                animation: floatCircle 20s ease-in-out infinite;
+            }
+            .bg-circle:nth-child(1) { width:350px; height:350px; top:-120px; left:-120px; }
+            .bg-circle:nth-child(2) { width:250px; height:250px; top:50%; right:-60px; animation-delay:3s; }
+            .bg-circle:nth-child(3) { width:180px; height:180px; bottom:22%; left:8%; animation-delay:6s; }
+            .bg-circle:nth-child(4) { width:120px; height:120px; top:30%; left:42%; animation-delay:9s; }
+            @keyframes floatCircle {
+                0%,100% { transform: translateY(0) scale(1); }
+                50% { transform: translateY(-28px) scale(1.07); }
+            }
+
+            /* 파티클 */
+            .hero-particles { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+            .particle {
+                position: absolute; border-radius: 50%;
+                background: rgba(255,255,255,0.12);
+                animation: particleRise linear infinite;
+            }
+            @keyframes particleRise {
+                0%   { transform: translateY(100%) scale(0); opacity: 0; }
+                10%  { opacity: 1; }
+                90%  { opacity: 0.8; }
+                100% { transform: translateY(-100px) scale(1); opacity: 0; }
+            }
+
+            /* 영웅 콘텐츠 */
+            .hero-content {
+                position: relative; z-index: 10;
+                text-align: center; padding-top: 30px;
+            }
+
+            @keyframes fadeInDown {
+                from { opacity:0; transform:translateY(-25px); }
+                to   { opacity:1; transform:translateY(0); }
+            }
+            @keyframes fadeInUp {
+                from { opacity:0; transform:translateY(25px); }
+                to   { opacity:1; transform:translateY(0); }
+            }
+
+            /* ====== QUICK STATS ====== */
+            .quick-stats-section {
+                background: var(--bg-white);
+                box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+            }
+
+            .stat-item {
+                padding: 1.8rem 1rem;
+                text-align: center;
+                border-right: 1px solid var(--border-color);
+                transition: background 0.2s;
+            }
+            .stat-item:last-child { border-right: none; }
+            .stat-item:hover { background: var(--bg-light); }
+
+            .stat-number-animated {
+                font-size: 2.4rem;
+                font-weight: 900;
+                line-height: 1;
+                display: block;
+                margin-bottom: 0.3rem;
+            }
+
+            .stat-number-animated.blue {
+                background: linear-gradient(135deg, #0066cc, #4d94ff);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            .stat-number-animated.orange {
+                background: linear-gradient(135deg, #ff6600, #ff9800);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            .stat-number-animated.green {
+                background: linear-gradient(135deg, #00cc66, #00e676);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+            .stat-number-animated.dark {
+                background: linear-gradient(135deg, #333, #666);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            /* ====== SECTION TITLE ====== */
+            .section-title {
+                font-size: 2.3rem;
+                font-weight: 800;
+                color: var(--text-primary);
+                margin-bottom: 2.8rem;
+                text-align: center;
+                position: relative;
+                padding-bottom: 1rem;
+                letter-spacing: -0.02em;
+            }
+            .section-title::after {
+                content: '';
+                position: absolute;
+                bottom: 0; left: 50%;
+                transform: translateX(-50%);
+                width: 60px; height: 4px;
+                background: linear-gradient(90deg, #0066cc, #4d94ff);
+                border-radius: 2px;
+            }
+
+            /* ====== FEATURE CARDS ====== */
+            .feature-card {
+                padding: 2.5rem 2rem;
+                border-radius: 16px;
+                background: var(--bg-white);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+                transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+                border: 1px solid var(--border-color);
+                position: relative;
+                overflow: hidden;
+                text-decoration: none;
+                color: inherit;
+            }
+            .feature-card::before {
+                content: '';
+                position: absolute;
+                top: 0; left: 0; right: 0;
+                height: 4px;
+                background: linear-gradient(90deg, #0066cc, #4d94ff);
+                transform: scaleX(0);
+                transition: transform 0.3s ease;
+            }
+            .feature-card:hover::before { transform: scaleX(1); }
+            .feature-card:hover {
+                transform: translateY(-12px);
+                box-shadow: 0 20px 50px rgba(0,102,204,0.15);
+                border-color: rgba(0,102,204,0.3);
+            }
+            .feature-card .icon {
+                font-size: 3.5rem;
+                color: var(--primary-color);
+                margin-bottom: 1.5rem;
+                display: inline-block;
+                transition: all 0.4s ease;
+            }
+            .feature-card:hover .icon {
+                transform: scale(1.25) rotate(8deg);
+                color: #ff6600;
+                filter: drop-shadow(0 4px 8px rgba(255,102,0,0.3));
+            }
+            .feature-card h3 {
+                font-size: 1.35rem;
+                font-weight: 700;
+                margin-bottom: 0.8rem;
+                color: var(--text-primary);
+            }
+            .feature-card p {
+                font-size: 0.92rem;
+                color: var(--text-secondary);
+                flex-grow: 1;
+                margin-bottom: 1.5rem;
+                line-height: 1.7;
+            }
+
+            /* ====== MATCH CARDS ====== */
+            .match-card {
+                background: var(--bg-white);
+                border-radius: 14px;
+                overflow: hidden;
+                box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+                transition: all 0.3s ease;
+                border: 1px solid var(--border-color);
+            }
+            .match-card:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 12px 36px rgba(0,0,0,0.14);
+            }
+            .match-card-header {
+                background: linear-gradient(135deg, #0056b3, #003d82);
+                color: white;
+                padding: 1rem 1.5rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+            .match-card-body { padding: 1.5rem; }
+            .player-name { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); }
+
+            /* ====== STATUS BADGES ====== */
+            .status-badge { padding:0.35rem 0.9rem; border-radius:20px; font-size:0.82rem; font-weight:700; }
+            .status-scheduled { background:rgba(255,255,255,0.2); color:white; }
+            .status-in_progress { background:#ffc107; color:#000; animation: pulse-badge 2s infinite; }
+            .status-completed { background:rgba(255,255,255,0.15); color:white; }
+            @keyframes pulse-badge { 0%,100%{opacity:1} 50%{opacity:0.7} }
+
+            /* ====== TOURNAMENT CARDS ====== */
+            .tournament-card {
+                background: var(--bg-white);
+                border-radius: 16px;
+                overflow: hidden;
+                border: 1px solid var(--border-color);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+                transition: all 0.3s ease;
+                height: 100%;
+                display: flex;
+                flex-direction: column;
+            }
+            .tournament-card:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 16px 40px rgba(0,102,204,0.12);
+                border-color: rgba(0,102,204,0.3);
+            }
+            .tournament-card-header {
+                background: linear-gradient(135deg, #0056b3, #003d82);
+                color: white;
+                padding: 1.2rem 1.5rem;
+            }
+            .tournament-card-body {
+                padding: 1.5rem;
+                flex: 1;
+            }
+            .tournament-card-footer {
+                padding: 1rem 1.5rem;
+                background: var(--bg-light);
+                border-top: 1px solid var(--border-color);
+            }
+
+            /* ====== PLAYER CARD ====== */
+            .player-mini-card {
+                background: var(--bg-white);
+                border-radius: 14px;
+                padding: 1.5rem 1rem;
+                text-align: center;
+                border: 1px solid var(--border-color);
+                box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+                transition: all 0.3s ease;
+                height: 100%;
+            }
+            .player-mini-card:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 12px 32px rgba(0,102,204,0.12);
+                border-color: rgba(0,102,204,0.3);
+            }
+            .player-avatar {
+                width: 70px; height: 70px;
+                margin: 0 auto 1rem;
+                background: linear-gradient(135deg, #0066cc, #4d94ff);
+                border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                box-shadow: 0 4px 12px rgba(0,102,204,0.3);
+            }
+            .player-avatar i { font-size: 2.5rem; color: white; }
+
+            /* ====== CTA ====== */
+            .cta-section {
+                background: linear-gradient(135deg, #0056b3 0%, #003d82 60%, #001f50 100%);
+                position: relative;
+                overflow: hidden;
+            }
+            .cta-section::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(ellipse at 30% 50%, rgba(255,102,0,0.1) 0%, transparent 60%),
+                            radial-gradient(ellipse at 80% 20%, rgba(0,204,102,0.08) 0%, transparent 50%);
+            }
+
+            /* 반응형 */
+            @media (max-width: 768px) {
+                .hero-section { padding: 100px 0 280px; min-height: 600px; }
+                .hero-section h1 { font-size: 2.2rem; }
+                .hero-sub { font-size: 1rem; }
+                .ping-pong-table { width: 380px; height: 190px; bottom: 50px; }
+                .paddle-left, .paddle-right { width: 42px; height: 52px; }
+                .ping-pong-ball { width: 16px; height: 16px; }
+                .stat-item { border-right: none; border-bottom: 1px solid var(--border-color); }
+                .stat-item:last-child { border-bottom: none; }
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- ===== HERO SECTION ===== -->
+    <section class="hero-section">
+        <!-- 배경 원 -->
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+        <div class="bg-circle"></div>
+
+        <!-- 파티클 -->
+        <div class="hero-particles" id="heroParticles"></div>
+
+        <!-- 탁구대 & 공 & 라켓 -->
+        <div class="ping-pong-table"></div>
+        <div class="ping-pong-ball"></div>
+        <div class="paddle-left"></div>
+        <div class="paddle-right"></div>
+
+        <!-- 콘텐츠 -->
+        <div class="container hero-content">
+            <h1 class="display-1">탁구로 하나되는 안산!</h1>
+            <p class="hero-sub">안산시 탁구 협회 공식 대회 관리 시스템</p>
+            <div class="hero-buttons d-flex gap-3 justify-content-center flex-wrap">
+                <a th:href="@{/tournament/list}" class="btn btn-light btn-lg fw-bold px-5">
+                    <i class="bi bi-trophy-fill me-2" style="color:#0066cc;"></i>대회 참여하기
+                </a>
+                <a th:href="@{/calendar}" class="btn btn-outline-light btn-lg fw-bold px-4">
+                    <i class="bi bi-calendar-event-fill me-2"></i>대회 캘린더
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== QUICK STATS ===== -->
+    <section class="quick-stats-section">
+        <div class="container">
+            <div class="row g-0">
+                <div class="col-md-3 col-6">
+                    <div class="stat-item">
+                        <span class="stat-number-animated blue"
+                              data-target="${tournaments != null ? tournaments.size() : 0}"
+                              th:attr="data-target=${tournaments != null ? tournaments.size() : 0}">0</span>
+                        <small class="text-muted fw-600">진행 중인 대회</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-item">
+                        <span class="stat-number-animated orange"
+                              th:attr="data-target=${matches != null ? matches.size() : 0}">0</span>
+                        <small class="text-muted">오늘의 경기</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-item">
+                        <span class="stat-number-animated green"
+                              th:attr="data-target=${players != null ? players.size() : 0}">0</span>
+                        <small class="text-muted">등록 선수</small>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="stat-item">
+                        <span class="stat-number-animated dark" data-target="24">0</span>
+                        <small class="text-muted">보유 탁구대</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== MAIN FEATURES ===== -->
+    <section class="py-5">
+        <div class="container">
+            <h2 class="section-title">주요 서비스</h2>
+            <div class="row g-4">
+                <div class="col-md-3 col-sm-6">
+                    <a th:href="@{/calendar}" class="feature-card" style="text-decoration:none; color:inherit; display:flex;">
+                        <i class="bi bi-calendar-check-fill icon"></i>
+                        <h3>대회 캘린더</h3>
+                        <p>모든 대회 일정을 한눈에 확인하고 놓치지 마세요.</p>
+                        <span class="btn btn-outline-primary btn-sm mt-auto align-self-start">캘린더 보기</span>
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <a th:href="@{/tournament/list}" class="feature-card" style="text-decoration:none; color:inherit; display:flex;">
+                        <i class="bi bi-trophy-fill icon"></i>
+                        <h3>대회 참가</h3>
+                        <p>다양한 종목의 대회에 참가하고 실력을 겨루세요.</p>
+                        <span class="btn btn-outline-primary btn-sm mt-auto align-self-start">대회 보기</span>
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <a th:href="@{/board/list}" class="feature-card" style="text-decoration:none; color:inherit; display:flex;">
+                        <i class="bi bi-chat-dots-fill icon"></i>
+                        <h3>커뮤니티</h3>
+                        <p>대회 소식과 자유로운 의견을 공유하세요.</p>
+                        <span class="btn btn-outline-primary btn-sm mt-auto align-self-start">게시판 보기</span>
+                    </a>
+                </div>
+                <div class="col-md-3 col-sm-6">
+                    <a th:href="@{/player/ranking}" class="feature-card" style="text-decoration:none; color:inherit; display:flex;">
+                        <i class="bi bi-bar-chart-fill icon"></i>
+                        <h3>선수 랭킹</h3>
+                        <p>TOP 선수들의 랭킹과 상세 정보를 확인하세요.</p>
+                        <span class="btn btn-outline-primary btn-sm mt-auto align-self-start">랭킹 보기</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TODAY'S MATCHES ===== -->
+    <section class="py-5" style="background: var(--bg-light);" th:if="${matches != null and !matches.empty}">
+        <div class="container">
+            <h2 class="section-title">
+                <span class="live-indicator"></span>오늘의 경기
+            </h2>
+            <div class="row g-4">
+                <div class="col-lg-6" th:each="match, matchStat : ${matches}" th:if="${matchStat.index < 4}">
+                    <div class="match-card">
+                        <div class="match-card-header">
+                            <div>
+                                <span class="fw-bold" th:text="${match.roundName + ' ' + match.matchNumber + '경기'}">16강 1경기</span>
+                                <small class="d-block opacity-75" th:if="${match.tableNumber != null}"
+                                       th:text="'탁구대 ' + ${match.tableNumber} + '번'"></small>
+                            </div>
+                            <span class="status-badge"
+                                  th:classappend="${'status-' + match.status.name().toLowerCase()}"
+                                  th:text="${match.status.description}">예정</span>
+                        </div>
+                        <div class="match-card-body">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <div class="text-center" style="flex:1;">
+                                    <div class="player-name" th:text="${match.player1 != null ? match.player1.name : 'BYE'}">선수 1</div>
+                                    <small class="text-muted" th:if="${match.player1 != null and match.player1.club != null}"
+                                           th:text="${match.player1.club.name}"></small>
+                                </div>
+                                <div class="text-center mx-3">
+                                    <span class="fw-black text-muted" style="font-size:1.4rem; letter-spacing:-1px;">VS</span>
+                                </div>
+                                <div class="text-center" style="flex:1;">
+                                    <div class="player-name" th:text="${match.player2 != null ? match.player2.name : 'BYE'}">선수 2</div>
+                                    <small class="text-muted" th:if="${match.player2 != null and match.player2.club != null}"
+                                           th:text="${match.player2.club.name}"></small>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-center align-items-center gap-3 text-muted small">
+                                <span><i class="bi bi-clock me-1"></i>
+                                    <span th:text="${#temporals.format(match.matchTime, 'HH:mm')}">14:00</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <a th:href="@{/tournament/list}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-calendar-event me-2"></i>전체 경기 일정 보기
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== ONGOING TOURNAMENTS ===== -->
+    <section class="py-5" th:if="${tournaments != null and !tournaments.empty}">
+        <div class="container">
+            <h2 class="section-title">진행 중인 대회</h2>
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-4" th:each="tournament, ts : ${tournaments}" th:if="${ts.index < 3}">
+                    <div class="tournament-card">
+                        <div class="tournament-card-header">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <h5 class="fw-bold mb-1" th:text="${tournament.title}" style="line-height:1.3;">대회명</h5>
+                                <span class="badge ms-2 flex-shrink-0"
+                                      th:classappend="${tournament.status.name() == 'RECRUITING' ? 'bg-success' :
+                                                       (tournament.status.name() == 'IN_PROGRESS' ? 'bg-warning text-dark' : 'bg-secondary')}"
+                                      th:text="${tournament.status.description}">상태</span>
+                            </div>
+                            <small class="opacity-75" th:text="${tournament.type.description}">유형</small>
+                        </div>
+                        <div class="tournament-card-body">
+                            <p class="text-muted mb-3" style="font-size:0.9rem; line-height:1.6;"
+                               th:text="${tournament.description}">대회 설명</p>
+                            <ul class="list-unstyled mb-0 small">
+                                <li class="mb-2 d-flex align-items-center gap-2">
+                                    <i class="bi bi-calendar-event text-primary"></i>
+                                    <span th:text="${#temporals.format(tournament.startDate, 'yyyy.MM.dd')} + ' ~ ' + ${#temporals.format(tournament.endDate, 'yyyy.MM.dd')}"></span>
+                                </li>
+                                <li class="d-flex align-items-center gap-2">
+                                    <i class="bi bi-people text-success"></i>
+                                    <span>참가자 <strong th:text="${tournament.participations != null ? tournament.participations.size() : 0}">0</strong>명</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="tournament-card-footer d-flex gap-2 justify-content-end">
+                            <form th:action="@{|/participation/apply/${tournament.id}|}" method="post"
+                                  sec:authorize="isAuthenticated()"
+                                  th:if="${tournament.status.name() == 'RECRUITING'}">
+                                <button type="submit" class="btn btn-success btn-sm"
+                                        onclick="return confirm('이 대회에 참가 신청하시겠습니까?');">
+                                    <i class="bi bi-pencil-square me-1"></i>신청
+                                </button>
+                            </form>
+                            <a th:href="@{|/tournament/detail/${tournament.id}|}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-arrow-right-circle me-1"></i>자세히
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <a th:href="@{/tournament/list}" class="btn btn-primary btn-lg">
+                    <i class="bi bi-trophy-fill me-2"></i>전체 대회 보기
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== TOP PLAYERS ===== -->
+    <section class="py-5" style="background: var(--bg-light);" th:if="${players != null and !players.empty}">
+        <div class="container">
+            <h2 class="section-title">주요 선수</h2>
+            <div class="row g-3">
+                <div class="col-md-6 col-lg-3" th:each="player, ps : ${players}" th:if="${ps.index < 8}">
+                    <div class="player-mini-card">
+                        <div class="player-avatar">
+                            <i class="bi bi-person-fill"></i>
+                        </div>
+                        <h6 class="fw-bold mb-1" th:text="${player.name}">선수명</h6>
+                        <p class="text-muted mb-2 small" th:if="${player.club != null}">
+                            <i class="bi bi-building me-1"></i>
+                            <span th:text="${player.club.name}">클럽</span>
+                        </p>
+                        <div class="d-flex justify-content-center gap-2 flex-wrap">
+                            <span class="badge bg-primary small" th:if="${player.ranking != null}">
+                                <i class="bi bi-award me-1"></i><span th:text="${player.ranking}">1</span>위
+                            </span>
+                            <span class="badge bg-secondary small" th:if="${player.gender != null}" th:text="${player.gender}">성별</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <a th:href="@{/player/list}" class="btn btn-primary">
+                    <i class="bi bi-people-fill me-2"></i>전체 선수 보기
+                </a>
+                <a th:href="@{/player/ranking}" class="btn btn-outline-primary ms-2">
+                    <i class="bi bi-bar-chart-fill me-2"></i>랭킹 보기
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CTA ===== -->
+    <section class="py-5 cta-section" style="color: white;">
+        <div class="container text-center position-relative" style="z-index:1;">
+            <h2 class="mb-3 fw-bold" style="font-size:2.2rem;">지금 바로 안산시 탁구 협회에 참여하세요!</h2>
+            <p class="lead mb-4 opacity-90">다양한 대회와 이벤트에 참가하고 실력을 향상시킬 기회를 놓치지 마세요.</p>
+            <div class="d-flex gap-3 justify-content-center flex-wrap">
+                <a th:href="@{/user/signup}" class="btn btn-light btn-lg px-5 fw-bold"
+                   sec:authorize="!isAuthenticated()">
+                    <i class="bi bi-person-plus-fill me-2" style="color:#0066cc;"></i>무료 회원가입
+                </a>
+                <a th:href="@{/tournament/list}" class="btn btn-outline-light btn-lg px-4 fw-bold">
+                    <i class="bi bi-trophy me-2"></i>대회 둘러보기
+                </a>
+            </div>
+        </div>
+    </section>
+
+</div>
+
+<th:block layout:fragment="script">
+<script>
+    // ===== 파티클 생성 =====
+    (function() {
+        const container = document.getElementById('heroParticles');
+        if (!container) return;
+        for (let i = 0; i < 18; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const size = Math.random() * 16 + 6;
+            p.style.cssText = [
+                'width:' + size + 'px',
+                'height:' + size + 'px',
+                'left:' + Math.random() * 100 + '%',
+                'bottom:0',
+                'animation-duration:' + (Math.random() * 10 + 8) + 's',
+                'animation-delay:' + Math.random() * 8 + 's'
+            ].join(';');
+            container.appendChild(p);
+        }
+    })();
+
+    // ===== 카운터 애니메이션 =====
+    function animateCounter(el, target, duration) {
+        const start = 0;
+        const startTime = performance.now();
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            el.textContent = Math.round(start + (target - start) * eased);
+            if (progress < 1) requestAnimationFrame(update);
+        }
+        requestAnimationFrame(update);
+    }
+
+    const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(function(entry) {
+            if (entry.isIntersecting && !entry.target.dataset.animated) {
+                entry.target.dataset.animated = 'true';
+                const target = parseInt(entry.target.getAttribute('data-target')) || 0;
+                animateCounter(entry.target, target, 1800);
+            }
+        });
+    }, { threshold: 0.3 });
+
+    document.querySelectorAll('.stat-number-animated').forEach(function(el) {
+        observer.observe(el);
+    });
+</script>
+</th:block>
+
+</body>
+</html>

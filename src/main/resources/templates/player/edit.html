@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head>
+    <title>선수 정보 수정</title>
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container mt-5">
+        <h2>선수 정보 수정</h2>
+
+        <form th:action="@{/player/edit/{id}(id=${player.id})}"
+              th:object="${player}"
+              method="post">
+
+            <!-- 이름 -->
+            <div class="mb-3">
+                <label for="name" class="form-label">이름</label>
+                <input type="text"
+                       class="form-control"
+                       id="name"
+                       th:field="*{name}"
+                       required>
+            </div>
+
+            <!-- 클럽 -->
+            <div class="mb-3">
+                <label for="club" class="form-label">소속 클럽</label>
+                <select class="form-control"
+                        id="club"
+                        th:field="*{club.id}">
+                    <option value="">클럽 선택</option>
+                    <option th:each="club : ${clubs}"
+                            th:value="${club.id}"
+                            th:text="${club.name}"></option>
+                </select>
+            </div>
+
+            <!-- 랭킹 -->
+            <div class="mb-3">
+                <label for="ranking" class="form-label">랭킹</label>
+                <input type="number"
+                       class="form-control"
+                       id="ranking"
+                       th:field="*{ranking}">
+            </div>
+
+            <!-- 연락처 -->
+            <div class="mb-3">
+                <label for="contactInfo" class="form-label">연락처</label>
+                <input type="text"
+                       class="form-control"
+                       id="contactInfo"
+                       th:field="*{contactInfo}">
+            </div>
+
+            <!-- 버튼 -->
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary">수정</button>
+                <a th:href="@{/player/list}" class="btn btn-secondary">취소</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

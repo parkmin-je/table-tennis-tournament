@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}">
+<head>
+    <title>참가 신청 관리</title>
+</head>
+<body>
+<div layout:fragment="content" class="container my-3">
+    <h2 class="text-primary fw-bold mb-4">참가 신청 관리</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <h5>상태별 통계</h5>
+            <ul class="list-group list-group-horizontal flex-wrap">
+                <li class="list-group-item" th:each="entry : ${stats}">
+                    <span class="badge bg-secondary me-2" th:text="${entry.key}"></span>
+                    <span class="badge bg-primary" th:text="${entry.value}"></span>명
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover table-striped">
+            <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>대회명</th>
+                <th>참가자 (ID)</th>
+                <th>팀명</th>
+                <th>신청일</th>
+                <th>상태</th>
+                <th>관리</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="p : ${participations}">
+                <td th:text="${p.id}"></td>
+                <td><a th:href="@{|/tournament/detail/${p.tournament.id}|}" th:text="${p.tournament.title}"></a></td>
+                <td th:text="${p.user != null ? (p.user.name + ' (' + p.user.username + ')') : '알 수 없음'}"></td>
+                <td th:text="${p.teamName}"></td>
+                <td th:text="${#temporals.format(p.registeredAt, 'yyyy.MM.dd HH:mm')}"></td>
+                <td><span class="badge bg-info" th:text="${p.status}"></span></td>
+                <td>
+                    <form th:action="@{/admin/updateStatus}" method="post" style="display:inline;">
+                        <!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" /> -->
+                        <input type="hidden" name="participationId" th:value="${p.id}">
+                        <select name="newStatus" class="form-select form-select-sm" onchange="this.form.submit()">
+                            <option value="신청완료" th:selected="${p.status == '신청완료'}">신청완료</option>
+                            <option value="입금대기" th:selected="${p.status == '입금대기'}">입금대기</option>
+                            <option value="입금완료" th:selected="${p.status == '입금완료'}">입금완료</option>
+                            <option value="취소" th:selected="${p.status == '취소'}">취소</option>
+                        </select>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

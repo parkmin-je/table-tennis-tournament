@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>내 정보</title>
+</head>
+<body>
+<div layout:fragment="content" class="container my-5">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0"><i class="bi bi-person-circle me-2"></i>내 정보</h2>
+                </div>
+                <div class="card-body p-4">
+                    <!-- 기본 정보 -->
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-md-end"><strong class="form-label">아이디:</strong></div>
+                        <div class="col-md-8 pt-2"><span sec:authentication="name">사용자 ID</span></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-md-end"><strong class="form-label">이름:</strong></div>
+                        <div class="col-md-8 pt-2"><span th:text="${user.name}">사용자 이름</span></div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4 text-md-end"><strong class="form-label">이메일:</strong></div>
+                        <div class="col-md-8 pt-2"><span th:text="${user.email}">user@example.com</span></div>
+                    </div>
+                    <div class="row mb-4">
+                        <div class="col-md-4 text-md-end"><strong class="form-label">회원 유형:</strong></div>
+                        <div class="col-md-8 pt-2">
+                            <span sec:authorize="hasRole('ADMIN')" class="badge bg-danger">관리자</span>
+                            <span sec:authorize="hasRole('MANAGER')" class="badge bg-warning text-dark">매니저</span>
+                            <span sec:authorize="hasRole('USER')" class="badge bg-primary">일반 사용자</span>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4 mb-4">
+                        <a th:href="@{/user/changePassword}" class="btn btn-outline-primary">
+                            <i class="bi bi-key-fill me-1"></i>비밀번호 변경
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ⭐ 참가 신청 내역 -->
+            <div class="card shadow-sm mt-4">
+                <div class="card-header bg-light">
+                    <h4 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>내 참가 신청 내역</h4>
+                </div>
+                <div class="card-body">
+                    <div th:if="${participations != null && !participations.empty}" class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th>대회명</th>
+                                <th>신청일</th>
+                                <th>상태</th>
+                                <th style="width: 150px;">관리</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:each="p : ${participations}">
+                                <td>
+                                    <a th:href="@{/tournament/detail/{id}(id=${p.tournament.id})}"
+                                       th:text="${p.tournament.title}" class="text-decoration-none">대회명</a>
+                                </td>
+                                <td th:text="${#temporals.format(p.registeredAt, 'yyyy-MM-dd HH:mm')}">2025-01-15 14:30</td>
+                                <td>
+                                        <span class="badge"
+                                              th:classappend="${p.status == '신청완료' ? 'bg-info' :
+                                                              (p.status == '승인완료' ? 'bg-success' :
+                                                              (p.status == '입금완료' ? 'bg-primary' : 'bg-secondary'))}"
+                                              th:text="${p.status}">신청완료</span>
+                                </td>
+                                <td>
+                                    <!-- 신청완료 상태만 취소 가능 -->
+                                    <form th:if="${p.status == '신청완료'}"
+                                          th:action="@{/participation/cancel/{id}(id=${p.id})}"
+                                          method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger"
+                                                onclick="return confirm('참가 신청을 취소하시겠습니까?');">
+                                            <i class="bi bi-x-circle me-1"></i>취소
+                                        </button>
+                                    </form>
+                                    <span th:if="${p.status != '신청완료'}" class="text-muted small">
+                                            취소 불가
+                                        </span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div th:if="${participations == null || participations.empty}" class="alert alert-info text-center">
+                        <i class="bi bi-info-circle-fill me-2"></i>참가 신청 내역이 없습니다.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

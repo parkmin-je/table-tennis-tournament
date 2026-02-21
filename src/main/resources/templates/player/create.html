@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}">
+<head>
+    <title>선수 등록</title>
+</head>
+<body>
+<div layout:fragment="content" class="container my-3">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <h2 class="text-center mb-4 text-primary fw-bold">선수 등록</h2>
+            <form th:action="@{/player/create}" th:object="${player}" method="post">
+                 <!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" /> -->
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">이름</label>
+                    <input type="text" th:field="*{name}" class="form-control" placeholder="선수 이름을 입력하세요" required>
+                </div>
+                 <div class="mb-3">
+                    <label for="age" class="form-label">나이</label>
+                    <input type="number" th:field="*{age}" class="form-control" placeholder="선수 나이를 입력하세요">
+                </div>
+                 <div class="mb-3">
+                    <label for="gender" class="form-label">성별</label>
+                    <select th:field="*{gender}" class="form-select">
+                        <option value="남성">남성</option>
+                        <option value="여성">여성</option>
+                        <option value="기타">기타</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="ranking" class="form-label">랭킹</label>
+                    <input type="number" th:field="*{ranking}" class="form-control" placeholder="선수 랭킹을 입력하세요">
+                </div>
+                <div class="mb-3">
+                    <label for="position" class="form-label">포지션</label>
+                    <input type="text" th:field="*{position}" class="form-control" placeholder="단식/복식 등 포지션을 입력하세요">
+                </div>
+                <div class="mb-3">
+                    <label for="clubId" class="form-label">소속 클럽</label>
+                    <select id="clubId" name="clubId" class="form-select">
+                        <option value="">클럽을 선택하세요</option>
+                        <option th:each="club : ${clubs}" th:value="${club.id}" th:text="${club.name}"></option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">선수 등록</button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

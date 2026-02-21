@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      layout:decorate="~{layout}"
+      lang="ko">
+<head>
+    <title>커뮤니티</title>
+    <th:block layout:fragment="css">
+        <style>
+            /* 게시판 히어로 */
+            .board-hero {
+                background: linear-gradient(135deg, #2e7d32 0%, #1b5e20 60%, #0a3d0a 100%);
+                color: white;
+                padding: 2.5rem 0 2rem;
+                margin-bottom: 2rem;
+                position: relative;
+                overflow: hidden;
+            }
+            .board-hero::after {
+                content: '';
+                position: absolute;
+                bottom: -1px; left: 0; right: 0;
+                height: 40px;
+                background: var(--bg-light);
+                clip-path: ellipse(55% 100% at 50% 100%);
+            }
+
+            /* 카테고리 탭 */
+            .category-tabs {
+                display: flex;
+                gap: 0.4rem;
+                margin-bottom: 1.5rem;
+                flex-wrap: wrap;
+            }
+            .category-tab {
+                padding: 0.55rem 1.3rem;
+                background: var(--bg-white);
+                border: 2px solid var(--border-color);
+                border-radius: 20px;
+                color: var(--text-secondary);
+                font-weight: 600;
+                font-size: 0.88rem;
+                cursor: pointer;
+                transition: all 0.25s ease;
+                text-decoration: none;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+            }
+            .category-tab:hover {
+                border-color: #2e7d32;
+                color: #2e7d32;
+                background: rgba(46,125,50,0.06);
+            }
+            .category-tab.active {
+                background: #2e7d32;
+                border-color: #2e7d32;
+                color: white;
+                box-shadow: 0 4px 12px rgba(46,125,50,0.25);
+            }
+
+            /* 검색/액션 바 */
+            .board-toolbar {
+                background: var(--bg-white);
+                border-radius: 14px;
+                padding: 1rem 1.5rem;
+                box-shadow: var(--shadow-sm);
+                border: 1px solid var(--border-color);
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                margin-bottom: 1.5rem;
+                flex-wrap: wrap;
+            }
+
+            .board-search {
+                flex: 1;
+                min-width: 200px;
+                position: relative;
+            }
+            .board-search input {
+                width: 100%;
+                padding: 0.55rem 1rem 0.55rem 2.5rem;
+                border-radius: 20px;
+                border: 2px solid var(--border-color);
+                font-size: 0.9rem;
+                outline: none;
+                transition: all 0.2s;
+                background: var(--bg-white);
+                color: var(--text-primary);
+            }
+            .board-search input:focus { border-color: #2e7d32; box-shadow: 0 0 0 3px rgba(46,125,50,0.1); }
+            .board-search i { position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
+
+            /* 게시글 카드형 목록 */
+            .post-card {
+                background: var(--bg-white);
+                border-radius: 14px;
+                border: 1px solid var(--border-color);
+                padding: 1.3rem 1.5rem;
+                margin-bottom: 0.8rem;
+                transition: all 0.25s ease;
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                text-decoration: none;
+                color: inherit;
+                box-shadow: var(--shadow-sm);
+                position: relative;
+                overflow: hidden;
+            }
+            .post-card::before {
+                content: '';
+                position: absolute;
+                left: 0; top: 0; bottom: 0;
+                width: 3px;
+                background: transparent;
+                transition: background 0.2s;
+            }
+            .post-card:hover {
+                transform: translateX(6px);
+                box-shadow: var(--shadow-md);
+                border-color: rgba(46,125,50,0.3);
+                color: inherit;
+                text-decoration: none;
+            }
+            .post-card:hover::before { background: #2e7d32; }
+
+            .post-card.pinned { background: linear-gradient(135deg, #fff8e1, #fffde7); border-color: #ffd54f; }
+            .post-card.pinned::before { background: #ffc107; }
+            [data-theme="dark"] .post-card.pinned {
+                background: linear-gradient(135deg, #2d2800, #1a1600);
+                border-color: #ffd54f;
+            }
+
+            .post-num {
+                width: 44px;
+                text-align: center;
+                flex-shrink: 0;
+            }
+            .post-num .num-text {
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                font-weight: 600;
+            }
+
+            .post-cat-badge {
+                display: inline-block;
+                padding: 0.15rem 0.5rem;
+                border-radius: 4px;
+                font-size: 0.7rem;
+                font-weight: 800;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                margin-bottom: 0.2rem;
+            }
+            .cat-notice { background: #dc3545; color: white; }
+            .cat-free   { background: #0066cc; color: white; }
+            .cat-match  { background: #2e7d32; color: white; }
+            .cat-question { background: #f57c00; color: white; }
+
+            .post-main { flex: 1; min-width: 0; }
+            .post-title-text {
+                font-size: 1rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                display: block;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                margin-bottom: 0.2rem;
+            }
+            .post-card:hover .post-title-text { color: #2e7d32; }
+
+            .post-comment-count {
+                display: inline;
+                color: #2e7d32;
+                font-weight: 700;
+                font-size: 0.88rem;
+                margin-left: 0.3rem;
+            }
+
+            .post-meta-row {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+            }
+            .post-meta-item { display: flex; align-items: center; gap: 0.3rem; }
+
+            .post-stats {
+                display: flex;
+                align-items: center;
+                gap: 1rem;
+                flex-shrink: 0;
+            }
+            .post-stat {
+                display: flex;
+                align-items: center;
+                gap: 0.3rem;
+                font-size: 0.82rem;
+                color: var(--text-secondary);
+                white-space: nowrap;
+            }
+
+            /* 페이지네이션 */
+            .pagination { margin-top: 1.5rem; }
+            .page-link { border-radius: 8px !important; margin: 0 2px; font-weight: 600; }
+
+            /* 빈 상태 */
+            .board-empty { text-align: center; padding: 5rem 2rem; }
+            .board-empty-icon { font-size: 5rem; opacity: 0.2; display: block; margin-bottom: 1.5rem; }
+
+            /* 공지 핀 아이콘 */
+            .pin-icon { color: #dc3545; font-size: 0.9rem; margin-right: 0.2rem; }
+
+            /* 글쓰기 버튼 */
+            .write-btn {
+                background: linear-gradient(135deg, #2e7d32, #1b5e20);
+                color: white;
+                border: none;
+                border-radius: 10px;
+                padding: 0.55rem 1.3rem;
+                font-weight: 700;
+                font-size: 0.9rem;
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                text-decoration: none;
+                transition: all 0.25s ease;
+                box-shadow: 0 4px 12px rgba(46,125,50,0.25);
+                white-space: nowrap;
+            }
+            .write-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 6px 20px rgba(46,125,50,0.4);
+                color: white;
+                background: linear-gradient(135deg, #388e3c, #2e7d32);
+            }
+        </style>
+    </th:block>
+</head>
+<body>
+<div layout:fragment="content">
+
+    <!-- 히어로 -->
+    <div class="board-hero">
+        <div class="container position-relative" style="z-index:1;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="fw-black mb-1" style="font-size:2.2rem; letter-spacing:-0.02em;">
+                        <i class="bi bi-chat-dots-fill me-2" style="color:#a5d6a7;"></i>커뮤니티
+                    </h1>
+                    <p class="mb-0 opacity-80">탁구인들의 소통 공간</p>
+                </div>
+                <a th:href="@{/board/write}" class="write-btn" sec:authorize="isAuthenticated()">
+                    <i class="bi bi-pencil-square"></i>글쓰기
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+
+        <!-- 카테고리 탭 -->
+        <div class="category-tabs">
+            <a th:href="@{/board/list}"
+               class="category-tab"
+               th:classappend="${category == null ? ' active' : ''}">
+                <i class="bi bi-grid"></i>전체
+            </a>
+            <a th:each="cat : ${categories}"
+               th:href="@{/board/list(category=${cat})}"
+               class="category-tab"
+               th:classappend="${category == cat ? ' active' : ''}"
+               th:text="${cat.description}">
+            </a>
+        </div>
+
+        <!-- 검색 바 -->
+        <div class="board-toolbar">
+            <form th:action="@{/board/list}" method="get" class="board-search">
+                <input type="hidden" name="category" th:value="${category}">
+                <i class="bi bi-search"></i>
+                <input type="text" name="keyword" placeholder="제목 + 내용 검색"
+                       th:value="${keyword}">
+            </form>
+            <button type="submit" class="btn btn-sm fw-bold"
+                    style="background:linear-gradient(135deg,#2e7d32,#1b5e20);color:white;border-radius:8px;white-space:nowrap;"
+                    onclick="this.closest('form').submit()">
+                <i class="bi bi-search me-1"></i>검색
+            </button>
+            <span class="text-muted small" style="white-space:nowrap;">
+                <i class="bi bi-file-text me-1"></i>
+                총 <strong th:text="${posts.totalElements}">0</strong>개
+            </span>
+        </div>
+
+        <!-- 게시글 목록 -->
+        <div id="postList">
+
+            <!-- 빈 상태 -->
+            <div class="board-empty" th:if="${posts.isEmpty()}">
+                <span class="board-empty-icon"><i class="bi bi-chat-square"></i></span>
+                <h4 class="fw-bold text-muted">게시글이 없습니다</h4>
+                <p class="text-muted mb-4">첫 번째 글을 작성해보세요!</p>
+                <a th:href="@{/board/write}" class="write-btn" sec:authorize="isAuthenticated()">
+                    <i class="bi bi-pencil-square"></i>첫 글 작성하기
+                </a>
+            </div>
+
+            <!-- 게시글 카드 -->
+            <a th:each="post : ${posts}"
+               th:href="@{/board/detail/{id}(id=${post.id})}"
+               class="post-card d-block"
+               th:classappend="${post.isPinned ? ' pinned' : ''}">
+
+                <!-- 번호 -->
+                <div class="post-num">
+                    <i class="bi bi-pin-fill pin-icon" th:if="${post.isPinned}"></i>
+                    <span class="num-text" th:unless="${post.isPinned}" th:text="${post.id}"></span>
+                </div>
+
+                <!-- 내용 -->
+                <div class="post-main">
+                    <!-- 카테고리 뱃지 -->
+                    <span th:if="${post.category != null}"
+                          class="post-cat-badge"
+                          th:classappend="${post.category.name() == 'NOTICE' ? ' cat-notice' :
+                                           (post.category.name() == 'MATCH' ? ' cat-match' :
+                                           (post.category.name() == 'FREE' ? ' cat-free' : ' cat-question'))}"
+                          th:text="${post.category.description}">카테고리</span>
+
+                    <!-- 제목 -->
+                    <span class="post-title-text">
+                        <span th:text="${post.title}">제목</span>
+                        <span class="post-comment-count"
+                              th:if="${post.commentCount != null and post.commentCount > 0}"
+                              th:text="'[' + ${post.commentCount} + ']'"></span>
+                    </span>
+
+                    <!-- 메타 정보 -->
+                    <div class="post-meta-row">
+                        <span class="post-meta-item">
+                            <i class="bi bi-person"></i>
+                            <span th:text="${post.author.name}">작성자</span>
+                        </span>
+                        <span class="post-meta-item">
+                            <i class="bi bi-clock"></i>
+                            <span th:text="${#temporals.format(post.createdAt, 'yyyy-MM-dd')}">날짜</span>
+                        </span>
+                    </div>
+                </div>
+
+                <!-- 통계 -->
+                <div class="post-stats">
+                    <div class="post-stat">
+                        <i class="bi bi-eye"></i>
+                        <span th:text="${post.viewCount}">0</span>
+                    </div>
+                    <div class="post-stat" th:if="${post.commentCount != null}">
+                        <i class="bi bi-chat-dots" style="color:#2e7d32;"></i>
+                        <span th:text="${post.commentCount}" style="color:#2e7d32; font-weight:700;">0</span>
+                    </div>
+                    <div class="post-stat" th:if="${post.likeCount != null}">
+                        <i class="bi bi-heart" style="color:#dc3545;"></i>
+                        <span th:text="${post.likeCount}" style="color:#dc3545;">0</span>
+                    </div>
+                    <i class="bi bi-chevron-right text-muted"></i>
+                </div>
+            </a>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <nav th:if="${posts.totalPages > 1}" class="mt-4">
+            <ul class="pagination justify-content-center flex-wrap gap-1">
+                <li class="page-item" th:classappend="${posts.first ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/board/list(category=${category}, page=${posts.number - 1}, keyword=${keyword})}">
+                        <i class="bi bi-chevron-left"></i>
+                    </a>
+                </li>
+                <li th:each="i : ${#numbers.sequence(0, posts.totalPages - 1)}"
+                    class="page-item"
+                    th:classappend="${i == posts.number ? 'active' : ''}">
+                    <a class="page-link"
+                       th:href="@{/board/list(category=${category}, page=${i}, keyword=${keyword})}"
+                       th:text="${i + 1}">1</a>
+                </li>
+                <li class="page-item" th:classappend="${posts.last ? 'disabled' : ''}">
+                    <a class="page-link" th:href="@{/board/list(category=${category}, page=${posts.number + 1}, keyword=${keyword})}">
+                        <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+    </div>
+</div>
+</body>
+</html>
