@@ -1,79 +1,347 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <title>대회 캘린더</title>
     <th:block layout:fragment="css">
         <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
         <style>
-            #calendar {
-                max-width: 1200px;
-                margin: 40px auto;
-                background: white;
-                padding: 30px;
-                border-radius: 16px;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+            .calendar-hero {
+                background: linear-gradient(135deg, #6a1b9a 0%, #4a148c 60%, #1a0033 100%);
+                color: white;
+                padding: 2.5rem 0 2rem;
+                margin-bottom: 2rem;
+                position: relative;
+                overflow: hidden;
             }
-            .fc-event {
+            .calendar-hero::after {
+                content: '';
+                position: absolute;
+                bottom: -1px; left: 0; right: 0;
+                height: 40px;
+                background: var(--bg-light);
+                clip-path: ellipse(55% 100% at 50% 100%);
+            }
+
+            /* 캘린더 컨테이너 */
+            .calendar-wrapper {
+                background: var(--bg-white);
+                border-radius: 20px;
+                padding: 2rem;
+                box-shadow: var(--shadow-lg);
+                border: 1px solid var(--border-color);
+                margin-bottom: 2rem;
+            }
+
+            /* FullCalendar 커스텀 */
+            .fc .fc-toolbar-title {
+                font-size: 1.6rem;
+                font-weight: 800;
+                color: var(--text-primary);
+                letter-spacing: -0.02em;
+            }
+
+            .fc .fc-button {
+                background: var(--gradient-primary) !important;
+                border: none !important;
+                border-radius: 8px !important;
+                font-weight: 600 !important;
+                padding: 0.45rem 1rem !important;
+                box-shadow: 0 2px 8px rgba(0,102,204,0.25) !important;
+                transition: all 0.2s ease !important;
+            }
+
+            .fc .fc-button:hover {
+                transform: translateY(-1px) !important;
+                box-shadow: 0 4px 14px rgba(0,102,204,0.4) !important;
+            }
+
+            .fc .fc-button-primary:not(:disabled).fc-button-active {
+                background: linear-gradient(135deg, #004999, #003366) !important;
+            }
+
+            .fc .fc-col-header-cell-cushion {
+                font-weight: 700;
+                color: var(--text-primary);
+                padding: 0.8rem 0.4rem;
+            }
+
+            .fc .fc-daygrid-day-number {
+                font-weight: 600;
+                color: var(--text-primary);
+                padding: 0.4rem;
+            }
+
+            .fc .fc-daygrid-day.fc-day-today {
+                background: rgba(0,102,204,0.06) !important;
+            }
+
+            .fc .fc-daygrid-day.fc-day-today .fc-daygrid-day-number {
+                background: var(--primary-color);
+                color: white;
+                border-radius: 50%;
+                width: 28px;
+                height: 28px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                margin: 4px;
+            }
+
+            .fc .fc-event {
+                border-radius: 6px !important;
+                border: none !important;
+                padding: 2px 6px !important;
+                font-weight: 600 !important;
+                font-size: 0.8rem !important;
                 cursor: pointer;
+                transition: all 0.2s ease !important;
+            }
+
+            .fc .fc-event:hover {
+                filter: brightness(1.1);
+                transform: scale(1.02);
+            }
+
+            .fc .fc-daygrid-event { white-space: normal !important; }
+
+            .fc th { border-color: var(--border-color) !important; }
+            .fc td { border-color: var(--border-color) !important; }
+            .fc .fc-scrollgrid { border-color: var(--border-color) !important; border-radius: 12px; overflow: hidden; }
+
+            [data-theme="dark"] .fc .fc-toolbar-title { color: var(--text-primary); }
+            [data-theme="dark"] .fc .fc-col-header-cell-cushion { color: var(--text-primary); }
+            [data-theme="dark"] .fc .fc-daygrid-day-number { color: var(--text-primary); }
+            [data-theme="dark"] .fc th, [data-theme="dark"] .fc td { border-color: var(--border-color) !important; }
+
+            /* 범례 */
+            .legend-card {
+                background: var(--bg-white);
+                border-radius: 16px;
+                padding: 1.5rem;
+                box-shadow: var(--shadow-sm);
+                border: 1px solid var(--border-color);
+            }
+            .legend-item {
+                display: flex;
+                align-items: center;
+                gap: 0.7rem;
+                padding: 0.7rem 1rem;
+                border-radius: 10px;
+                transition: background 0.2s;
+                cursor: default;
+            }
+            .legend-item:hover { background: var(--bg-light); }
+            .legend-dot {
+                width: 14px; height: 14px;
                 border-radius: 4px;
-                padding: 2px 4px;
+                flex-shrink: 0;
+                box-shadow: 0 2px 6px rgba(0,0,0,0.15);
             }
-            .fc-daygrid-event {
-                white-space: normal !important;
-                align-items: normal !important;
+            .legend-text { font-weight: 600; font-size: 0.9rem; color: var(--text-primary); }
+            .legend-desc { font-size: 0.8rem; color: var(--text-secondary); }
+
+            /* 이벤트 팝오버 */
+            .event-popover {
+                position: fixed;
+                background: var(--bg-white);
+                border-radius: 14px;
+                box-shadow: var(--shadow-xl);
+                padding: 1.2rem;
+                z-index: 9999;
+                min-width: 240px;
+                max-width: 300px;
+                border: 1px solid var(--border-color);
+                display: none;
+                animation: popoverIn 0.2s ease-out;
             }
+            @keyframes popoverIn {
+                from { opacity: 0; transform: scale(0.92) translateY(-6px); }
+                to   { opacity: 1; transform: scale(1) translateY(0); }
+            }
+            .popover-title {
+                font-weight: 800;
+                font-size: 1rem;
+                color: var(--text-primary);
+                margin-bottom: 0.7rem;
+                padding-bottom: 0.7rem;
+                border-bottom: 2px solid var(--bg-light);
+            }
+            .popover-info { display: flex; align-items: flex-start; gap: 0.6rem; margin-bottom: 0.5rem; font-size: 0.85rem; color: var(--text-secondary); }
+            .popover-info i { width: 16px; color: var(--primary-color); flex-shrink: 0; margin-top: 1px; }
         </style>
     </th:block>
 </head>
 <body>
-<div layout:fragment="content" class="container-fluid my-5">
-    <h2 class="section-title text-center">📅 대회 캘린더</h2>
-    <div id='calendar'></div>
+<div layout:fragment="content">
 
-    <div class="text-center mt-4">
-        <div class="d-inline-flex gap-3">
-            <span><span class="badge" style="background-color: #28a745;">●</span> 접수중</span>
-            <span><span class="badge" style="background-color: #ffc107;">●</span> 진행중</span>
-            <span><span class="badge" style="background-color: #6c757d;">●</span> 종료</span>
-            <span><span class="badge" style="background-color: #007bff;">●</span> 준비중</span>
+    <!-- 히어로 -->
+    <div class="calendar-hero">
+        <div class="container position-relative" style="z-index:1;">
+            <h1 class="fw-black mb-1" style="font-size:2.2rem; letter-spacing:-0.02em;">
+                <i class="bi bi-calendar-event-fill me-2" style="color:#ce93d8;"></i>대회 캘린더
+            </h1>
+            <p class="mb-0 opacity-80">모든 대회 일정을 한눈에 확인하세요</p>
         </div>
     </div>
+
+    <div class="container pb-5">
+        <div class="row g-4">
+
+            <!-- 캘린더 -->
+            <div class="col-lg-9">
+                <div class="calendar-wrapper">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+
+            <!-- 사이드바 -->
+            <div class="col-lg-3">
+
+                <!-- 범례 -->
+                <div class="legend-card mb-3">
+                    <h6 class="fw-bold mb-3" style="color:var(--text-primary);">
+                        <i class="bi bi-info-circle me-2 text-primary"></i>상태 범례
+                    </h6>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#1565c0;"></div>
+                        <div>
+                            <div class="legend-text">준비중</div>
+                            <div class="legend-desc">대회 준비 단계</div>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#28a745;"></div>
+                        <div>
+                            <div class="legend-text">접수중</div>
+                            <div class="legend-desc">참가 신청 가능</div>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#f57c00;"></div>
+                        <div>
+                            <div class="legend-text">진행중</div>
+                            <div class="legend-desc">현재 대회 진행</div>
+                        </div>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-dot" style="background:#6c757d;"></div>
+                        <div>
+                            <div class="legend-text">종료</div>
+                            <div class="legend-desc">대회 완료</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 빠른 이동 -->
+                <div class="legend-card">
+                    <h6 class="fw-bold mb-3" style="color:var(--text-primary);">
+                        <i class="bi bi-lightning me-2 text-warning"></i>빠른 이동
+                    </h6>
+                    <a th:href="@{/tournament/list(status=RECRUITING)}"
+                       class="btn btn-sm btn-success w-100 mb-2 fw-bold">
+                        <i class="bi bi-megaphone me-1"></i>접수중인 대회
+                    </a>
+                    <a th:href="@{/tournament/list}"
+                       class="btn btn-sm btn-primary w-100 fw-bold">
+                        <i class="bi bi-list-ul me-1"></i>전체 대회 목록
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 이벤트 팝오버 -->
+    <div class="event-popover" id="eventPopover">
+        <div class="popover-title" id="popoverTitle"></div>
+        <div class="popover-info">
+            <i class="bi bi-calendar-event"></i>
+            <span id="popoverDate"></span>
+        </div>
+        <div class="popover-info">
+            <i class="bi bi-trophy"></i>
+            <span id="popoverType"></span>
+        </div>
+        <div class="popover-info" id="popoverStatusRow">
+            <i class="bi bi-circle-fill" id="popoverStatusIcon"></i>
+            <span id="popoverStatus"></span>
+        </div>
+        <a id="popoverLink" href="#" class="btn btn-primary btn-sm w-100 mt-2 fw-bold">
+            <i class="bi bi-arrow-right-circle me-1"></i>자세히 보기
+        </a>
+    </div>
+
 </div>
 
 <th:block layout:fragment="script">
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js'></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            var calendarEl = document.getElementById('calendar');
+            const calendarEl = document.getElementById('calendar');
+            const popover    = document.getElementById('eventPopover');
 
-            var calendar = new FullCalendar.Calendar(calendarEl, {
+            const calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'ko',
+                height: 'auto',
                 headerToolbar: {
-                    left: 'prev,next today',
+                    left:   'prev,next today',
                     center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,listWeek'
+                    right:  'dayGridMonth,timeGridWeek,listWeek'
                 },
                 buttonText: {
                     today: '오늘',
                     month: '월',
-                    week: '주',
-                    list: '목록'
+                    week:  '주',
+                    list:  '목록'
                 },
                 events: '/calendar/events',
                 eventClick: function(info) {
                     info.jsEvent.preventDefault();
-                    if (info.event.url) {
-                        window.location.href = info.event.url;
-                    }
+                    const ev = info.event;
+                    const rect = info.el.getBoundingClientRect();
+
+                    // 팝오버 채우기
+                    document.getElementById('popoverTitle').textContent = ev.title;
+                    document.getElementById('popoverDate').textContent =
+                        (ev.startStr || '') + (ev.endStr ? ' ~ ' + ev.end.toISOString().split('T')[0] : '');
+                    document.getElementById('popoverType').textContent = ev.extendedProps.type || '일반';
+                    document.getElementById('popoverStatus').textContent = ev.extendedProps.status || '';
+                    document.getElementById('popoverLink').href = ev.url || '#';
+
+                    // 위치 계산
+                    const pw = 280;
+                    const ph = 200;
+                    let left = rect.left + rect.width / 2 - pw / 2;
+                    let top  = rect.bottom + 8;
+                    if (left < 8) left = 8;
+                    if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+                    if (top + ph > window.innerHeight - 8) top = rect.top - ph - 8;
+
+                    popover.style.left  = left + 'px';
+                    popover.style.top   = top  + 'px';
+                    popover.style.display = 'block';
                 },
                 eventDidMount: function(info) {
-                    info.el.style.borderRadius = '4px';
-                    info.el.style.fontWeight = '500';
+                    info.el.style.borderRadius = '6px';
+                    info.el.style.fontWeight   = '600';
+                    info.el.style.cursor       = 'pointer';
                 }
             });
 
             calendar.render();
+
+            // 팝오버 닫기
+            document.addEventListener('click', function(e) {
+                if (!popover.contains(e.target) && !e.target.closest('.fc-event')) {
+                    popover.style.display = 'none';
+                }
+            });
+
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') popover.style.display = 'none';
+            });
         });
     </script>
 </th:block>

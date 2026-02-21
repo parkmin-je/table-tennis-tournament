@@ -1,130 +1,434 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <title>선수 랭킹</title>
     <th:block layout:fragment="css">
         <style>
+            /* 랭킹 히어로 */
+            .ranking-hero {
+                background: linear-gradient(135deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+                color: white;
+                padding: 3rem 0 2rem;
+                margin-bottom: 2rem;
+                text-align: center;
+                position: relative;
+                overflow: hidden;
+            }
+            .ranking-hero::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: radial-gradient(ellipse at 20% 50%, rgba(255,215,0,0.12) 0%, transparent 50%),
+                            radial-gradient(ellipse at 80% 30%, rgba(192,192,192,0.08) 0%, transparent 40%);
+            }
+            .ranking-hero::after {
+                content: '';
+                position: absolute;
+                bottom: -1px; left: 0; right: 0;
+                height: 40px;
+                background: var(--bg-light);
+                clip-path: ellipse(55% 100% at 50% 100%);
+            }
+            .ranking-hero h1 {
+                font-size: 2.5rem;
+                font-weight: 900;
+                position: relative;
+                z-index: 1;
+                letter-spacing: -0.02em;
+                margin-bottom: 0.5rem;
+            }
+            .ranking-hero .sub {
+                position: relative;
+                z-index: 1;
+                opacity: 0.85;
+                font-size: 1rem;
+            }
+
+            /* 포디움 */
+            .podium-section {
+                margin-bottom: 3rem;
+            }
+
+            .podium-wrapper {
+                display: flex;
+                justify-content: center;
+                align-items: flex-end;
+                gap: 1.5rem;
+                padding: 2rem 0 0;
+            }
+
             .podium-card {
-                border-radius: 16px;
-                padding: 2rem;
+                border-radius: 20px;
                 display: flex;
                 flex-direction: column;
-                justify-content: center;
                 align-items: center;
-                color: white;
-                box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-                transition: transform 0.3s ease;
+                justify-content: flex-end;
+                padding: 2rem 1.5rem 1.5rem;
+                position: relative;
+                overflow: hidden;
+                transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
+                cursor: pointer;
+                min-width: 180px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+            }
+            .podium-card::before {
+                content: '';
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(to bottom, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0) 60%);
             }
             .podium-card:hover {
-                transform: translateY(-10px);
+                transform: translateY(-14px) scale(1.03);
+                box-shadow: 0 20px 50px rgba(0,0,0,0.28);
             }
-            .rank-badge {
-                width: 60px;
-                height: 60px;
+
+            .podium-1st { background: linear-gradient(135deg, #f9a825, #ff8f00, #e65100); height: 300px; }
+            .podium-2nd { background: linear-gradient(135deg, #78909c, #546e7a, #37474f); height: 250px; }
+            .podium-3rd { background: linear-gradient(135deg, #a1887f, #795548, #4e342e); height: 210px; }
+
+            .podium-rank {
+                position: absolute;
+                top: 16px;
+                font-size: 3.5rem;
+                line-height: 1;
+            }
+
+            .podium-avatar {
+                width: 72px; height: 72px;
                 border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                margin-bottom: 0.8rem;
+                border: 3px solid rgba(255,255,255,0.5);
+                box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+                background: rgba(255,255,255,0.2);
+            }
+            .podium-avatar i { font-size: 2.8rem; color: white; }
+
+            .podium-name {
+                font-size: 1.15rem;
+                font-weight: 800;
+                color: white;
+                text-align: center;
+                text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+                margin-bottom: 0.3rem;
+            }
+
+            .podium-club {
+                font-size: 0.8rem;
+                color: rgba(255,255,255,0.75);
+                text-align: center;
+            }
+
+            .podium-crown { font-size: 2.5rem; margin-bottom: 0.5rem; animation: crownFloat 2s ease-in-out infinite; }
+            @keyframes crownFloat {
+                0%,100% { transform: translateY(0) rotate(-5deg); }
+                50% { transform: translateY(-8px) rotate(5deg); }
+            }
+
+            /* 랭킹 테이블 */
+            .ranking-table-card {
+                background: var(--bg-white);
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: var(--shadow-md);
+                border: 1px solid var(--border-color);
+            }
+
+            .ranking-row {
                 display: flex;
                 align-items: center;
-                justify-content: center;
-                font-size: 2rem;
+                padding: 1rem 1.5rem;
+                border-bottom: 1px solid var(--border-color);
+                transition: all 0.2s ease;
+                gap: 1rem;
+            }
+            .ranking-row:last-child { border-bottom: none; }
+            .ranking-row:hover {
+                background: rgba(0,102,204,0.04);
+                transform: translateX(4px);
+            }
+
+            .rank-number {
+                width: 44px; height: 44px;
+                border-radius: 12px;
+                display: flex; align-items: center; justify-content: center;
                 font-weight: 900;
-                margin-bottom: 1rem;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                font-size: 1.1rem;
+                flex-shrink: 0;
             }
-            .trophy-icon {
-                font-size: 3rem;
-                animation: bounce 2s infinite;
+            .rank-top4  { background: rgba(0,102,204,0.12); color: var(--primary-color); }
+            .rank-mid   { background: var(--bg-light); color: var(--text-secondary); }
+
+            .rank-avatar {
+                width: 44px; height: 44px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #0066cc, #4d94ff);
+                display: flex; align-items: center; justify-content: center;
+                flex-shrink: 0;
             }
-            @keyframes bounce {
-                0%, 100% { transform: translateY(0); }
-                50% { transform: translateY(-10px); }
+            .rank-avatar i { color: white; font-size: 1.4rem; }
+
+            .rank-info { flex: 1; min-width: 0; }
+            .rank-name {
+                font-weight: 700;
+                font-size: 1rem;
+                color: var(--text-primary);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .rank-club {
+                font-size: 0.82rem;
+                color: var(--text-secondary);
+            }
+
+            .rank-tags { display: flex; gap: 0.4rem; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+
+            /* 검색 */
+            .ranking-search {
+                position: relative;
+                margin-bottom: 0;
+            }
+            .ranking-search input {
+                width: 100%;
+                padding: 0.7rem 1rem 0.7rem 2.8rem;
+                border-radius: 10px;
+                border: 2px solid var(--border-color);
+                font-size: 0.9rem;
+                outline: none;
+                transition: all 0.2s;
+                background: var(--bg-white);
+                color: var(--text-primary);
+            }
+            .ranking-search input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,102,204,0.1); }
+            .ranking-search .search-icon {
+                position: absolute; left: 0.9rem; top: 50%;
+                transform: translateY(-50%);
+                color: var(--text-secondary); font-size: 1rem;
+            }
+
+            /* 성별 필터 */
+            .gender-filter { display: flex; gap: 0.5rem; }
+            .gender-btn {
+                padding: 0.45rem 1rem;
+                border-radius: 20px;
+                border: 2px solid var(--border-color);
+                background: transparent;
+                font-weight: 600;
+                font-size: 0.88rem;
+                cursor: pointer;
+                transition: all 0.2s;
+                color: var(--text-secondary);
+            }
+            .gender-btn:hover { border-color: var(--primary-color); color: var(--primary-color); }
+            .gender-btn.active { background: var(--primary-color); border-color: var(--primary-color); color: white; }
+            .gender-btn.male.active   { background: #1565c0; border-color: #1565c0; }
+            .gender-btn.female.active { background: #c62828; border-color: #c62828; }
+
+            @media (max-width: 768px) {
+                .podium-wrapper { gap: 0.8rem; }
+                .podium-card { min-width: 120px; padding: 1.5rem 1rem 1.2rem; }
+                .podium-1st { height: 240px; }
+                .podium-2nd { height: 200px; }
+                .podium-3rd { height: 170px; }
+                .podium-avatar { width: 56px; height: 56px; }
+                .podium-avatar i { font-size: 2.2rem; }
             }
         </style>
     </th:block>
 </head>
 <body>
-<div layout:fragment="content" class="container my-5">
-    <h2 class="section-title">🏆 선수 랭킹</h2>
+<div layout:fragment="content">
 
-    <div class="row">
+    <!-- 랭킹 히어로 -->
+    <div class="ranking-hero">
+        <h1><i class="bi bi-trophy-fill me-2" style="color:#ffd700;"></i>선수 랭킹</h1>
+        <p class="sub">안산시 탁구 협회 공식 선수 랭킹</p>
+    </div>
+
+    <div class="container pb-5">
+
         <!-- TOP 3 포디움 -->
-        <div class="col-12 mb-5">
-            <div class="row justify-content-center align-items-end" style="min-height: 350px;">
+        <div class="podium-section" th:if="${!players.isEmpty()}">
+            <div class="podium-wrapper">
+
                 <!-- 2위 -->
-                <div class="col-md-3 text-center mb-3" th:if="${players.size() >= 2}">
-                    <div class="podium-card" style="background: linear-gradient(135deg, #c0c0c0, #e8e8e8); height: 220px;">
-                        <div class="rank-badge" style="background: silver; color: white;">2</div>
-                        <h3 th:text="${players[1].name}" class="mb-1">선수명</h3>
-                        <p class="text-white-50 mb-0" th:text="${players[1].club != null ? players[1].club.name : '-'}">클럽명</p>
+                <div class="podium-card podium-2nd" th:if="${players.size() >= 2}"
+                     th:onclick="|window.location.href='/player/detail/${players[1].id}'|">
+                    <div class="podium-rank">🥈</div>
+                    <div class="podium-avatar">
+                        <i class="bi bi-person-fill"></i>
                     </div>
+                    <div class="podium-name" th:text="${players[1].name}">선수명</div>
+                    <div class="podium-club" th:text="${players[1].club != null ? players[1].club.name : '소속 없음'}">클럽</div>
                 </div>
 
                 <!-- 1위 -->
-                <div class="col-md-3 text-center mb-3" th:if="${!players.isEmpty()}">
-                    <div class="podium-card" style="background: linear-gradient(135deg, #ffd700, #ffed4e); height: 280px;">
-                        <i class="bi bi-trophy-fill trophy-icon" style="color: white;"></i>
-                        <div class="rank-badge" style="background: gold; color: #000;">1</div>
-                        <h2 th:text="${players[0].name}" class="mb-1" style="color: #000;">선수명</h2>
-                        <p class="mb-0" style="color: #555;" th:text="${players[0].club != null ? players[0].club.name : '-'}">클럽명</p>
+                <div class="podium-card podium-1st" th:if="${!players.isEmpty()}"
+                     th:onclick="|window.location.href='/player/detail/${players[0].id}'|">
+                    <div class="podium-crown">👑</div>
+                    <div class="podium-rank" style="display:none;">🥇</div>
+                    <div class="podium-avatar" style="width:84px;height:84px;">
+                        <i class="bi bi-person-fill" style="font-size:3.2rem;"></i>
                     </div>
+                    <div class="podium-name" style="font-size:1.3rem;" th:text="${players[0].name}">선수명</div>
+                    <div class="podium-club" th:text="${players[0].club != null ? players[0].club.name : '소속 없음'}">클럽</div>
                 </div>
 
                 <!-- 3위 -->
-                <div class="col-md-3 text-center mb-3" th:if="${players.size() >= 3}">
-                    <div class="podium-card" style="background: linear-gradient(135deg, #cd7f32, #e6a57e); height: 180px;">
-                        <div class="rank-badge" style="background: #cd7f32; color: white;">3</div>
-                        <h4 th:text="${players[2].name}" class="mb-1">선수명</h4>
-                        <p class="text-white-50 mb-0" th:text="${players[2].club != null ? players[2].club.name : '-'}">클럽명</p>
+                <div class="podium-card podium-3rd" th:if="${players.size() >= 3}"
+                     th:onclick="|window.location.href='/player/detail/${players[2].id}'|">
+                    <div class="podium-rank">🥉</div>
+                    <div class="podium-avatar">
+                        <i class="bi bi-person-fill"></i>
                     </div>
+                    <div class="podium-name" th:text="${players[2].name}">선수명</div>
+                    <div class="podium-club" th:text="${players[2].club != null ? players[2].club.name : '소속 없음'}">클럽</div>
                 </div>
             </div>
         </div>
 
-        <!-- 4위 이하 -->
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h4 class="mb-0"><i class="bi bi-list-ol me-2"></i>전체 랭킹</h4>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                            <tr>
-                                <th style="width: 80px;">순위</th>
-                                <th>선수명</th>
-                                <th>클럽</th>
-                                <th>성별</th>
-                                <th>나이</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="player, stat : ${players}" th:if="${stat.index >= 3}">
-                                <td class="text-center">
-                                    <strong class="fs-5" th:text="${player.ranking}">4</strong>
-                                </td>
-                                <td>
-                                    <strong th:text="${player.name}">선수명</strong>
-                                </td>
-                                <td th:text="${player.club != null ? player.club.name : '-'}">클럽명</td>
-                                <td>
-                                        <span class="badge"
-                                              th:classappend="${player.gender == '남성' ? 'bg-primary' : 'bg-danger'}"
-                                              th:text="${player.gender}">성별</span>
-                                </td>
-                                <td th:text="${player.age != null ? player.age + '세' : '-'}">나이</td>
-                            </tr>
-                            </tbody>
-                        </table>
+        <!-- 전체 랭킹 -->
+        <div class="ranking-table-card" th:if="${!players.isEmpty()}">
+            <!-- 헤더 -->
+            <div class="p-3 border-bottom" style="background: linear-gradient(135deg, #0056b3, #003d82);">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                    <h4 class="mb-0 text-white fw-bold">
+                        <i class="bi bi-list-ol me-2"></i>전체 랭킹
+                        <span class="badge bg-light text-dark ms-2" style="font-size:0.8rem;"
+                              th:text="${players.size()} + '명'">0명</span>
+                    </h4>
+                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                        <div class="gender-filter">
+                            <button class="gender-btn active" onclick="filterGender(this, 'all')">전체</button>
+                            <button class="gender-btn male" onclick="filterGender(this, '남성')">남성</button>
+                            <button class="gender-btn female" onclick="filterGender(this, '여성')">여성</button>
+                        </div>
+                        <div class="ranking-search" style="width:200px;">
+                            <i class="bi bi-search search-icon"></i>
+                            <input type="text" placeholder="선수 검색..." oninput="filterRanking(this.value)">
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div th:if="${players.empty}" class="alert alert-info text-center py-5">
-        <i class="bi bi-trophy" style="font-size: 3rem; opacity: 0.5;"></i>
-        <p class="mt-3 mb-0">아직 등록된 랭킹 선수가 없습니다.</p>
+            <!-- 랭킹 목록 -->
+            <div id="rankingList">
+                <div class="ranking-row"
+                     th:each="player, stat : ${players}"
+                     th:attr="data-name=${player.name}, data-gender=${player.gender}">
+
+                    <!-- 순위 -->
+                    <div class="rank-number"
+                         th:classappend="${stat.index < 3 ? 'rank-top4' : 'rank-mid'}"
+                         th:text="${stat.index + 1}">1</div>
+
+                    <!-- 아바타 -->
+                    <div class="rank-avatar"
+                         th:style="${player.gender == '여성' ? 'background:linear-gradient(135deg,#c62828,#e53935)' : 'background:linear-gradient(135deg,#1565c0,#1e88e5)'}">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+
+                    <!-- 정보 -->
+                    <div class="rank-info">
+                        <div class="rank-name" th:text="${player.name}">선수명</div>
+                        <div class="rank-club">
+                            <i class="bi bi-building me-1 opacity-60"></i>
+                            <span th:text="${player.club != null ? player.club.name : '소속 없음'}">클럽</span>
+                        </div>
+                    </div>
+
+                    <!-- 태그 -->
+                    <div class="rank-tags">
+                        <span class="badge"
+                              th:classappend="${player.gender == '남성' ? 'bg-primary' : 'bg-danger'}"
+                              th:text="${player.gender}">성별</span>
+                        <span class="badge bg-secondary" th:if="${player.age != null}"
+                              th:text="${player.age} + '세'">나이</span>
+                        <span class="badge bg-warning text-dark" th:if="${player.ranking != null and stat.index >= 3}"
+                              th:text="${player.ranking} + '위'">랭킹</span>
+                        <!-- TOP3 메달 -->
+                        <span th:if="${stat.index == 0}" style="font-size:1.3rem;">🥇</span>
+                        <span th:if="${stat.index == 1}" style="font-size:1.3rem;">🥈</span>
+                        <span th:if="${stat.index == 2}" style="font-size:1.3rem;">🥉</span>
+                    </div>
+
+                    <!-- 상세보기 -->
+                    <a th:href="@{|/player/detail/${player.id}|}"
+                       class="btn btn-sm btn-outline-primary"
+                       style="flex-shrink:0; font-size:0.82rem;">
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- 선수 없음 -->
+        <div th:if="${players.empty}" class="text-center py-5">
+            <div style="font-size:5rem; opacity:0.2; margin-bottom:1.5rem;">🏆</div>
+            <h4 class="fw-bold text-muted">아직 등록된 선수가 없습니다.</h4>
+        </div>
+
     </div>
 </div>
+
+<th:block layout:fragment="script">
+<script>
+    let currentGender = 'all';
+    let currentSearch = '';
+
+    function filterGender(btn, gender) {
+        currentGender = gender;
+        document.querySelectorAll('.gender-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        applyRankingFilter();
+    }
+
+    function filterRanking(value) {
+        currentSearch = value.toLowerCase().trim();
+        applyRankingFilter();
+    }
+
+    function applyRankingFilter() {
+        const rows = document.querySelectorAll('#rankingList .ranking-row');
+        rows.forEach(function(row) {
+            const name   = (row.getAttribute('data-name') || '').toLowerCase();
+            const gender = row.getAttribute('data-gender') || '';
+            const matchGender = currentGender === 'all' || gender === currentGender;
+            const matchSearch = !currentSearch || name.includes(currentSearch);
+            row.style.display = (matchGender && matchSearch) ? '' : 'none';
+        });
+    }
+
+    // 등장 애니메이션
+    document.addEventListener('DOMContentLoaded', function() {
+        // 포디움 애니메이션
+        const podiums = document.querySelectorAll('.podium-card');
+        podiums.forEach(function(card, i) {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(40px)';
+            setTimeout(function() {
+                card.style.transition = 'all 0.6s cubic-bezier(0.34,1.56,0.64,1)';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, i * 150 + 200);
+        });
+
+        // 랭킹 행 애니메이션
+        const rows = document.querySelectorAll('.ranking-row');
+        rows.forEach(function(row, i) {
+            row.style.opacity = '0';
+            row.style.transform = 'translateX(-20px)';
+            setTimeout(function() {
+                row.style.transition = 'all 0.35s ease-out';
+                row.style.opacity = '1';
+                row.style.transform = 'translateX(0)';
+            }, i * 50 + 600);
+        });
+    });
+</script>
+</th:block>
+
 </body>
 </html>
