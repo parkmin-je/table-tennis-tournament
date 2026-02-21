@@ -4,153 +4,241 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <title>클럽 목록</title>
-    <style>
-        .club-card {
-            transition: transform 0.2s, box-shadow 0.2s;
-            height: 100%;
-        }
-        .club-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
-        }
-        .club-icon {
-            width: 80px;
-            height: 80px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            font-size: 2rem;
-            font-weight: bold;
-        }
-        .badge-members {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-    </style>
+    <th:block layout:fragment="css">
+        <style>
+            .club-hero {
+                background: linear-gradient(135deg, #064e3b 0%, #065f46 60%, #064e3b 100%);
+                color: white; padding: 2.5rem 0 4rem;
+                position: relative; overflow: hidden; margin-bottom: 2rem;
+            }
+            .club-hero::after {
+                content: ''; position: absolute;
+                bottom: -2px; left: 0; right: 0; height: 50px;
+                background: var(--bg-light);
+                clip-path: ellipse(55% 100% at 50% 100%);
+            }
+            .club-card {
+                background: var(--bg-white);
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                overflow: hidden;
+                box-shadow: var(--shadow-sm);
+                transition: all 0.25s ease;
+                height: 100%;
+                display: flex; flex-direction: column;
+            }
+            .club-card:hover {
+                transform: translateY(-6px);
+                box-shadow: var(--shadow-md);
+                border-color: rgba(6,95,70,0.3);
+            }
+            .club-card-header {
+                padding: 1.5rem;
+                display: flex; align-items: center; gap: 1rem;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .club-avatar {
+                width: 56px; height: 56px; border-radius: 14px;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 1.4rem; font-weight: 900; color: white;
+                flex-shrink: 0;
+                background: linear-gradient(135deg, #059669, #047857);
+                box-shadow: 0 4px 12px rgba(5,150,105,0.35);
+            }
+            .club-name { font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.2rem; }
+            .club-region {
+                font-size: 0.8rem; color: var(--text-secondary); font-weight: 600;
+                display: flex; align-items: center; gap: 0.3rem;
+            }
+            .club-body { padding: 1rem 1.5rem; flex: 1; }
+            .club-meta { font-size: 0.78rem; color: var(--text-secondary); display: flex; align-items: center; gap: 0.35rem; }
+            .club-footer {
+                padding: 1rem 1.5rem;
+                border-top: 1px solid var(--border-color);
+                background: var(--bg-light);
+                display: flex; gap: 0.6rem;
+            }
+            .btn-club-view {
+                flex: 1; padding: 0.55rem 1rem;
+                background: linear-gradient(135deg, #059669, #047857);
+                color: white; border: none; border-radius: 10px;
+                font-weight: 700; font-size: 0.85rem;
+                text-decoration: none; text-align: center;
+                transition: all 0.2s;
+            }
+            .btn-club-view:hover { filter: brightness(1.1); color: white; transform: translateY(-1px); }
+
+            /* 검색바 */
+            .search-toolbar {
+                background: var(--bg-white);
+                border-radius: 14px; padding: 1rem 1.5rem;
+                border: 1px solid var(--border-color);
+                box-shadow: var(--shadow-sm); margin-bottom: 1.5rem;
+                display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;
+            }
+            .search-wrap { flex: 1; min-width: 200px; position: relative; }
+            .search-wrap i { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
+            .search-wrap input {
+                width: 100%; padding: 0.55rem 1rem 0.55rem 2.3rem;
+                border: 2px solid var(--border-color);
+                border-radius: 20px; outline: none;
+                font-size: 0.88rem; background: var(--bg-white); color: var(--text-primary);
+                transition: all 0.2s;
+            }
+            .search-wrap input:focus { border-color: #059669; box-shadow: 0 0 0 3px rgba(5,150,105,0.1); }
+
+            .empty-clubs { text-align: center; padding: 4rem 2rem; }
+            .empty-clubs i { font-size: 4rem; opacity: 0.15; display: block; margin-bottom: 1rem; }
+        </style>
+    </th:block>
 </head>
 <body>
-<div layout:fragment="content" class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="section-title mb-0">
-            <i class="bi bi-people-fill me-2"></i>클럽 목록
-        </h2>
-        <a th:href="@{/club/create}" class="btn btn-success" sec:authorize="hasRole('ADMIN')">
-            <i class="bi bi-plus-circle-fill me-2"></i>새 클럽 등록
-        </a>
-    </div>
+<div layout:fragment="content">
 
-    <!-- 검색 및 필터 -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <form th:action="@{/club/list}" method="get" class="row g-3">
-                <div class="col-md-8">
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" class="form-control" name="search"
-                               th:value="${param.search}" placeholder="클럽명 또는 지역 검색...">
+    <!-- 히어로 -->
+    <div class="club-hero">
+        <div class="container position-relative" style="z-index:1;">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <h1 class="fw-black mb-1" style="font-size:2.2rem; letter-spacing:-0.02em;">
+                        <i class="bi bi-building-fill me-2" style="color:#6ee7b7;"></i>클럽 목록
+                    </h1>
+                    <p class="mb-0 opacity-70">등록된 탁구 클럽을 확인하세요</p>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <div style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:0.5rem 1rem; font-size:0.88rem; font-weight:700;">
+                        <i class="bi bi-building me-1"></i>총 <span th:text="${clubs.size()}">0</span>개
                     </div>
+                    <a sec:authorize="hasRole('ADMIN')" th:href="@{/club/create}"
+                       style="background:rgba(255,255,255,0.95); color:#059669; border:none; border-radius:10px; padding:0.55rem 1.2rem; font-weight:800; font-size:0.88rem; text-decoration:none; transition:all 0.2s; display:inline-flex; align-items:center; gap:0.4rem;">
+                        <i class="bi bi-plus-circle-fill"></i>클럽 등록
+                    </a>
                 </div>
-                <div class="col-md-2">
-                    <select class="form-select" name="sort">
-                        <option value="name" th:selected="${param.sort == 'name'}">이름순</option>
-                        <option value="recent" th:selected="${param.sort == 'recent'}">최근등록순</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="bi bi-funnel me-1"></i>검색
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
 
-    <!-- 클럽 카드 목록 -->
-    <div class="row g-4" th:if="${!#lists.isEmpty(clubs)}">
-        <div class="col-md-6 col-lg-4" th:each="club : ${clubs}">
-            <div class="card club-card shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex align-items-center mb-3">
-                        <!-- 클럽 아이콘 (첫 글자 사용) -->
-                        <div class="club-icon me-3">
-                            <span th:text="${#strings.substring(club.name, 0, 1)}">C</span>
-                        </div>
-                        <div class="flex-grow-1">
-                            <h5 class="card-title mb-1" th:text="${club.name}">클럽명</h5>
-                            <p class="text-muted mb-0 small">
-                                <i class="bi bi-geo-alt-fill me-1"></i>
-                                <span th:text="${club.region}">지역</span>
-                            </p>
+    <div class="container pb-5">
+
+        <!-- 검색 -->
+        <div class="search-toolbar">
+            <div class="search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchInput" placeholder="클럽명 또는 지역 검색...">
+            </div>
+            <span class="text-muted small" style="white-space:nowrap;">
+                <i class="bi bi-funnel me-1"></i>
+                <span id="resultCount" th:text="${clubs.size()}">0</span>개 클럽
+            </span>
+        </div>
+
+        <!-- 클럽 없음 -->
+        <div class="empty-clubs" th:if="${#lists.isEmpty(clubs)}">
+            <i class="bi bi-building-x"></i>
+            <h4 class="fw-bold text-muted">등록된 클럽이 없습니다</h4>
+            <p class="text-muted">새로운 클럽을 등록해보세요!</p>
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/club/create}"
+               class="btn btn-success fw-bold mt-2">
+                <i class="bi bi-plus-circle me-1"></i>첫 클럽 등록
+            </a>
+        </div>
+
+        <!-- 클럽 카드 그리드 -->
+        <div class="row g-4" id="clubGrid">
+            <div class="col-md-6 col-lg-4 club-item"
+                 th:each="club,iter : ${clubs}"
+                 th:attr="data-name=${club.name}, data-region=${club.region}"
+                 th:style="'animation: fadeInUp 0.4s ease both; animation-delay:' + ${iter.index * 60} + 'ms'">
+                <div class="club-card">
+                    <div class="club-card-header">
+                        <div class="club-avatar" th:text="${#strings.substring(club.name, 0, 1)}">C</div>
+                        <div>
+                            <div class="club-name" th:text="${club.name}">클럽명</div>
+                            <div class="club-region">
+                                <i class="bi bi-geo-alt-fill" style="color:#059669;"></i>
+                                <span th:text="${club.region != null ? club.region : '지역 미정'}">지역</span>
+                            </div>
                         </div>
                     </div>
-
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <small class="text-muted">
-                            <i class="bi bi-calendar-fill me-1"></i>
-                            등록일: <span th:text="${#temporals.format(club.createdAt, 'yyyy-MM-dd')}">2025-01-01</span>
-                        </small>
-                        <small class="text-muted">
-                            <i class="bi bi-clock-fill me-1"></i>
-                            수정일: <span th:text="${#temporals.format(club.updatedAt, 'yyyy-MM-dd')}">2025-01-01</span>
-                        </small>
+                    <div class="club-body">
+                        <div class="d-flex flex-column gap-1">
+                            <div class="club-meta">
+                                <i class="bi bi-calendar3"></i>
+                                등록: <span th:text="${#temporals.format(club.createdAt, 'yyyy.MM.dd')}">날짜</span>
+                            </div>
+                            <div class="club-meta" th:if="${club.updatedAt != null && club.updatedAt != club.createdAt}">
+                                <i class="bi bi-pencil-square"></i>
+                                수정: <span th:text="${#temporals.format(club.updatedAt, 'yyyy.MM.dd')}">날짜</span>
+                            </div>
+                        </div>
                     </div>
-
-                    <div class="d-grid gap-2">
-                        <a th:href="@{|/club/detail/${club.id}|}" class="btn btn-primary">
-                            <i class="bi bi-eye me-1"></i>클럽 상세보기
+                    <div class="club-footer">
+                        <a th:href="@{/club/detail/{id}(id=${club.id})}" class="btn-club-view">
+                            <i class="bi bi-eye me-1"></i>상세보기
                         </a>
-                        <div class="btn-group" sec:authorize="hasRole('ADMIN')">
-                            <a th:href="@{|/club/edit/${club.id}|}" class="btn btn-outline-warning btn-sm">
-                                <i class="bi bi-pencil me-1"></i>수정
+                        <div sec:authorize="hasRole('ADMIN')" class="d-flex gap-1">
+                            <a th:href="@{/club/edit/{id}(id=${club.id})}"
+                               class="btn btn-warning btn-sm fw-bold" style="border-radius:8px; padding:0.45rem 0.7rem;">
+                                <i class="bi bi-pencil"></i>
                             </a>
-                            <button type="button"
-                                    class="btn btn-outline-danger btn-sm delete-btn"
+                            <button type="button" class="btn btn-danger btn-sm fw-bold delete-btn"
+                                    style="border-radius:8px; padding:0.45rem 0.7rem;"
                                     th:data-club-id="${club.id}"
                                     th:data-club-name="${club.name}">
-                                <i class="bi bi-trash me-1"></i>삭제
+                                <i class="bi bi-trash"></i>
                             </button>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- 검색 결과 없음 -->
+        <div id="noResults" class="empty-clubs" style="display:none;">
+            <i class="bi bi-search"></i>
+            <h5 class="fw-bold text-muted">검색 결과가 없습니다</h5>
+            <p class="text-muted small">다른 키워드로 검색해보세요.</p>
+        </div>
+
     </div>
 
-    <!-- 클럽 없음 메시지 -->
-    <div class="text-center py-5" th:if="${#lists.isEmpty(clubs)}">
-        <i class="bi bi-inbox" style="font-size: 5rem; color: #dee2e6;"></i>
-        <h4 class="mt-3 text-muted">등록된 클럽이 없습니다</h4>
-        <p class="text-muted">새로운 클럽을 등록해보세요!</p>
-        <a th:href="@{/club/create}" class="btn btn-success mt-3" sec:authorize="hasRole('ADMIN')">
-            <i class="bi bi-plus-circle-fill me-2"></i>클럽 등록하기
-        </a>
-    </div>
-
-    <!-- 삭제 확인 폼 (숨김) -->
-    <form id="deleteForm" method="post" style="display: none;">
+    <form id="deleteForm" method="post" style="display:none;">
         <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
     </form>
 </div>
 
 <th:block layout:fragment="script">
     <script>
-        // 삭제 버튼 이벤트 리스너
-        document.addEventListener('DOMContentLoaded', function() {
-            const deleteButtons = document.querySelectorAll('.delete-btn');
+        /* 검색 필터 */
+        const searchInput = document.getElementById('searchInput');
+        const resultCount = document.getElementById('resultCount');
+        const noResults   = document.getElementById('noResults');
 
-            deleteButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const clubId = this.getAttribute('data-club-id');
-                    const clubName = this.getAttribute('data-club-name');
+        searchInput.addEventListener('input', function() {
+            const kw = this.value.toLowerCase().trim();
+            const items = document.querySelectorAll('.club-item');
+            let visible = 0;
+            items.forEach(item => {
+                const name   = (item.dataset.name   || '').toLowerCase();
+                const region = (item.dataset.region || '').toLowerCase();
+                const show   = !kw || name.includes(kw) || region.includes(kw);
+                item.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+            resultCount.textContent = visible;
+            noResults.style.display = visible === 0 && items.length > 0 ? 'block' : 'none';
+        });
 
-                    if (confirm('정말로 "' + clubName + '" 클럽을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
-                        const form = document.getElementById('deleteForm');
-                        form.action = '/club/delete/' + clubId;
-                        form.submit();
-                    }
-                });
+        /* 삭제 */
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id   = this.dataset.clubId;
+                const name = this.dataset.clubName;
+                if (confirm('"' + name + '" 클럽을 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+                    const form = document.getElementById('deleteForm');
+                    form.action = '/club/delete/' + id;
+                    form.submit();
+                }
             });
         });
     </script>

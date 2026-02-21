@@ -4,361 +4,423 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="_csrf"        th:content="${_csrf.token}"/>
+  <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
-    <!-- CSRF 메타 태그 -->
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+  <!-- SEO & Social -->
+  <meta name="description" content="안산시 탁구 협회 - 대회 관리, 선수 랭킹, 클럽 정보를 한 곳에서">
+  <meta property="og:title"       content="안산시 탁구 협회"/>
+  <meta property="og:description" content="안산시 탁구 협회 공식 대회 관리 플랫폼"/>
+  <meta property="og:type"        content="website"/>
+  <meta property="og:locale"      content="ko_KR"/>
+  <meta name="theme-color"        content="#0d1b2a"/>
 
-    <title layout:title-pattern="$CONTENT_TITLE$ | 안산시 탁구 협회" class="layout-title">안산시 탁구 협회</title>
+  <!-- PWA -->
+  <link rel="manifest" th:href="@{/manifest.json}"/>
+  <meta name="mobile-web-app-capable"       content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+  <meta name="apple-mobile-web-app-title"   content="안산탁구"/>
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet" />
-    <link href="/css/app.css" th:href="@{/css/app.css}" rel="stylesheet" />
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <title layout:title-pattern="$CONTENT_TITLE$ | 안산시 탁구 협회">안산시 탁구 협회</title>
 
-    <!-- WebSocket 라이브러리 -->
-    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  <!-- Stylesheets -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <link href="/css/app.css"     th:href="@{/css/app.css}"     rel="stylesheet"/>
+  <link href="/css/premium.css" th:href="@{/css/premium.css}" rel="stylesheet"/>
 
-    <!-- 다크모드 초기화 (깜빡임 방지) -->
-    <script>
-        (function() {
-            const theme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', theme);
-        })();
-    </script>
+  <!-- Dark mode (no flash) -->
+  <script>
+    (function(){
+      const t = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', t);
+    })();
+  </script>
 
-    <th:block layout:fragment="css"></th:block>
+  <!-- Page-level CSS -->
+  <th:block layout:fragment="css"></th:block>
 </head>
 <body>
+
+<!-- ===== SCROLL PROGRESS BAR ===== -->
+<div class="scroll-progress-bar" id="scrollProgressBar"></div>
+
+<!-- ===== NPROGRESS BAR ===== -->
+<div id="nprogress-bar"></div>
+<div id="nprogress-spinner"></div>
+
 <!-- ===== NAVBAR ===== -->
 <nav class="navbar navbar-expand-lg navbar-dark fixed-top">
-    <div class="container-fluid px-3">
-        <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
-            <i class="bi bi-table me-2" style="font-size:2rem; color:#ff9800;"></i>
-            <span class="fw-bold" style="font-size:1.45rem; letter-spacing:-0.02em;">안산시 탁구 협회</span>
-        </a>
+  <div class="container-fluid px-3">
 
-        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+    <!-- Brand -->
+    <a class="navbar-brand d-flex align-items-center" th:href="@{/}">
+      <i class="bi bi-table me-2" style="font-size:1.9rem;color:#f97316;"></i>
+      <span class="fw-black" style="font-size:1.35rem;letter-spacing:-0.03em;">안산시 탁구 협회</span>
+    </a>
 
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <!-- 왼쪽 메뉴 -->
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/tournament/list}">
-                        <i class="bi bi-trophy me-1"></i>대회 목록
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/calendar}">
-                        <i class="bi bi-calendar-event me-1"></i>캘린더
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/player/ranking}">
-                        <i class="bi bi-bar-chart-fill me-1"></i>랭킹
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/player/list}">
-                        <i class="bi bi-people me-1"></i>선수
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/club/list}">
-                        <i class="bi bi-building me-1"></i>클럽
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" th:href="@{/board/list}">
-                        <i class="bi bi-chat-dots me-1"></i>커뮤니티
-                    </a>
-                </li>
-            </ul>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="메뉴 열기">
+      <span class="navbar-toggler-icon"></span>
+    </button>
 
-            <!-- 검색 폼 -->
-            <form class="d-flex me-3 my-2 my-lg-0" role="search" th:action="@{/tournament/list}" method="get">
-                <div class="input-group" style="width: 220px;">
-                    <input class="form-control border-0" type="search" name="q" placeholder="대회 검색..." aria-label="검색"
-                           style="background:rgba(255,255,255,0.15); color:white; font-size:0.9rem;"
-                           onfocus="this.style.background='rgba(255,255,255,0.25)'"
-                           onblur="this.style.background='rgba(255,255,255,0.15)'"/>
-                    <button class="btn" type="submit"
-                            style="background:rgba(255,255,255,0.2); color:white; border:none; border-radius:0 8px 8px 0;">
-                        <i class="bi bi-search"></i>
-                    </button>
-                </div>
-            </form>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <!-- Left nav -->
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/tournament/list}">
+            <i class="bi bi-trophy me-1"></i>대회
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/calendar}">
+            <i class="bi bi-calendar-event me-1"></i>캘린더
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/player/ranking}">
+            <i class="bi bi-bar-chart-fill me-1"></i>랭킹
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/player/list}">
+            <i class="bi bi-people me-1"></i>선수
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/club/list}">
+            <i class="bi bi-building me-1"></i>클럽
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" th:href="@{/board/list}">
+            <i class="bi bi-chat-dots me-1"></i>커뮤니티
+          </a>
+        </li>
+      </ul>
 
-            <!-- 오른쪽 메뉴 -->
-            <ul class="navbar-nav align-items-center gap-1">
+      <!-- Search trigger (replaces old form) -->
+      <button class="search-trigger me-3 d-none d-lg-flex" data-search type="button" title="검색 (Ctrl+K)">
+        <i class="bi bi-search"></i>
+        <span class="search-trigger-text">대회, 선수 검색...</span>
+        <kbd style="font-size:0.7rem;background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);border-radius:5px;padding:1px 6px;color:rgba(255,255,255,0.6);">⌘K</kbd>
+      </button>
 
-                <!-- 다크모드 토글 -->
-                <li class="nav-item me-2">
-                    <button id="darkModeToggle" class="btn border-0 p-1" title="다크모드 전환"
-                            style="background:rgba(255,255,255,0.15); border-radius:20px; padding:0.35rem 0.8rem !important;">
-                        <span id="darkModeIcon">🌙</span>
-                    </button>
-                </li>
+      <!-- Right nav -->
+      <ul class="navbar-nav align-items-center gap-1">
 
-                <!-- 알림 (로그인 사용자) -->
-                <li class="nav-item" sec:authorize="isAuthenticated()">
-                    <a class="nav-link position-relative" th:href="@{/notification/list}" title="알림">
-                        <i class="bi bi-bell-fill fs-5"></i>
-                        <span class="position-absolute badge rounded-pill bg-danger"
-                              id="unreadNotificationBadge"
-                              style="font-size:0.6rem; top:4px; right:0; display:none; min-width:18px;">
-                            0
-                        </span>
-                    </a>
-                </li>
+        <!-- Search icon (mobile) -->
+        <li class="nav-item d-lg-none">
+          <button class="btn border-0 p-1 text-white" data-search style="background:rgba(255,255,255,0.12);border-radius:10px;padding:0.35rem 0.7rem!important;">
+            <i class="bi bi-search"></i>
+          </button>
+        </li>
 
-                <!-- 관리자 드롭다운 -->
-                <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#"
-                       id="adminDropdown" role="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-shield-fill-check text-warning"></i>
-                        <span>관리</span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius:16px; overflow:hidden; min-width:220px; padding:0.5rem 0;">
-                        <li><h6 class="dropdown-header text-uppercase fw-bold" style="font-size:0.75rem; color:#888; letter-spacing:0.08em;">
-                            <i class="bi bi-shield-lock me-1"></i>관리자 메뉴</h6></li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/admin/dashboard}">
-                                <span style="width:28px; height:28px; background:rgba(0,102,204,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center;">
-                                    <i class="bi bi-speedometer2 text-primary"></i>
-                                </span>
-                                <span>대시보드</span>
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><h6 class="dropdown-header" style="font-size:0.75rem; color:#aaa;">대회 관리</h6></li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/tournament/create}">
-                                <span style="width:28px; height:28px; background:rgba(0,204,102,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center;">
-                                    <i class="bi bi-plus-circle text-success"></i>
-                                </span>
-                                <span>새 대회 등록</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/admin/tournaments}">
-                                <span style="width:28px; height:28px; background:rgba(0,188,212,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center;">
-                                    <i class="bi bi-list-ul text-info"></i>
-                                </span>
-                                <span>대회 목록 관리</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/admin/participationList}">
-                                <span style="width:28px; height:28px; background:rgba(255,152,0,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center;">
-                                    <i class="bi bi-person-check text-warning"></i>
-                                </span>
-                                <span>참가 신청 관리</span>
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li><h6 class="dropdown-header" style="font-size:0.75rem; color:#aaa;">선수 & 클럽</h6></li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/player/create}">
-                                <span style="width:28px; height:28px; background:rgba(0,204,102,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center;">
-                                    <i class="bi bi-person-plus text-success"></i>
-                                </span>
-                                <span>선수 등록</span>
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/club/create}">
-                                <span style="width:28px; height:28px; background:rgba(0,204,102,0.1); border-radius:8px; display:flex; align-items:center; justify-content:center;">
-                                    <i class="bi bi-building-add text-success"></i>
-                                </span>
-                                <span>클럽 등록</span>
-                            </a>
-                        </li>
-                    </ul>
-                </li>
+        <!-- Dark mode -->
+        <li class="nav-item me-1">
+          <button id="darkModeToggle" class="btn border-0 p-1" title="다크모드 전환"
+                  style="background:rgba(255,255,255,0.12);border-radius:20px;padding:0.35rem 0.8rem!important;">
+            <span id="darkModeIcon">🌙</span>
+          </button>
+        </li>
 
-                <!-- 사용자 드롭다운 -->
-                <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
-                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#"
-                       id="userDropdown" role="button" data-bs-toggle="dropdown">
-                        <div style="width:32px; height:32px; background:rgba(255,255,255,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.5);">
-                            <i class="bi bi-person-fill"></i>
-                        </div>
-                        <span sec:authentication="name" style="max-width:80px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius:16px; overflow:hidden; min-width:200px; padding:0.5rem 0;">
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/user/profile}">
-                                <i class="bi bi-person-circle text-primary"></i>내 정보
-                            </a>
-                        </li>
-                        <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/notification/list}">
-                                <i class="bi bi-bell text-warning"></i>알림 목록
-                            </a>
-                        </li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        <li>
-                            <form method="post" th:action="@{/logout}" style="display:inline; width:100%;">
-                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-                                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger">
-                                    <i class="bi bi-box-arrow-right"></i>로그아웃
-                                </button>
-                            </form>
-                        </li>
-                    </ul>
-                </li>
+        <!-- Notification bell -->
+        <li class="nav-item" sec:authorize="isAuthenticated()">
+          <a class="nav-link position-relative" th:href="@{/notification/list}" title="알림">
+            <i class="bi bi-bell-fill fs-5"></i>
+            <span class="position-absolute badge rounded-pill bg-danger"
+                  id="unreadNotificationBadge"
+                  style="font-size:0.6rem;top:4px;right:0;display:none;min-width:18px;">0</span>
+          </a>
+        </li>
 
-                <!-- 로그인/회원가입 -->
-                <li class="nav-item" sec:authorize="!isAuthenticated()">
-                    <a class="nav-link" th:href="@{/user/login}">
-                        <i class="bi bi-box-arrow-in-right me-1"></i>로그인
-                    </a>
-                </li>
-                <li class="nav-item" sec:authorize="!isAuthenticated()">
-                    <a class="btn btn-sm ms-1 fw-bold" th:href="@{/user/signup}"
-                       style="background:rgba(255,255,255,0.2); color:white; border:2px solid rgba(255,255,255,0.6); border-radius:20px; padding:0.35rem 1rem;">
-                        <i class="bi bi-person-plus me-1"></i>회원가입
-                    </a>
-                </li>
-            </ul>
-        </div>
+        <!-- Admin dropdown -->
+        <li class="nav-item dropdown" sec:authorize="hasRole('ADMIN')">
+          <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#"
+             id="adminDropdown" role="button" data-bs-toggle="dropdown">
+            <i class="bi bi-shield-fill-check text-warning"></i>
+            <span>관리</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0"
+              style="border-radius:16px;overflow:hidden;min-width:230px;padding:0.5rem 0;">
+            <li>
+              <h6 class="dropdown-header text-uppercase fw-bold" style="font-size:0.72rem;color:#888;letter-spacing:0.08em;">
+                <i class="bi bi-shield-lock me-1"></i>관리자 메뉴
+              </h6>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/admin/dashboard}">
+                <span style="width:28px;height:28px;background:rgba(99,102,241,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                  <i class="bi bi-speedometer2" style="color:#6366f1"></i>
+                </span><span>대시보드</span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><h6 class="dropdown-header" style="font-size:0.72rem;color:#aaa;">대회 관리</h6></li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/tournament/create}">
+                <span style="width:28px;height:28px;background:rgba(16,185,129,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                  <i class="bi bi-plus-circle" style="color:#10b981"></i>
+                </span><span>새 대회 등록</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/admin/tournaments}">
+                <span style="width:28px;height:28px;background:rgba(59,130,246,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                  <i class="bi bi-list-ul" style="color:#3b82f6"></i>
+                </span><span>대회 목록 관리</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/admin/participationList}">
+                <span style="width:28px;height:28px;background:rgba(245,158,11,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                  <i class="bi bi-person-check" style="color:#f59e0b"></i>
+                </span><span>참가 신청 관리</span>
+              </a>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li><h6 class="dropdown-header" style="font-size:0.72rem;color:#aaa;">선수 &amp; 클럽</h6></li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/player/create}">
+                <span style="width:28px;height:28px;background:rgba(16,185,129,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                  <i class="bi bi-person-plus" style="color:#10b981"></i>
+                </span><span>선수 등록</span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/club/create}">
+                <span style="width:28px;height:28px;background:rgba(16,185,129,0.1);border-radius:8px;display:flex;align-items:center;justify-content:center;">
+                  <i class="bi bi-building-add" style="color:#10b981"></i>
+                </span><span>클럽 등록</span>
+              </a>
+            </li>
+          </ul>
+        </li>
+
+        <!-- User dropdown -->
+        <li class="nav-item dropdown" sec:authorize="isAuthenticated()">
+          <a class="nav-link dropdown-toggle d-flex align-items-center gap-1" href="#"
+             id="userDropdown" role="button" data-bs-toggle="dropdown">
+            <div style="width:32px;height:32px;background:linear-gradient(135deg,#6366f1,#8b5cf6);border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(255,255,255,0.5);">
+              <i class="bi bi-person-fill" style="font-size:0.9rem;"></i>
+            </div>
+            <span sec:authentication="name" style="max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0"
+              style="border-radius:16px;overflow:hidden;min-width:200px;padding:0.5rem 0;">
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/user/profile}">
+                <i class="bi bi-person-circle text-primary"></i>내 정보
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/notification/list}">
+                <i class="bi bi-bell text-warning"></i>알림 목록
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item d-flex align-items-center gap-2 py-2" th:href="@{/user/changePassword}">
+                <i class="bi bi-shield-lock" style="color:#7c3aed;"></i>비밀번호 변경
+              </a>
+            </li>
+            <li><hr class="dropdown-divider my-1"></li>
+            <li>
+              <form method="post" th:action="@{/logout}" style="display:inline;width:100%;">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger">
+                  <i class="bi bi-box-arrow-right"></i>로그아웃
+                </button>
+              </form>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Login / Signup -->
+        <li class="nav-item" sec:authorize="!isAuthenticated()">
+          <a class="nav-link" th:href="@{/user/login}">
+            <i class="bi bi-box-arrow-in-right me-1"></i>로그인
+          </a>
+        </li>
+        <li class="nav-item" sec:authorize="!isAuthenticated()">
+          <a class="btn btn-sm ms-1 fw-bold" th:href="@{/user/signup}"
+             style="background:rgba(255,255,255,0.18);color:#fff;border:2px solid rgba(255,255,255,0.5);border-radius:20px;padding:0.35rem 1rem;">
+            <i class="bi bi-person-plus me-1"></i>회원가입
+          </a>
+        </li>
+      </ul>
     </div>
+  </div>
 </nav>
 
-<!-- WebSocket 연결 상태 -->
-<div style="position:fixed; top:88px; right:16px; z-index:1000; transition:opacity 0.3s;" id="wsStatusWrap">
-    <span id="wsConnectionBadge" class="badge bg-secondary" style="font-size:0.75rem; padding:0.35rem 0.8rem; border-radius:12px;">
-        ⚪ 대기중
-    </span>
-</div>
-
-<!-- Toast 알림 -->
-<div id="toastContainer" aria-live="polite" aria-atomic="true"
-     style="position:fixed; top:130px; right:20px; z-index:1050; max-width:350px;">
-</div>
-
-<!-- 플래시 메시지 -->
-<div class="flash-message-container">
-    <div th:if="${message}" class="alert alert-dismissible fade show text-center"
-         th:classappend="${alertType == 'success' ? 'alert-success' : 'alert-danger'}" role="alert">
-        <i th:classappend="${alertType == 'success' ? 'bi bi-check-circle-fill me-2' : 'bi bi-exclamation-circle-fill me-2'}"></i>
-        <span th:text="${message}"></span>
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="닫기"></button>
+<!-- ===== GLOBAL SEARCH MODAL ===== -->
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-box" id="searchBox">
+    <div class="search-input-row">
+      <i class="bi bi-search"></i>
+      <input type="text" id="searchInput" placeholder="대회, 선수, 클럽 검색..." autocomplete="off" spellcheck="false"/>
+      <div class="search-kbds">
+        <kbd class="search-kbd">Esc</kbd>
+      </div>
+      <button id="searchClose" style="background:none;border:none;color:var(--text-secondary);cursor:pointer;font-size:1rem;padding:4px;">✕</button>
     </div>
+    <div id="searchResults" class="search-results"></div>
+    <div class="search-footer">
+      <div class="search-hint"><kbd>↑↓</kbd> 이동</div>
+      <div class="search-hint"><kbd>Enter</kbd> 선택</div>
+      <div class="search-hint"><kbd>Esc</kbd> 닫기</div>
+      <div class="search-hint"><kbd>Ctrl</kbd><kbd>K</kbd> 열기</div>
+    </div>
+  </div>
 </div>
 
-<div layout:fragment="content" class="main-content container mt-4">
+<!-- ===== TOAST STACK ===== -->
+<div id="toastStack" class="toast-stack"></div>
+
+<!-- ===== FLASH MESSAGE ===== -->
+<div class="flash-message-container">
+  <div th:if="${message}" class="alert alert-dismissible fade show text-center"
+       th:classappend="${alertType == 'success' ? 'alert-success' : 'alert-danger'}" role="alert">
+    <i th:classappend="${alertType == 'success' ? 'bi bi-check-circle-fill me-2' : 'bi bi-exclamation-circle-fill me-2'}"></i>
+    <span th:text="${message}"></span>
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="닫기"></button>
+  </div>
 </div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<div layout:fragment="content" class="main-content container mt-4"></div>
 
 <!-- ===== FOOTER ===== -->
 <footer class="footer">
-    <div class="container">
-        <div class="row g-4">
-            <div class="col-md-4">
-                <div class="footer-title d-flex align-items-center gap-2">
-                    <i class="bi bi-table" style="color:#ff9800;"></i>
-                    안산시 탁구 협회
-                </div>
-                <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; line-height:1.8;">
-                    안산시 탁구 협회는 지역 탁구 문화 발전과<br>
-                    선수 육성을 위해 노력합니다.
-                </p>
-                <div class="d-flex gap-3 mt-2">
-                    <a href="#" class="footer-link" style="font-size:1.4rem;"><i class="bi bi-instagram"></i></a>
-                    <a href="#" class="footer-link" style="font-size:1.4rem;"><i class="bi bi-youtube"></i></a>
-                    <a href="#" class="footer-link" style="font-size:1.4rem;"><i class="bi bi-facebook"></i></a>
-                </div>
-            </div>
-            <div class="col-md-2">
-                <h6 style="color:rgba(255,255,255,0.8); font-weight:700; margin-bottom:1rem; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em;">대회</h6>
-                <a th:href="@{/tournament/list}" class="footer-link">대회 목록</a>
-                <a th:href="@{/calendar}" class="footer-link">대회 캘린더</a>
-                <a th:href="@{/player/ranking}" class="footer-link">선수 랭킹</a>
-            </div>
-            <div class="col-md-2">
-                <h6 style="color:rgba(255,255,255,0.8); font-weight:700; margin-bottom:1rem; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em;">선수</h6>
-                <a th:href="@{/player/list}" class="footer-link">선수 목록</a>
-                <a th:href="@{/club/list}" class="footer-link">클럽 목록</a>
-            </div>
-            <div class="col-md-4">
-                <h6 style="color:rgba(255,255,255,0.8); font-weight:700; margin-bottom:1rem; font-size:0.9rem; text-transform:uppercase; letter-spacing:0.05em;">커뮤니티</h6>
-                <a th:href="@{/board/list}" class="footer-link">게시판</a>
-                <div class="mt-3 p-3" style="background:rgba(255,255,255,0.06); border-radius:12px; border:1px solid rgba(255,255,255,0.1);">
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                        <i class="bi bi-geo-alt-fill" style="color:#ff9800;"></i>
-                        <small style="color:rgba(255,255,255,0.7);">경기도 안산시 탁구협회</small>
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-envelope-fill" style="color:#ff9800;"></i>
-                        <small style="color:rgba(255,255,255,0.7);">info@ansan-tabletennis.kr</small>
-                    </div>
-                </div>
-            </div>
+  <div class="container">
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="footer-title d-flex align-items-center gap-2">
+          <i class="bi bi-table" style="color:#f97316;"></i>안산시 탁구 협회
         </div>
-        <div class="footer-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
-            <span>&copy; 2026 안산시 탁구 협회. All rights reserved.</span>
-            <span style="font-size:0.82rem; opacity:0.6;">
-                Powered by Spring Boot 3 &middot; Thymeleaf &middot; Bootstrap 5
-            </span>
+        <p style="color:rgba(255,255,255,0.6);font-size:0.88rem;line-height:1.8;">
+          안산시 탁구 협회는 지역 탁구 문화 발전과<br>선수 육성을 위해 노력합니다.
+        </p>
+        <div class="d-flex gap-3 mt-2">
+          <a href="#" class="footer-link" style="font-size:1.4rem;" title="Instagram"><i class="bi bi-instagram"></i></a>
+          <a href="#" class="footer-link" style="font-size:1.4rem;" title="YouTube"><i class="bi bi-youtube"></i></a>
+          <a href="#" class="footer-link" style="font-size:1.4rem;" title="Facebook"><i class="bi bi-facebook"></i></a>
         </div>
+      </div>
+      <div class="col-md-2">
+        <h6 style="color:rgba(255,255,255,0.8);font-weight:700;margin-bottom:1rem;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.05em;">대회</h6>
+        <a th:href="@{/tournament/list}" class="footer-link">대회 목록</a>
+        <a th:href="@{/calendar}" class="footer-link">대회 캘린더</a>
+        <a th:href="@{/player/ranking}" class="footer-link">선수 랭킹</a>
+      </div>
+      <div class="col-md-2">
+        <h6 style="color:rgba(255,255,255,0.8);font-weight:700;margin-bottom:1rem;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.05em;">선수/클럽</h6>
+        <a th:href="@{/player/list}" class="footer-link">선수 목록</a>
+        <a th:href="@{/club/list}" class="footer-link">클럽 목록</a>
+        <a th:href="@{/board/list}" class="footer-link">커뮤니티</a>
+      </div>
+      <div class="col-md-4">
+        <h6 style="color:rgba(255,255,255,0.8);font-weight:700;margin-bottom:1rem;font-size:0.88rem;text-transform:uppercase;letter-spacing:0.05em;">연락처</h6>
+        <div class="p-3" style="background:rgba(255,255,255,0.06);border-radius:12px;border:1px solid rgba(255,255,255,0.1);">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-geo-alt-fill" style="color:#f97316;"></i>
+            <small style="color:rgba(255,255,255,0.7);">경기도 안산시 탁구협회</small>
+          </div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-envelope-fill" style="color:#f97316;"></i>
+            <small style="color:rgba(255,255,255,0.7);">info@ansan-tabletennis.kr</small>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-telephone-fill" style="color:#f97316;"></i>
+            <small style="color:rgba(255,255,255,0.7);">031-000-0000</small>
+          </div>
+        </div>
+      </div>
     </div>
+    <div class="footer-bottom d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <span>&copy; 2026 안산시 탁구 협회. All rights reserved.</span>
+      <span style="font-size:0.8rem;opacity:0.55;">Spring Boot 3 &middot; Thymeleaf &middot; Bootstrap 5</span>
+    </div>
+  </div>
 </footer>
 
+<!-- ===== MOBILE BOTTOM NAV ===== -->
+<nav class="mobile-bottom-nav">
+  <div class="mobile-nav-inner">
+    <a href="/"                class="mobile-nav-btn" title="홈">         <i class="bi bi-house-fill"></i><span>홈</span></a>
+    <a href="/tournament/list" class="mobile-nav-btn" title="대회">       <i class="bi bi-trophy-fill"></i><span>대회</span></a>
+    <button class="mobile-nav-btn" data-search title="검색">             <i class="bi bi-search"></i><span>검색</span></button>
+    <a href="/player/ranking"  class="mobile-nav-btn" title="랭킹">       <i class="bi bi-bar-chart-fill"></i><span>랭킹</span></a>
+    <a href="/user/profile"    class="mobile-nav-btn" sec:authorize="isAuthenticated()" title="내 정보">  <i class="bi bi-person-fill"></i><span>프로필</span></a>
+    <a href="/user/login"      class="mobile-nav-btn" sec:authorize="!isAuthenticated()" title="로그인"><i class="bi bi-box-arrow-in-right"></i><span>로그인</span></a>
+  </div>
+</nav>
+
+<!-- ===== BACK TO TOP ===== -->
+<button class="back-to-top" id="backToTop" title="맨 위로">
+  <i class="bi bi-chevron-up"></i>
+</button>
+
+<!-- ===== WS STATUS ===== -->
+<div style="position:fixed;top:88px;right:16px;z-index:1000;transition:opacity 0.3s;" id="wsStatusWrap">
+  <span id="wsConnectionBadge" class="badge bg-secondary" style="font-size:0.72rem;padding:0.3rem 0.7rem;border-radius:10px;">
+    ⚪ 대기중
+  </span>
+</div>
+
+<!-- ===== SCRIPTS ===== -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 <script th:src="@{/js/websocket-client.js}"></script>
+<script th:src="@{/js/app.js}"></script>
 
 <th:block layout:fragment="script"></th:block>
 
-<!-- 다크모드 스크립트 -->
+<!-- ===== DARK MODE ===== -->
 <script>
-    (function() {
-        const btn = document.getElementById('darkModeToggle');
-        const icon = document.getElementById('darkModeIcon');
+  (function() {
+    const btn  = document.getElementById('darkModeToggle');
+    const icon = document.getElementById('darkModeIcon');
 
-        function applyTheme(theme) {
-            document.documentElement.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            icon.textContent = theme === 'dark' ? '☀️' : '🌙';
-        }
-
-        // 초기화
-        const saved = localStorage.getItem('theme') || 'light';
-        applyTheme(saved);
-
-        btn.addEventListener('click', function() {
-            const current = document.documentElement.getAttribute('data-theme');
-            applyTheme(current === 'dark' ? 'light' : 'dark');
-        });
-    })();
-</script>
-
-<!-- 알림 개수 업데이트 -->
-<script sec:authorize="isAuthenticated()">
-    function updateNotificationBadge() {
-        fetch('/notification/unread-count')
-            .then(r => r.json())
-            .then(count => {
-                const badge = document.getElementById('unreadNotificationBadge');
-                if (badge) {
-                    badge.textContent = count > 99 ? '99+' : count;
-                    badge.style.display = count > 0 ? 'inline-block' : 'none';
-                }
-            })
-            .catch(() => {});
+    function apply(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      icon.textContent = theme === 'dark' ? '☀️' : '🌙';
     }
 
-    document.addEventListener('DOMContentLoaded', function() {
-        updateNotificationBadge();
-        setInterval(updateNotificationBadge, 30000);
+    const saved = localStorage.getItem('theme') || 'light';
+    apply(saved);
+
+    btn?.addEventListener('click', function() {
+      apply(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
     });
+  })();
+</script>
+
+<!-- ===== NOTIFICATION COUNT ===== -->
+<script sec:authorize="isAuthenticated()">
+  function updateNotificationBadge() {
+    fetch('/notification/unread-count')
+      .then(r => r.json())
+      .then(count => {
+        const badge = document.getElementById('unreadNotificationBadge');
+        if (!badge) return;
+        badge.textContent = count > 99 ? '99+' : count;
+        badge.style.display = count > 0 ? 'inline-block' : 'none';
+        if (count > 0) badge.classList.add('notif-badge-pulse');
+        else badge.classList.remove('notif-badge-pulse');
+      })
+      .catch(() => {});
+  }
+  document.addEventListener('DOMContentLoaded', function() {
+    updateNotificationBadge();
+    setInterval(updateNotificationBadge, 30000);
+  });
 </script>
 
 </body>

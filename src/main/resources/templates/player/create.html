@@ -1,49 +1,103 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
 <head>
     <title>선수 등록</title>
+    <th:block layout:fragment="css">
+    <style>
+        .form-hero { background: linear-gradient(135deg, #1e3a5f 0%, #0d1b2a 100%); color: #fff; padding: 2rem 0 1.8rem; margin-bottom: 2.5rem; border-radius: 0 0 20px 20px; }
+        .form-hero h1 { font-size: 1.6rem; font-weight: 800; }
+        .form-hero .breadcrumb { opacity: 0.6; font-size: 0.82rem; }
+        .form-hero .breadcrumb-item + .breadcrumb-item::before { color: rgba(255,255,255,0.3); }
+        .form-card { background: var(--bg-white); border-radius: 16px; box-shadow: var(--shadow-md); overflow: hidden; max-width: 600px; margin: 0 auto; }
+        .form-card-header { background: linear-gradient(135deg, #1e3a5f, #0d1b2a); color: #fff; padding: 1.2rem 1.8rem; }
+        .form-card-header h4 { margin: 0; font-weight: 700; font-size: 1rem; }
+        .form-body { padding: 2rem 1.8rem; }
+        .field-label { font-weight: 600; font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+        .field-input { width: 100%; border: 1.5px solid var(--border-color); border-radius: 10px; padding: 11px 14px; font-size: 0.93rem; color: var(--text-primary); background: var(--bg-white); transition: border-color 0.2s, box-shadow 0.2s; font-family: inherit; }
+        .field-input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.15); outline: none; }
+        select.field-input { cursor: pointer; }
+        .form-divider { border: none; border-top: 1px solid var(--border-color); margin: 1.5rem 0; }
+        .btn-submit { background: linear-gradient(135deg, #1d4ed8, #3b82f6); color: #fff; border: none; border-radius: 10px; padding: 13px; font-size: 0.95rem; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(59,130,246,0.4); }
+        .btn-cancel { background: var(--bg-white); color: var(--text-secondary); border: 1.5px solid var(--border-color); border-radius: 10px; padding: 10px; font-size: 0.88rem; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s; }
+        .btn-cancel:hover { border-color: #6b7280; color: var(--text-primary); }
+    </style>
+    </th:block>
 </head>
 <body>
-<div layout:fragment="content" class="container my-3">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <h2 class="text-center mb-4 text-primary fw-bold">선수 등록</h2>
-            <form th:action="@{/player/create}" th:object="${player}" method="post">
-                 <!-- <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" /> -->
+<div layout:fragment="content">
+    <div class="form-hero">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="/player/list" class="text-white-50">선수</a></li>
+                    <li class="breadcrumb-item active text-white">선수 등록</li>
+                </ol>
+            </nav>
+            <h1><i class="bi bi-person-plus-fill me-3"></i>새 선수 등록</h1>
+        </div>
+    </div>
 
-                <div class="mb-3">
-                    <label for="name" class="form-label">이름</label>
-                    <input type="text" th:field="*{name}" class="form-control" placeholder="선수 이름을 입력하세요" required>
-                </div>
-                 <div class="mb-3">
-                    <label for="age" class="form-label">나이</label>
-                    <input type="number" th:field="*{age}" class="form-control" placeholder="선수 나이를 입력하세요">
-                </div>
-                 <div class="mb-3">
-                    <label for="gender" class="form-label">성별</label>
-                    <select th:field="*{gender}" class="form-select">
-                        <option value="남성">남성</option>
-                        <option value="여성">여성</option>
-                        <option value="기타">기타</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <label for="ranking" class="form-label">랭킹</label>
-                    <input type="number" th:field="*{ranking}" class="form-control" placeholder="선수 랭킹을 입력하세요">
-                </div>
-                <div class="mb-3">
-                    <label for="position" class="form-label">포지션</label>
-                    <input type="text" th:field="*{position}" class="form-control" placeholder="단식/복식 등 포지션을 입력하세요">
-                </div>
-                <div class="mb-3">
-                    <label for="clubId" class="form-label">소속 클럽</label>
-                    <select id="clubId" name="clubId" class="form-select">
-                        <option value="">클럽을 선택하세요</option>
-                        <option th:each="club : ${clubs}" th:value="${club.id}" th:text="${club.name}"></option>
-                    </select>
-                </div>
-                <button type="submit" class="btn btn-primary w-100">선수 등록</button>
-            </form>
+    <div class="container pb-5">
+        <div class="form-card">
+            <div class="form-card-header">
+                <h4><i class="bi bi-person-badge-fill me-2"></i>선수 정보 입력</h4>
+            </div>
+            <div class="form-body">
+                <form th:action="@{/player/create}" th:object="${player}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-7">
+                            <label for="name" class="field-label">이름 <span class="text-danger">*</span></label>
+                            <input type="text" id="name" th:field="*{name}" class="field-input" placeholder="선수 이름" required>
+                        </div>
+                        <div class="col-sm-5">
+                            <label for="age" class="field-label">나이</label>
+                            <input type="number" id="age" th:field="*{age}" class="field-input" placeholder="나이" min="5" max="99">
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label for="gender" class="field-label">성별</label>
+                            <select id="gender" th:field="*{gender}" class="field-input">
+                                <option value="MALE">남성</option>
+                                <option value="FEMALE">여성</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="ranking" class="field-label">랭킹</label>
+                            <input type="number" id="ranking" th:field="*{ranking}" class="field-input" placeholder="예: 100">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="position" class="field-label">포지션</label>
+                        <input type="text" id="position" th:field="*{position}" class="field-input" placeholder="단식 / 복식 / 혼합복식">
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="clubId" class="field-label">소속 클럽</label>
+                        <select id="clubId" name="clubId" class="field-input">
+                            <option value="">클럽 선택 (선택사항)</option>
+                            <option th:each="club : ${clubs}" th:value="${club.id}" th:text="${club.name}"></option>
+                        </select>
+                    </div>
+
+                    <hr class="form-divider">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn-submit">
+                            <i class="bi bi-person-check-fill"></i>선수 등록
+                        </button>
+                        <a href="/player/list" class="btn-cancel">
+                            <i class="bi bi-x-lg"></i>취소
+                        </a>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

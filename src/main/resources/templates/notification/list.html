@@ -1,87 +1,165 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org"
+      layout:decorate="~{layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <title>알림</title>
     <th:block layout:fragment="css">
         <style>
-            .notification-item {
-                transition: all 0.3s ease;
+            .notif-hero {
+                background: linear-gradient(135deg, #1e1b4b 0%, #312e81 60%, #1e1b4b 100%);
+                color: white; padding: 2.5rem 0 4rem;
+                position: relative; overflow: hidden;
+                margin-bottom: 2rem;
+            }
+            .notif-hero::after {
+                content: ''; position: absolute;
+                bottom: -2px; left: 0; right: 0; height: 50px;
+                background: var(--bg-light);
+                clip-path: ellipse(55% 100% at 50% 100%);
+            }
+            .notif-card {
+                background: var(--bg-white);
+                border-radius: 14px;
+                border: 1px solid var(--border-color);
+                box-shadow: var(--shadow-sm);
+                padding: 1.1rem 1.3rem;
+                margin-bottom: 0.7rem;
+                display: flex; align-items: flex-start; gap: 1rem;
+                transition: all 0.2s ease;
                 border-left: 4px solid transparent;
+                position: relative;
             }
-            .notification-item:hover {
-                background-color: #f8f9fa;
-                transform: translateX(5px);
+            .notif-card:hover { transform: translateX(4px); box-shadow: var(--shadow-md); }
+            .notif-card.unread {
+                background: linear-gradient(135deg, #fffbeb, #fef3c7);
+                border-left-color: #f59e0b;
             }
-            .notification-item.unread {
-                background-color: #fff3cd;
-                border-left-color: #ffc107;
+            [data-theme="dark"] .notif-card.unread {
+                background: linear-gradient(135deg, #1c1800, #141000);
+                border-left-color: #f59e0b;
             }
-            .notification-icon {
-                font-size: 2rem;
+            .notif-icon-wrap {
+                width: 44px; height: 44px; border-radius: 12px;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 1.2rem; flex-shrink: 0;
             }
-            .notification-icon.success { color: #28a745; }
-            .notification-icon.info { color: #17a2b8; }
-            .notification-icon.warning { color: #ffc107; }
-            .notification-icon.danger { color: #dc3545; }
+            .icon-success { background: #d1fae5; color: #059669; }
+            .icon-info    { background: #dbeafe; color: #2563eb; }
+            .icon-warning { background: #fef3c7; color: #d97706; }
+            .icon-danger  { background: #fee2e2; color: #dc2626; }
+
+            .unread-dot {
+                width: 8px; height: 8px; border-radius: 50%;
+                background: #f59e0b;
+                position: absolute; top: 1rem; right: 1rem;
+            }
+            .notif-time { font-size: 0.75rem; color: var(--text-secondary); }
+            .notif-title { font-size: 0.95rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.2rem; }
+            .notif-msg { font-size: 0.85rem; color: var(--text-secondary); line-height: 1.5; }
+
+            .empty-notif { text-align: center; padding: 5rem 2rem; }
+            .empty-notif i { font-size: 4rem; opacity: 0.15; display: block; margin-bottom: 1rem; }
         </style>
     </th:block>
 </head>
 <body>
-<div layout:fragment="content" class="container my-5">
-    <div class="row">
-        <div class="col-lg-10 mx-auto">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2 class="section-title mb-0"><i class="bi bi-bell-fill me-2"></i>알림</h2>
-                <form th:action="@{/notification/readAll}" method="post" style="display:inline;">
-                    <button type="submit" class="btn btn-outline-primary btn-sm">
-                        <i class="bi bi-check-all me-1"></i>모두 읽음 처리
+<div layout:fragment="content">
+
+    <!-- 히어로 -->
+    <div class="notif-hero">
+        <div class="container position-relative" style="z-index:1;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="fw-black mb-1" style="font-size:2rem; letter-spacing:-0.02em;">
+                        <i class="bi bi-bell-fill me-2" style="color:#a5b4fc;"></i>알림
+                    </h1>
+                    <p class="mb-0 opacity-70">활동 알림을 확인하세요</p>
+                </div>
+                <form th:action="@{/notification/readAll}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="btn btn-sm fw-bold"
+                            style="background:rgba(255,255,255,0.15); color:white; border:1px solid rgba(255,255,255,0.3); border-radius:8px; padding:0.5rem 1rem;">
+                        <i class="bi bi-check-all me-1"></i>모두 읽음
                     </button>
                 </form>
             </div>
+        </div>
+    </div>
 
-            <div th:if="${notifications != null && !notifications.empty}">
-                <div class="card mb-3 notification-item"
-                     th:each="notification : ${notifications}"
-                     th:classappend="${!notification.isRead ? 'unread' : ''}">
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-auto">
-                                <i class="bi notification-icon"
-                                   th:classappend="${notification.type == 'SUCCESS' ? 'bi-check-circle-fill success' :
-                                                   (notification.type == 'INFO' ? 'bi-info-circle-fill info' :
-                                                   (notification.type == 'WARNING' ? 'bi-exclamation-triangle-fill warning' :
-                                                   'bi-x-circle-fill danger'))}"></i>
-                            </div>
-                            <div class="col">
-                                <h5 class="card-title mb-1" th:text="${notification.title}">알림 제목</h5>
-                                <p class="card-text mb-2" th:text="${notification.message}">알림 내용</p>
-                                <small class="text-muted">
+    <div class="container pb-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+
+                <div th:if="${notifications != null && !notifications.empty}">
+                    <div class="notif-card"
+                         th:each="n : ${notifications}"
+                         th:classappend="${!n.isRead ? ' unread' : ''}">
+
+                        <!-- 아이콘 -->
+                        <div class="notif-icon-wrap"
+                             th:classappend="${n.type == 'SUCCESS' ? ' icon-success' :
+                                              (n.type == 'INFO' ? ' icon-info' :
+                                              (n.type == 'WARNING' ? ' icon-warning' : ' icon-danger'))}">
+                            <i class="bi"
+                               th:classappend="${n.type == 'SUCCESS' ? ' bi-check-circle-fill' :
+                                                (n.type == 'INFO' ? ' bi-info-circle-fill' :
+                                                (n.type == 'WARNING' ? ' bi-exclamation-triangle-fill' :
+                                                ' bi-x-circle-fill'))}"></i>
+                        </div>
+
+                        <!-- 내용 -->
+                        <div class="flex-grow-1" style="min-width:0;">
+                            <div class="notif-title" th:text="${n.title}">알림 제목</div>
+                            <div class="notif-msg" th:text="${n.message}">알림 내용</div>
+                            <div class="d-flex align-items-center gap-2 mt-1">
+                                <span class="notif-time">
                                     <i class="bi bi-clock me-1"></i>
-                                    <span th:text="${#temporals.format(notification.createdAt, 'yyyy-MM-dd HH:mm')}">2025-01-20 14:30</span>
-                                </small>
-                                <a th:if="${notification.tournament != null}"
-                                   th:href="@{/tournament/detail/{id}(id=${notification.tournament.id})}"
-                                   class="btn btn-sm btn-link">
-                                    대회 보기
+                                    <span th:text="${#temporals.format(n.createdAt, 'yyyy-MM-dd HH:mm')}">날짜</span>
+                                </span>
+                                <a th:if="${n.tournament != null}"
+                                   th:href="@{/tournament/detail/{id}(id=${n.tournament.id})}"
+                                   class="btn btn-link btn-sm p-0 fw-bold"
+                                   style="font-size:0.78rem;">
+                                    <i class="bi bi-arrow-right me-1"></i>대회 보기
                                 </a>
                             </div>
-                            <div class="col-auto">
-                                <form th:action="@{/notification/delete/{id}(id=${notification.id})}"
-                                      method="post" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-outline-danger"
-                                            onclick="return confirm('알림을 삭제하시겠습니까?');">
-                                        <i class="bi bi-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
                         </div>
+
+                        <!-- 액션 -->
+                        <div class="d-flex flex-column gap-1 flex-shrink-0">
+                            <form th:if="${!n.isRead}"
+                                  th:action="@{/notification/read/{id}(id=${n.id})}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-primary"
+                                        style="font-size:0.72rem; padding:0.2rem 0.5rem; border-radius:6px;">
+                                    <i class="bi bi-check"></i>
+                                </button>
+                            </form>
+                            <form th:action="@{/notification/delete/{id}(id=${n.id})}" method="post">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        style="font-size:0.72rem; padding:0.2rem 0.5rem; border-radius:6px;"
+                                        onclick="return confirm('알림을 삭제하시겠습니까?');">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- 읽지 않은 표시 -->
+                        <div class="unread-dot" th:if="${!n.isRead}"></div>
                     </div>
                 </div>
-            </div>
 
-            <div th:if="${notifications == null || notifications.empty}" class="alert alert-info text-center py-5">
-                <i class="bi bi-bell-slash" style="font-size: 3rem; opacity: 0.5;"></i>
-                <p class="mt-3 mb-0">새로운 알림이 없습니다.</p>
+                <div class="empty-notif" th:if="${notifications == null || notifications.empty}">
+                    <i class="bi bi-bell-slash"></i>
+                    <h5 class="fw-bold text-muted">새 알림이 없습니다</h5>
+                    <p class="text-muted small">대회 활동에 참여하면 알림을 받을 수 있습니다.</p>
+                    <a th:href="@{/tournament/list}" class="btn btn-primary btn-sm fw-bold mt-2">
+                        <i class="bi bi-trophy me-1"></i>대회 보기
+                    </a>
+                </div>
+
             </div>
         </div>
     </div>

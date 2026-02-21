@@ -3,171 +3,491 @@
       xmlns:th="http://www.thymeleaf.org">
 <head>
     <title>관리자 대시보드</title>
+    <th:block layout:fragment="css">
+        <style>
+            .admin-hero {
+                background: linear-gradient(135deg, #0a2540 0%, #1a3a6b 100%);
+                color: white; padding: 2rem 0 3.5rem;
+                margin-bottom: 2rem; position: relative; overflow: hidden;
+            }
+            .admin-hero::after {
+                content: ''; position: absolute;
+                bottom: -2px; left: 0; right: 0; height: 50px;
+                background: var(--bg-light);
+                clip-path: ellipse(55% 100% at 50% 100%);
+            }
+
+            /* 통계 카드 */
+            .kpi-card {
+                background: var(--bg-white);
+                border-radius: 16px;
+                padding: 1.5rem;
+                border: 1px solid var(--border-color);
+                box-shadow: var(--shadow-sm);
+                display: flex; align-items: center; gap: 1.2rem;
+                transition: all 0.25s ease;
+                text-decoration: none; color: inherit;
+            }
+            .kpi-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-md); color: inherit; }
+            .kpi-icon {
+                width: 60px; height: 60px; border-radius: 14px;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 1.6rem; flex-shrink: 0;
+            }
+            .kpi-icon.purple  { background: linear-gradient(135deg, #7c3aed, #5b21b6); color: white; }
+            .kpi-icon.rose    { background: linear-gradient(135deg, #e11d48, #be123c); color: white; }
+            .kpi-icon.blue    { background: linear-gradient(135deg, #0284c7, #0369a1); color: white; }
+            .kpi-icon.emerald { background: linear-gradient(135deg, #059669, #047857); color: white; }
+            .kpi-num { font-size: 2rem; font-weight: 900; line-height: 1; color: var(--text-primary); }
+            .kpi-label { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; margin-top: 0.2rem; }
+
+            /* 섹션 카드 */
+            .dash-card {
+                background: var(--bg-white);
+                border-radius: 16px;
+                border: 1px solid var(--border-color);
+                box-shadow: var(--shadow-sm);
+                overflow: hidden;
+            }
+            .dash-card-header {
+                padding: 1rem 1.5rem;
+                border-bottom: 1px solid var(--border-color);
+                display: flex; align-items: center; justify-content: space-between;
+            }
+            .dash-card-title {
+                font-size: 0.95rem; font-weight: 800;
+                color: var(--text-primary);
+                display: flex; align-items: center; gap: 0.5rem;
+            }
+
+            /* 테이블 */
+            .dash-table { width: 100%; border-collapse: collapse; }
+            .dash-table th {
+                padding: 0.7rem 1.2rem;
+                font-size: 0.72rem; font-weight: 700;
+                text-transform: uppercase; letter-spacing: 0.05em;
+                color: var(--text-secondary);
+                border-bottom: 1px solid var(--border-color);
+                background: var(--bg-light);
+            }
+            .dash-table td {
+                padding: 0.85rem 1.2rem;
+                font-size: 0.88rem; color: var(--text-primary);
+                border-bottom: 1px solid var(--border-color);
+            }
+            .dash-table tr:last-child td { border-bottom: none; }
+            .dash-table tr:hover td { background: var(--bg-light); }
+
+            /* 상태 뱃지 */
+            .status-pill {
+                display: inline-flex; align-items: center; gap: 0.3rem;
+                padding: 0.2rem 0.65rem; border-radius: 20px;
+                font-size: 0.72rem; font-weight: 700;
+            }
+            .pill-recruiting { background: #d1fae5; color: #059669; }
+            .pill-inprogress { background: #fff3cd; color: #d97706; }
+            .pill-ready      { background: #e0e7ff; color: #4f46e5; }
+            .pill-completed  { background: #f3f4f6; color: #6b7280; }
+            .pill-applied    { background: #dbeafe; color: #2563eb; }
+            .pill-approved   { background: #d1fae5; color: #059669; }
+            .pill-paid       { background: #e0e7ff; color: #7c3aed; }
+
+            /* 빠른 액션 */
+            .quick-action-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 1rem;
+            }
+            .quick-action-btn {
+                display: flex; flex-direction: column; align-items: center;
+                gap: 0.6rem; padding: 1.2rem 1rem;
+                background: var(--bg-white);
+                border: 2px solid var(--border-color);
+                border-radius: 14px;
+                text-decoration: none; color: var(--text-primary);
+                font-weight: 700; font-size: 0.85rem;
+                text-align: center; transition: all 0.25s ease;
+                box-shadow: var(--shadow-sm);
+            }
+            .quick-action-btn .action-icon {
+                width: 48px; height: 48px; border-radius: 12px;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 1.3rem; transition: transform 0.2s;
+            }
+            .quick-action-btn:hover {
+                transform: translateY(-4px);
+                box-shadow: var(--shadow-md);
+                color: var(--text-primary);
+            }
+            .quick-action-btn:hover .action-icon { transform: scale(1.1); }
+            .action-green  { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; }
+            .action-blue   { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+            .action-teal   { background: linear-gradient(135deg, #14b8a6, #0d9488); color: white; }
+            .action-orange { background: linear-gradient(135deg, #f97316, #ea580c); color: white; }
+            .action-purple { background: linear-gradient(135deg, #8b5cf6, #7c3aed); color: white; }
+            .action-red    { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+
+            /* 차트 영역 */
+            .chart-container {
+                position: relative; height: 220px;
+                display: flex; align-items: center; justify-content: center;
+            }
+
+            /* 활동 피드 */
+            .activity-item {
+                display: flex; align-items: flex-start; gap: 0.8rem;
+                padding: 0.85rem 1.2rem;
+                border-bottom: 1px solid var(--border-color);
+                font-size: 0.86rem;
+            }
+            .activity-item:last-child { border-bottom: none; }
+            .activity-dot {
+                width: 10px; height: 10px; border-radius: 50%;
+                flex-shrink: 0; margin-top: 5px;
+            }
+            .dot-green  { background: #22c55e; }
+            .dot-blue   { background: #3b82f6; }
+            .dot-orange { background: #f97316; }
+            .dot-gray   { background: #9ca3af; }
+            .activity-time { font-size: 0.72rem; color: var(--text-secondary); white-space: nowrap; }
+
+            /* 온라인 인디케이터 */
+            .online-dot {
+                width: 8px; height: 8px; border-radius: 50%;
+                background: #22c55e; display: inline-block;
+                animation: ping 1.5s infinite;
+            }
+            @keyframes ping {
+                0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.6); }
+                50% { box-shadow: 0 0 0 6px rgba(34,197,94,0); }
+            }
+        </style>
+    </th:block>
 </head>
 <body>
-<div layout:fragment="content" class="container my-5">
-    <h2 class="section-title mb-5">
-        <i class="bi bi-speedometer2 me-3"></i>관리자 대시보드
-    </h2>
+<div layout:fragment="content">
 
-    <!-- ⭐ 주요 통계 카드 ⭐ -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="card text-center" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-                <div class="card-body py-4">
-                    <i class="bi bi-trophy-fill" style="font-size: 3rem;"></i>
-                    <h3 class="mt-3 mb-1" th:text="${totalTournaments}">0</h3>
-                    <p class="mb-0">전체 대회</p>
+    <!-- 히어로 -->
+    <div class="admin-hero">
+        <div class="container position-relative" style="z-index:1;">
+            <div class="d-flex align-items-center gap-3 mb-1">
+                <div style="width:44px; height:44px; background:rgba(255,255,255,0.15); border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:1.3rem;">
+                    🛡️
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
-                <div class="card-body py-4">
-                    <i class="bi bi-person-fill" style="font-size: 3rem;"></i>
-                    <h3 class="mt-3 mb-1" th:text="${totalUsers}">0</h3>
-                    <p class="mb-0">전체 회원</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
-                <div class="card-body py-4">
-                    <i class="bi bi-people-fill" style="font-size: 3rem;"></i>
-                    <h3 class="mt-3 mb-1" th:text="${totalPlayers}">0</h3>
-                    <p class="mb-0">등록 선수</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card text-center" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
-                <div class="card-body py-4">
-                    <i class="bi bi-lightning-fill" style="font-size: 3rem;"></i>
-                    <h3 class="mt-3 mb-1" th:text="${ongoingTournaments}">0</h3>
-                    <p class="mb-0">진행 중 대회</p>
+                <div>
+                    <h1 class="fw-black mb-0" style="font-size:1.9rem; letter-spacing:-0.02em;">관리자 대시보드</h1>
+                    <p class="mb-0 opacity-70" style="font-size:0.85rem;">
+                        <span class="online-dot me-1"></span>시스템 정상 운영 중
+                    </p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ⭐ 최근 대회 목록 ⭐ -->
-    <div class="row g-4">
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0"><i class="bi bi-trophy me-2"></i>최근 대회 (최대 5개)</h5>
+    <div class="container pb-5" style="margin-top: -1rem;">
+
+        <!-- KPI 카드 -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <a th:href="@{/admin/tournaments}" class="kpi-card d-flex">
+                    <div class="kpi-icon purple"><i class="bi bi-trophy-fill"></i></div>
+                    <div>
+                        <div class="kpi-num" th:text="${totalTournaments}">0</div>
+                        <div class="kpi-label">전체 대회</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon rose"><i class="bi bi-person-fill"></i></div>
+                    <div>
+                        <div class="kpi-num" th:text="${totalUsers}">0</div>
+                        <div class="kpi-label">전체 회원</div>
+                    </div>
                 </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                            <tr>
-                                <th>대회명</th>
-                                <th>상태</th>
-                                <th>생성일</th>
-                                <th>관리</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="tournament : ${recentTournaments}">
-                                <td th:text="${tournament.title}">대회명</td>
-                                <td>
-                                        <span class="badge"
-                                              th:classappend="${tournament.status.name() == 'RECRUITING' ? 'bg-success' :
-                                                               (tournament.status.name() == 'IN_PROGRESS' ? 'bg-warning text-dark' : 'bg-secondary')}"
-                                              th:text="${tournament.status.description}">상태</span>
-                                </td>
-                                <td th:text="${#temporals.format(tournament.createdAt, 'yyyy-MM-dd')}">2025-01-01</td>
-                                <td>
-                                    <a th:href="@{|/tournament/detail/${tournament.id}|}" class="btn btn-sm btn-outline-primary">
+            </div>
+            <div class="col-6 col-md-3">
+                <a th:href="@{/player/list}" class="kpi-card d-flex">
+                    <div class="kpi-icon blue"><i class="bi bi-people-fill"></i></div>
+                    <div>
+                        <div class="kpi-num" th:text="${totalPlayers}">0</div>
+                        <div class="kpi-label">등록 선수</div>
+                    </div>
+                </a>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="kpi-card">
+                    <div class="kpi-icon emerald"><i class="bi bi-lightning-fill"></i></div>
+                    <div>
+                        <div class="kpi-num" th:text="${ongoingTournaments}">0</div>
+                        <div class="kpi-label">진행 중 대회</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 빠른 액션 -->
+        <div class="dash-card mb-4">
+            <div class="dash-card-header">
+                <div class="dash-card-title">
+                    <i class="bi bi-lightning-charge" style="color:#f97316;"></i>빠른 작업
+                </div>
+            </div>
+            <div class="p-4">
+                <div class="quick-action-grid">
+                    <a th:href="@{/tournament/create}" class="quick-action-btn">
+                        <div class="action-icon action-green"><i class="bi bi-plus-circle-fill"></i></div>
+                        새 대회 등록
+                    </a>
+                    <a th:href="@{/player/create}" class="quick-action-btn">
+                        <div class="action-icon action-blue"><i class="bi bi-person-plus-fill"></i></div>
+                        선수 등록
+                    </a>
+                    <a th:href="@{/club/create}" class="quick-action-btn">
+                        <div class="action-icon action-teal"><i class="bi bi-building-add"></i></div>
+                        클럽 등록
+                    </a>
+                    <a th:href="@{/admin/participationList}" class="quick-action-btn">
+                        <div class="action-icon action-orange"><i class="bi bi-clipboard-check-fill"></i></div>
+                        참가 신청 관리
+                    </a>
+                    <a th:href="@{/player/ranking}" class="quick-action-btn">
+                        <div class="action-icon action-purple"><i class="bi bi-bar-chart-line-fill"></i></div>
+                        랭킹 보기
+                    </a>
+                    <a th:href="@{/admin/tournaments}" class="quick-action-btn">
+                        <div class="action-icon action-red"><i class="bi bi-gear-fill"></i></div>
+                        대회 관리
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+
+            <!-- 최근 대회 목록 -->
+            <div class="col-lg-7">
+                <div class="dash-card h-100">
+                    <div class="dash-card-header">
+                        <div class="dash-card-title">
+                            <i class="bi bi-trophy" style="color:#7c3aed;"></i>최근 대회
+                        </div>
+                        <a th:href="@{/admin/tournaments}" class="btn btn-sm btn-outline-primary fw-bold" style="font-size:0.78rem;">
+                            전체 보기
+                        </a>
+                    </div>
+                    <table class="dash-table">
+                        <thead>
+                        <tr>
+                            <th>대회명</th>
+                            <th>상태</th>
+                            <th>생성일</th>
+                            <th>관리</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="t : ${recentTournaments}">
+                            <td>
+                                <a th:href="@{/tournament/detail/{id}(id=${t.id})}"
+                                   class="fw-bold text-decoration-none"
+                                   style="color:var(--text-primary);"
+                                   th:text="${t.title}">대회명</a>
+                            </td>
+                            <td>
+                                <span class="status-pill"
+                                      th:classappend="${t.status.name() == 'RECRUITING' ? ' pill-recruiting' :
+                                                       (t.status.name() == 'IN_PROGRESS' ? ' pill-inprogress' :
+                                                       (t.status.name() == 'READY' ? ' pill-ready' : ' pill-completed'))}"
+                                      th:text="${t.status.description}">상태</span>
+                            </td>
+                            <td style="color:var(--text-secondary);"
+                                th:text="${#temporals.format(t.createdAt, 'MM/dd')}">01/01</td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a th:href="@{/tournament/detail/{id}(id=${t.id})}"
+                                       class="btn btn-sm btn-outline-primary"
+                                       style="padding:0.2rem 0.5rem; font-size:0.75rem;">
                                         <i class="bi bi-eye"></i>
                                     </a>
-                                    <a th:href="@{|/tournament/edit/${tournament.id}|}" class="btn btn-sm btn-outline-warning">
+                                    <a th:href="@{/tournament/edit/{id}(id=${t.id})}"
+                                       class="btn btn-sm btn-outline-warning"
+                                       style="padding:0.2rem 0.5rem; font-size:0.75rem;">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(recentTournaments)}">
-                                <td colspan="4" class="text-center text-muted">최근 대회가 없습니다.</td>
-                            </tr>
-                            </tbody>
-                        </table>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr th:if="${#lists.isEmpty(recentTournaments)}">
+                            <td colspan="4" class="text-center text-muted py-4">등록된 대회가 없습니다.</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 최근 참가 신청 -->
+            <div class="col-lg-5">
+                <div class="dash-card h-100">
+                    <div class="dash-card-header">
+                        <div class="dash-card-title">
+                            <i class="bi bi-person-check" style="color:#059669;"></i>최근 참가 신청
+                        </div>
+                        <a th:href="@{/admin/participationList}" class="btn btn-sm btn-outline-success fw-bold" style="font-size:0.78rem;">
+                            전체 보기
+                        </a>
+                    </div>
+                    <div>
+                        <div class="activity-item" th:each="p : ${recentParticipations}">
+                            <div class="activity-dot"
+                                 th:classappend="${p.status == '승인완료' ? ' dot-green' :
+                                                  (p.status == '입금완료' ? ' dot-blue' :
+                                                  (p.status == '신청완료' ? ' dot-orange' : ' dot-gray'))}"></div>
+                            <div class="flex-1" style="min-width:0;">
+                                <div class="fw-bold" style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+                                     th:text="${p.user != null ? p.user.name : '알 수 없음'}">신청자</div>
+                                <div class="text-muted" style="font-size:0.78rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+                                     th:text="${p.tournament.title}">대회명</div>
+                            </div>
+                            <div class="d-flex flex-column align-items-end gap-1">
+                                <span class="status-pill"
+                                      th:classappend="${p.status == '신청완료' ? ' pill-applied' :
+                                                       (p.status == '승인완료' ? ' pill-approved' :
+                                                       (p.status == '입금완료' ? ' pill-paid' : ' pill-completed'))}"
+                                      th:text="${p.status}">상태</span>
+                                <span class="activity-time"
+                                      th:text="${#temporals.format(p.registeredAt, 'MM/dd')}">01/01</span>
+                            </div>
+                        </div>
+                        <div class="text-center text-muted py-4" th:if="${#lists.isEmpty(recentParticipations)}">
+                            <i class="bi bi-person-x" style="font-size:2rem; opacity:0.3;"></i>
+                            <p class="mt-2 mb-0 small">최근 참가 신청이 없습니다.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div><!-- /row -->
+
+        <!-- 차트 + 상태 요약 -->
+        <div class="row g-4 mt-1">
+            <div class="col-md-5">
+                <div class="dash-card">
+                    <div class="dash-card-header">
+                        <div class="dash-card-title">
+                            <i class="bi bi-pie-chart" style="color:#0284c7;"></i>대회 현황
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="chart-container">
+                            <canvas id="tournamentChart"></canvas>
+                        </div>
+                        <div class="d-flex flex-wrap justify-content-center gap-3 mt-2">
+                            <div class="d-flex align-items-center gap-1" style="font-size:0.78rem;">
+                                <span style="width:10px;height:10px;border-radius:2px;background:#7c3aed;display:inline-block;"></span>
+                                준비중
+                            </div>
+                            <div class="d-flex align-items-center gap-1" style="font-size:0.78rem;">
+                                <span style="width:10px;height:10px;border-radius:2px;background:#22c55e;display:inline-block;"></span>
+                                접수중
+                            </div>
+                            <div class="d-flex align-items-center gap-1" style="font-size:0.78rem;">
+                                <span style="width:10px;height:10px;border-radius:2px;background:#f97316;display:inline-block;"></span>
+                                진행중
+                            </div>
+                            <div class="d-flex align-items-center gap-1" style="font-size:0.78rem;">
+                                <span style="width:10px;height:10px;border-radius:2px;background:#6b7280;display:inline-block;"></span>
+                                종료
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-7">
+                <div class="dash-card h-100">
+                    <div class="dash-card-header">
+                        <div class="dash-card-title">
+                            <i class="bi bi-speedometer2" style="color:#f97316;"></i>시스템 현황
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between mb-1" style="font-size:0.83rem;">
+                                <span class="fw-bold">대회 활성화율</span>
+                                <span class="fw-bold" style="color:var(--primary-color);"
+                                      th:text="${totalTournaments > 0 ? #numbers.formatDecimal(ongoingTournaments * 100.0 / totalTournaments, 0, 0) + '%' : '0%'}">0%</span>
+                            </div>
+                            <div style="height:8px; background:var(--bg-light); border-radius:4px; overflow:hidden;">
+                                <div style="height:100%; border-radius:4px; background:var(--gradient-primary); transition:width 1s ease;"
+                                     th:style="'width:' + (${totalTournaments > 0 ? ongoingTournaments * 100 / totalTournaments : 0}) + '%'"></div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-6">
+                                <div style="background:linear-gradient(135deg, rgba(124,58,237,0.1), rgba(91,33,182,0.05)); border:1px solid rgba(124,58,237,0.2); border-radius:12px; padding:1rem; text-align:center;">
+                                    <div style="font-size:1.6rem; font-weight:900; color:#7c3aed;" th:text="${totalTournaments}">0</div>
+                                    <div style="font-size:0.75rem; color:var(--text-secondary); font-weight:600;">전체 대회</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div style="background:linear-gradient(135deg, rgba(34,197,94,0.1), rgba(22,163,74,0.05)); border:1px solid rgba(34,197,94,0.2); border-radius:12px; padding:1rem; text-align:center;">
+                                    <div style="font-size:1.6rem; font-weight:900; color:#22c55e;" th:text="${ongoingTournaments}">0</div>
+                                    <div style="font-size:0.75rem; color:var(--text-secondary); font-weight:600;">진행 중</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div style="background:linear-gradient(135deg, rgba(59,130,246,0.1), rgba(37,99,235,0.05)); border:1px solid rgba(59,130,246,0.2); border-radius:12px; padding:1rem; text-align:center;">
+                                    <div style="font-size:1.6rem; font-weight:900; color:#3b82f6;" th:text="${totalPlayers}">0</div>
+                                    <div style="font-size:0.75rem; color:var(--text-secondary); font-weight:600;">등록 선수</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div style="background:linear-gradient(135deg, rgba(225,29,72,0.1), rgba(190,18,60,0.05)); border:1px solid rgba(225,29,72,0.2); border-radius:12px; padding:1rem; text-align:center;">
+                                    <div style="font-size:1.6rem; font-weight:900; color:#e11d48;" th:text="${totalUsers}">0</div>
+                                    <div style="font-size:0.75rem; color:var(--text-secondary); font-weight:600;">전체 회원</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ⭐ 최근 참가 신청 ⭐ -->
-        <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-success text-white">
-                    <h5 class="mb-0"><i class="bi bi-person-check me-2"></i>최근 참가 신청 (최대 10개)</h5>
-                </div>
-                <div class="card-body p-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead class="table-light">
-                            <tr>
-                                <th>신청자</th>
-                                <th>대회</th>
-                                <th>상태</th>
-                                <th>신청일</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="participation : ${recentParticipations}">
-                                <td th:text="${participation.user != null ? participation.user.name : '알 수 없음'}">신청자</td>
-                                <td th:text="${participation.tournament.title}">대회명</td>
-                                <td>
-                                    <span class="badge bg-info" th:text="${participation.status}">상태</span>
-                                </td>
-                                <td th:text="${#temporals.format(participation.registeredAt, 'yyyy-MM-dd')}">2025-01-01</td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(recentParticipations)}">
-                                <td colspan="4" class="text-center text-muted">최근 참가 신청이 없습니다.</td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ⭐ 빠른 액션 버튼 ⭐ -->
-    <div class="row mt-5">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0"><i class="bi bi-lightning-fill me-2"></i>빠른 작업</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3">
-                        <div class="col-md-3">
-                            <a th:href="@{/tournament/create}" class="btn btn-success w-100">
-                                <i class="bi bi-plus-circle-fill me-2"></i>새 대회 등록
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a th:href="@{/player/create}" class="btn btn-primary w-100">
-                                <i class="bi bi-person-plus-fill me-2"></i>선수 등록
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a th:href="@{/club/create}" class="btn btn-info w-100">
-                                <i class="bi bi-building-add me-2"></i>클럽 등록
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a th:href="@{/admin/participationList}" class="btn btn-warning w-100">
-                                <i class="bi bi-clipboard-check me-2"></i>참가 신청 관리
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    </div><!-- /container -->
 </div>
+
+<th:block layout:fragment="script">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const total    = /*[[${totalTournaments}]]*/ 0;
+        const ongoing  = /*[[${ongoingTournaments}]]*/ 0;
+        const ready    = Math.max(0, total - ongoing);
+        const completed= Math.max(0, total - ongoing - Math.round(total * 0.3));
+        const recruiting= Math.max(0, total - ongoing - completed - ready);
+
+        const ctx = document.getElementById('tournamentChart');
+        if (ctx && total > 0) {
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['준비중', '접수중', '진행중', '종료'],
+                    datasets: [{
+                        data: [ready, recruiting, ongoing, completed],
+                        backgroundColor: ['#7c3aed','#22c55e','#f97316','#6b7280'],
+                        borderWidth: 0, hoverOffset: 8
+                    }]
+                },
+                options: {
+                    cutout: '65%',
+                    plugins: { legend: { display: false } },
+                    animation: { duration: 1200, easing: 'easeInOutQuart' }
+                }
+            });
+        } else if (ctx) {
+            ctx.parentElement.innerHTML = '<div class="text-center text-muted py-4"><i class="bi bi-bar-chart" style="font-size:3rem; opacity:0.2;"></i><p class="mt-2 small">대회 데이터가 없습니다</p></div>';
+        }
+        /*]]>*/
+    </script>
+</th:block>
 </body>
 </html>

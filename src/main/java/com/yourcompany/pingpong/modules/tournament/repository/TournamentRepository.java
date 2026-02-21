@@ -35,4 +35,10 @@ public interface TournamentRepository extends JpaRepository<Tournament, Long> {
             "WHERE t.status IN :statuses " +
             "ORDER BY t.startDate ASC")
     List<Tournament> findOngoingTournamentsWithParticipations(@Param("statuses") List<TournamentStatus> statuses);
+
+    // ⭐ 전역 검색용: 제목 포함 검색
+    @Query("SELECT t FROM Tournament t LEFT JOIN FETCH t.creator " +
+            "WHERE LOWER(t.title) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
+            "ORDER BY t.startDate DESC")
+    List<Tournament> findByTitleContaining(@Param("keyword") String keyword);
 }

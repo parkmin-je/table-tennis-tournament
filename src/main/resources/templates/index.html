@@ -475,30 +475,29 @@
         <div class="container">
             <div class="row g-0">
                 <div class="col-md-3 col-6">
-                    <div class="stat-item">
+                    <div class="stat-item ani-scale">
                         <span class="stat-number-animated blue"
-                              data-target="${tournaments != null ? tournaments.size() : 0}"
-                              th:attr="data-target=${tournaments != null ? tournaments.size() : 0}">0</span>
+                              th:attr="data-count=${tournaments != null ? tournaments.size() : 0}">0</span>
                         <small class="text-muted fw-600">진행 중인 대회</small>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="stat-item">
+                    <div class="stat-item ani-scale" style="transition-delay:0.1s">
                         <span class="stat-number-animated orange"
-                              th:attr="data-target=${matches != null ? matches.size() : 0}">0</span>
+                              th:attr="data-count=${matches != null ? matches.size() : 0}">0</span>
                         <small class="text-muted">오늘의 경기</small>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="stat-item">
+                    <div class="stat-item ani-scale" style="transition-delay:0.2s">
                         <span class="stat-number-animated green"
-                              th:attr="data-target=${players != null ? players.size() : 0}">0</span>
+                              th:attr="data-count=${players != null ? players.size() : 0}">0</span>
                         <small class="text-muted">등록 선수</small>
                     </div>
                 </div>
                 <div class="col-md-3 col-6">
-                    <div class="stat-item">
-                        <span class="stat-number-animated dark" data-target="24">0</span>
+                    <div class="stat-item ani-scale" style="transition-delay:0.3s">
+                        <span class="stat-number-animated dark" data-count="24">0</span>
                         <small class="text-muted">보유 탁구대</small>
                     </div>
                 </div>
@@ -509,9 +508,9 @@
     <!-- ===== MAIN FEATURES ===== -->
     <section class="py-5">
         <div class="container">
-            <h2 class="section-title">주요 서비스</h2>
+            <h2 class="section-title ani-up">주요 서비스</h2>
             <div class="row g-4">
-                <div class="col-md-3 col-sm-6">
+                <div class="col-md-3 col-sm-6 ani-up" style="transition-delay:0.05s">
                     <a th:href="@{/calendar}" class="feature-card" style="text-decoration:none; color:inherit; display:flex;">
                         <i class="bi bi-calendar-check-fill icon"></i>
                         <h3>대회 캘린더</h3>
@@ -519,7 +518,7 @@
                         <span class="btn btn-outline-primary btn-sm mt-auto align-self-start">캘린더 보기</span>
                     </a>
                 </div>
-                <div class="col-md-3 col-sm-6">
+                <div class="col-md-3 col-sm-6 ani-up" style="transition-delay:0.12s">
                     <a th:href="@{/tournament/list}" class="feature-card" style="text-decoration:none; color:inherit; display:flex;">
                         <i class="bi bi-trophy-fill icon"></i>
                         <h3>대회 참가</h3>
@@ -527,7 +526,7 @@
                         <span class="btn btn-outline-primary btn-sm mt-auto align-self-start">대회 보기</span>
                     </a>
                 </div>
-                <div class="col-md-3 col-sm-6">
+                <div class="col-md-3 col-sm-6 ani-up" style="transition-delay:0.19s">
                     <a th:href="@{/board/list}" class="feature-card" style="text-decoration:none; color:inherit; display:flex;">
                         <i class="bi bi-chat-dots-fill icon"></i>
                         <h3>커뮤니티</h3>
@@ -535,7 +534,7 @@
                         <span class="btn btn-outline-primary btn-sm mt-auto align-self-start">게시판 보기</span>
                     </a>
                 </div>
-                <div class="col-md-3 col-sm-6">
+                <div class="col-md-3 col-sm-6 ani-up" style="transition-delay:0.26s">
                     <a th:href="@{/player/ranking}" class="feature-card" style="text-decoration:none; color:inherit; display:flex;">
                         <i class="bi bi-bar-chart-fill icon"></i>
                         <h3>선수 랭킹</h3>
@@ -550,11 +549,11 @@
     <!-- ===== TODAY'S MATCHES ===== -->
     <section class="py-5" style="background: var(--bg-light);" th:if="${matches != null and !matches.empty}">
         <div class="container">
-            <h2 class="section-title">
+            <h2 class="section-title ani-up">
                 <span class="live-indicator"></span>오늘의 경기
             </h2>
             <div class="row g-4">
-                <div class="col-lg-6" th:each="match, matchStat : ${matches}" th:if="${matchStat.index < 4}">
+                <div class="col-lg-6 ani-up" th:each="match, matchStat : ${matches}" th:if="${matchStat.index < 4}">
                     <div class="match-card">
                         <div class="match-card-header">
                             <div>
@@ -602,9 +601,9 @@
     <!-- ===== ONGOING TOURNAMENTS ===== -->
     <section class="py-5" th:if="${tournaments != null and !tournaments.empty}">
         <div class="container">
-            <h2 class="section-title">진행 중인 대회</h2>
+            <h2 class="section-title ani-up">진행 중인 대회</h2>
             <div class="row g-4">
-                <div class="col-md-6 col-lg-4" th:each="tournament, ts : ${tournaments}" th:if="${ts.index < 3}">
+                <div class="col-md-6 col-lg-4 ani-up" th:each="tournament, ts : ${tournaments}" th:if="${ts.index < 3}">
                     <div class="tournament-card">
                         <div class="tournament-card-header">
                             <div class="d-flex justify-content-between align-items-start">
@@ -657,9 +656,9 @@
     <!-- ===== TOP PLAYERS ===== -->
     <section class="py-5" style="background: var(--bg-light);" th:if="${players != null and !players.empty}">
         <div class="container">
-            <h2 class="section-title">주요 선수</h2>
+            <h2 class="section-title ani-up">주요 선수</h2>
             <div class="row g-3">
-                <div class="col-md-6 col-lg-3" th:each="player, ps : ${players}" th:if="${ps.index < 8}">
+                <div class="col-md-6 col-lg-3 ani-scale" th:each="player, ps : ${players}" th:if="${ps.index < 8}">
                     <div class="player-mini-card">
                         <div class="player-avatar">
                             <i class="bi bi-person-fill"></i>
@@ -710,7 +709,7 @@
 
 <th:block layout:fragment="script">
 <script>
-    // ===== 파티클 생성 =====
+    /* ===== 파티클 생성 ===== */
     (function() {
         const container = document.getElementById('heroParticles');
         if (!container) return;
@@ -729,34 +728,7 @@
             container.appendChild(p);
         }
     })();
-
-    // ===== 카운터 애니메이션 =====
-    function animateCounter(el, target, duration) {
-        const start = 0;
-        const startTime = performance.now();
-        function update(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            const eased = 1 - Math.pow(1 - progress, 3);
-            el.textContent = Math.round(start + (target - start) * eased);
-            if (progress < 1) requestAnimationFrame(update);
-        }
-        requestAnimationFrame(update);
-    }
-
-    const observer = new IntersectionObserver(function(entries) {
-        entries.forEach(function(entry) {
-            if (entry.isIntersecting && !entry.target.dataset.animated) {
-                entry.target.dataset.animated = 'true';
-                const target = parseInt(entry.target.getAttribute('data-target')) || 0;
-                animateCounter(entry.target, target, 1800);
-            }
-        });
-    }, { threshold: 0.3 });
-
-    document.querySelectorAll('.stat-number-animated').forEach(function(el) {
-        observer.observe(el);
-    });
+    /* 카운터 + 스크롤 애니메이션은 app.js(Counter, Scroll 모듈)가 처리 */
 </script>
 </th:block>
 

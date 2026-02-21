@@ -2,63 +2,121 @@
 <html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>회원가입</title>
+    <title>회원가입 - 탁구대회</title>
+    <th:block layout:fragment="css">
+        <style>
+            .auth-wrapper {
+                min-height: calc(100vh - 160px);
+                display: flex; align-items: center; justify-content: center;
+                padding: 2rem 1rem;
+            }
+            .auth-box {
+                width: 100%; max-width: 460px;
+                background: var(--bg-white);
+                border-radius: 24px;
+                box-shadow: var(--shadow-xl);
+                overflow: hidden;
+                border: 1px solid var(--border-color);
+            }
+            .auth-header {
+                background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+                padding: 2rem 2rem 1.8rem; text-align: center; color: white;
+            }
+            .auth-logo {
+                width: 60px; height: 60px; border-radius: 16px;
+                background: rgba(255,255,255,0.15);
+                display: flex; align-items: center; justify-content: center;
+                font-size: 1.6rem; margin: 0 auto 0.8rem;
+                border: 2px solid rgba(255,255,255,0.25);
+            }
+            .auth-body { padding: 1.8rem 2rem; }
+            .field-group { margin-bottom: 1rem; }
+            .field-label {
+                display: block; font-size: 0.78rem; font-weight: 700;
+                color: var(--text-secondary); text-transform: uppercase;
+                letter-spacing: 0.04em; margin-bottom: 0.4rem;
+            }
+            .field-input {
+                width: 100%; padding: 0.7rem 1rem;
+                border: 2px solid var(--border-color);
+                border-radius: 12px; outline: none;
+                font-size: 0.93rem; background: var(--bg-white);
+                color: var(--text-primary); transition: all 0.2s;
+            }
+            .field-input:focus { border-color: #059669; box-shadow: 0 0 0 4px rgba(5,150,105,0.1); }
+            .btn-signup {
+                width: 100%; padding: 0.9rem;
+                background: linear-gradient(135deg, #059669, #047857);
+                color: white; border: none; border-radius: 12px;
+                font-size: 1rem; font-weight: 800;
+                box-shadow: 0 6px 20px rgba(5,150,105,0.3);
+                cursor: pointer; transition: all 0.25s; margin-top: 0.5rem;
+            }
+            .btn-signup:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(5,150,105,0.45); }
+            .login-link {
+                display: block; text-align: center; margin-top: 1rem;
+                padding: 0.8rem;
+                background: var(--bg-light); border-radius: 10px;
+                font-size: 0.88rem; font-weight: 600;
+                text-decoration: none; color: var(--primary-color);
+                border: 2px solid var(--border-color); transition: all 0.2s;
+            }
+            .login-link:hover { background: var(--primary-color); color: white; border-color: var(--primary-color); }
+        </style>
+    </th:block>
 </head>
 <body>
-<div layout:fragment="content" class="container my-5">
-    <div class="auth-container">
-        <h2 class="mb-4">회원가입</h2>
-        
-        <form th:action="@{/user/signup}" th:object="${userCreateForm}" method="post">
-            <!-- ⭐ 에러 메시지는 form 태그 안에! ⭐ -->
-            <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger mb-3" role="alert">
-                <ul class="list-unstyled mb-0">
-                    <li th:each="err : ${#fields.allErrors()}" th:text="${err}"></li>
-                </ul>
+<div layout:fragment="content">
+    <div class="auth-wrapper">
+        <div class="auth-box">
+            <div class="auth-header">
+                <div class="auth-logo">🏓</div>
+                <h2 class="fw-black mb-1" style="font-size:1.4rem;">회원가입</h2>
+                <p class="mb-0 opacity-70" style="font-size:0.82rem;">대회에 참가하려면 계정이 필요합니다</p>
             </div>
-            
-            <!-- 아이디 -->
-            <div class="mb-3">
-                <label for="username" class="form-label">아이디</label>
-                <input type="text" th:field="*{username}" id="username" class="form-control"
-                       placeholder="사용하실 아이디를 입력해주세요" required>
+            <div class="auth-body">
+                <form th:action="@{/user/signup}" th:object="${userCreateForm}" method="post">
+                    <div th:if="${#fields.hasAnyErrors()}" class="alert alert-danger mb-3" style="border-radius:10px; font-size:0.85rem;">
+                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                        <ul class="list-unstyled mb-0 mt-1">
+                            <li th:each="err : ${#fields.allErrors()}" th:text="${err}"></li>
+                        </ul>
+                    </div>
+
+                    <div class="field-group">
+                        <label class="field-label" for="username"><i class="bi bi-at me-1"></i>아이디</label>
+                        <input type="text" th:field="*{username}" id="username" class="field-input"
+                               placeholder="사용하실 아이디를 입력해주세요" required>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="name"><i class="bi bi-person me-1"></i>이름</label>
+                        <input type="text" th:field="*{name}" id="name" class="field-input"
+                               placeholder="실명을 입력해주세요" required>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="email"><i class="bi bi-envelope me-1"></i>이메일</label>
+                        <input type="email" th:field="*{email}" id="email" class="field-input"
+                               placeholder="이메일을 입력해주세요" required>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="password1"><i class="bi bi-lock me-1"></i>비밀번호</label>
+                        <input type="password" th:field="*{password1}" id="password1" class="field-input"
+                               placeholder="비밀번호를 입력해주세요" required>
+                    </div>
+                    <div class="field-group">
+                        <label class="field-label" for="password2"><i class="bi bi-lock-fill me-1"></i>비밀번호 확인</label>
+                        <input type="password" th:field="*{password2}" id="password2" class="field-input"
+                               placeholder="비밀번호를 다시 입력해주세요" required>
+                    </div>
+
+                    <button type="submit" class="btn-signup">
+                        <i class="bi bi-person-plus-fill me-2"></i>회원가입 완료
+                    </button>
+                </form>
+                <a th:href="@{/user/login}" class="login-link">
+                    <i class="bi bi-box-arrow-in-right me-1"></i>이미 계정이 있으신가요? 로그인
+                </a>
             </div>
-            
-            <!-- 비밀번호 -->
-            <div class="mb-3">
-                <label for="password1" class="form-label">비밀번호</label>
-                <input type="password" th:field="*{password1}" id="password1" class="form-control"
-                       placeholder="비밀번호를 입력해주세요" required>
-            </div>
-            
-            <!-- 비밀번호 확인 -->
-            <div class="mb-3">
-                <label for="password2" class="form-label">비밀번호 확인</label>
-                <input type="password" th:field="*{password2}" id="password2" class="form-control"
-                       placeholder="비밀번호를 다시 한번 입력해주세요" required>
-            </div>
-            
-            <!-- 이메일 -->
-            <div class="mb-3">
-                <label for="email" class="form-label">이메일</label>
-                <input type="email" th:field="*{email}" id="email" class="form-control"
-                       placeholder="이메일을 입력해주세요" required>
-            </div>
-            
-            <!-- 이름 -->
-            <div class="mb-4">
-                <label for="name" class="form-label">이름</label>
-                <input type="text" th:field="*{name}" id="name" class="form-control"
-                       placeholder="이름을 입력해주세요" required>
-            </div>
-            
-            <button type="submit" class="btn btn-primary w-100">회원가입</button>
-        </form>
-        
-        <div class="text-center mt-4">
-            <a th:href="@{/user/login}" class="text-primary text-decoration-none">
-                이미 회원이신가요? 로그인
-            </a>
         </div>
     </div>
 </div>

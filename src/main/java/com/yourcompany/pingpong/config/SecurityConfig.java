@@ -27,7 +27,7 @@ public class SecurityConfig {
                         // ⭐⭐⭐ 2순위: WebSocket 허용 ⭐⭐⭐
                         .requestMatchers("/ws/**").permitAll()
 
-                        // ⭐⭐⭐ 3순위: 정적 리소스 허용 ⭐⭐⭐
+                        // ⭐⭐⭐ 3순위: 정적 리소스 + API 허용 ⭐⭐⭐
                         .requestMatchers(
                                 "/",
                                 "/user/login",
@@ -35,7 +35,9 @@ public class SecurityConfig {
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
-                                "/favicon.ico"
+                                "/favicon.ico",
+                                "/manifest.json",
+                                "/api/search"       // ⭐ 전역 검색 API
                         ).permitAll()
 
                         // ⭐⭐⭐ 4순위: 일반 사용자 접근 가능 (로그인 불필요) ⭐⭐⭐

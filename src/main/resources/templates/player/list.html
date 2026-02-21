@@ -8,295 +8,298 @@
     <title>선수 목록</title>
     <th:block layout:fragment="css">
         <style>
+            .player-hero {
+                background: linear-gradient(135deg, #1e3a5f 0%, #0a2540 60%, #1e3a5f 100%);
+                color: white; padding: 2.5rem 0 4rem;
+                position: relative; overflow: hidden; margin-bottom: 2rem;
+            }
+            .player-hero::after {
+                content: ''; position: absolute;
+                bottom: -2px; left: 0; right: 0; height: 50px;
+                background: var(--bg-light);
+                clip-path: ellipse(55% 100% at 50% 100%);
+            }
             .player-card {
-                background: white;
-                border-radius: 12px;
-                padding: 1.5rem;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-                transition: all 0.3s ease;
-                height: 100%;
-                border: 2px solid transparent;
+                background: var(--bg-white);
+                border: 1px solid var(--border-color);
+                border-radius: 16px;
+                box-shadow: var(--shadow-sm);
+                transition: all 0.25s ease;
+                height: 100%; display: flex; flex-direction: column;
+                overflow: hidden;
             }
             .player-card:hover {
-                transform: translateY(-5px);
-                box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-                border-color: var(--bs-primary);
+                transform: translateY(-6px);
+                box-shadow: var(--shadow-md);
+                border-color: rgba(0,102,204,0.3);
+            }
+            .player-card-top {
+                padding: 1.5rem;
+                text-align: center;
+                border-bottom: 1px solid var(--border-color);
+                position: relative;
             }
             .player-avatar {
-                width: 100px;
-                height: 100px;
-                background: linear-gradient(135deg, #0066cc, #00a8ff);
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
+                width: 80px; height: 80px; border-radius: 50%;
+                display: flex; align-items: center; justify-content: center;
+                font-size: 2rem; font-weight: 900; color: white;
                 margin: 0 auto 1rem;
-                font-size: 2.5rem;
-                color: white;
-                font-weight: bold;
+                box-shadow: 0 4px 14px rgba(0,0,0,0.2);
             }
-            .player-name {
-                font-size: 1.5rem;
-                font-weight: bold;
-                color: #212529;
-                margin-bottom: 0.5rem;
-                text-align: center;
+            .avatar-m { background: linear-gradient(135deg, #2563eb, #1d4ed8); }
+            .avatar-f { background: linear-gradient(135deg, #db2777, #be185d); }
+            .avatar-n { background: linear-gradient(135deg, #0066cc, #004999); }
+
+            .ranking-badge-sm {
+                position: absolute; top: 0.8rem; right: 0.8rem;
+                display: inline-flex; align-items: center; gap: 0.2rem;
+                padding: 0.2rem 0.55rem; border-radius: 20px;
+                font-size: 0.7rem; font-weight: 800;
             }
-            .player-info {
-                display: flex;
-                flex-direction: column;
-                gap: 0.5rem;
-                margin: 1rem 0;
+            .rank-gold   { background: linear-gradient(135deg, #ffd700, #ffb300); color: #5d3800; }
+            .rank-silver { background: linear-gradient(135deg, #c0c0c0, #9e9e9e); color: white; }
+            .rank-bronze { background: linear-gradient(135deg, #cd7f32, #a0522d); color: white; }
+            .rank-other  { background: #f3f4f6; color: #374151; }
+
+            .player-name { font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-bottom: 0.2rem; }
+            .player-club { font-size: 0.8rem; color: var(--text-secondary); display: flex; align-items: center; justify-content: center; gap: 0.3rem; }
+
+            .player-card-body {
+                padding: 1rem 1.2rem; flex: 1;
+                display: flex; flex-direction: column; gap: 0.5rem;
             }
-            .info-item {
-                display: flex;
-                align-items: center;
-                gap: 0.5rem;
-                font-size: 0.95rem;
-                color: #6c757d;
+            .info-line {
+                display: flex; align-items: center; gap: 0.5rem;
+                font-size: 0.83rem; color: var(--text-secondary);
             }
-            .info-item i {
-                color: var(--bs-primary);
-                width: 20px;
+            .info-line i { color: var(--primary-color); width: 16px; text-align: center; }
+            .info-line strong { color: var(--text-primary); }
+
+            .player-card-footer {
+                padding: 0.9rem 1.2rem;
+                border-top: 1px solid var(--border-color);
+                background: var(--bg-light);
+                display: flex; gap: 0.5rem;
             }
-            .badge-ranking {
-                background: linear-gradient(135deg, #ffc107, #ff9800);
-                color: white;
-                padding: 0.5rem 1rem;
-                border-radius: 20px;
-                font-weight: bold;
-                display: inline-block;
-                margin-bottom: 1rem;
+            .btn-view-player {
+                flex: 1; padding: 0.5rem;
+                background: var(--gradient-primary); color: white;
+                border: none; border-radius: 8px;
+                font-size: 0.82rem; font-weight: 700;
+                text-decoration: none; text-align: center;
+                transition: all 0.2s;
             }
-            .search-filter-bar {
-                background: white;
-                border-radius: 12px;
-                padding: 1.5rem;
-                margin-bottom: 2rem;
-                box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            .btn-view-player:hover { filter: brightness(1.1); color: white; }
+
+            /* 검색/필터 바 */
+            .filter-bar {
+                background: var(--bg-white);
+                border: 1px solid var(--border-color);
+                border-radius: 14px; padding: 1rem 1.5rem;
+                box-shadow: var(--shadow-sm); margin-bottom: 1.5rem;
+                display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;
             }
-            .page-header {
-                background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%);
-                color: white;
-                padding: 3rem 0;
-                margin: -2rem -2rem 2rem -2rem;
-                border-radius: 0 0 20px 20px;
+            .search-wrap { flex: 1; min-width: 180px; position: relative; }
+            .search-wrap i { position: absolute; left: 0.8rem; top: 50%; transform: translateY(-50%); color: var(--text-secondary); }
+            .search-wrap input {
+                width: 100%; padding: 0.55rem 1rem 0.55rem 2.3rem;
+                border: 2px solid var(--border-color);
+                border-radius: 20px; outline: none;
+                font-size: 0.88rem; background: var(--bg-white); color: var(--text-primary); transition: all 0.2s;
             }
-            .stats-badge {
-                background: rgba(255,255,255,0.2);
-                padding: 0.5rem 1rem;
-                border-radius: 8px;
-                display: inline-block;
-                margin-right: 1rem;
+            .search-wrap input:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,102,204,0.1); }
+            .filter-select {
+                padding: 0.55rem 2rem 0.55rem 0.9rem;
+                border: 2px solid var(--border-color); border-radius: 20px;
+                outline: none; font-size: 0.88rem;
+                background: var(--bg-white); color: var(--text-primary);
+                cursor: pointer; transition: border-color 0.2s;
+                appearance: none;
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+                background-repeat: no-repeat; background-position: right 0.7rem center;
             }
-            .action-buttons {
-                display: flex;
-                gap: 0.5rem;
-                justify-content: center;
-                margin-top: 1rem;
-            }
+            .filter-select:focus { border-color: var(--primary-color); }
+
+            .empty-players { text-align: center; padding: 4rem 2rem; }
+            .empty-players i { font-size: 4rem; opacity: 0.15; display: block; margin-bottom: 1rem; }
         </style>
     </th:block>
 </head>
 <body>
-<div layout:fragment="content" class="container-fluid">
-    <!-- 페이지 헤더 -->
-    <div class="page-header">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
+<div layout:fragment="content">
+
+    <!-- 히어로 -->
+    <div class="player-hero">
+        <div class="container position-relative" style="z-index:1;">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
-                    <h1 class="mb-2">
-                        <i class="bi bi-people-fill me-2"></i>선수 명단
+                    <h1 class="fw-black mb-1" style="font-size:2.2rem; letter-spacing:-0.02em;">
+                        <i class="bi bi-people-fill me-2" style="color:#93c5fd;"></i>선수 명단
                     </h1>
-                    <p class="mb-0 opacity-75">안산시 탁구 협회 등록 선수</p>
+                    <p class="mb-0 opacity-70">등록 선수 및 랭킹 정보</p>
                 </div>
-                <div>
-                    <div class="stats-badge">
-                        <i class="bi bi-person-check me-1"></i>
-                        총 <strong th:text="${players.size()}">0</strong>명
+                <div class="d-flex align-items-center gap-2">
+                    <div style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.2); border-radius:10px; padding:0.5rem 1rem; font-size:0.88rem; font-weight:700;">
+                        <i class="bi bi-person-check me-1"></i>총 <span th:text="${players.size()}">0</span>명
                     </div>
-                    <a sec:authorize="hasRole('ADMIN')"
-                       th:href="@{/player/create}"
-                       class="btn btn-light btn-lg">
-                        <i class="bi bi-person-plus-fill me-2"></i>선수 등록
+                    <a th:href="@{/player/ranking}"
+                       style="background:rgba(255,215,0,0.9); color:#5d3800; border:none; border-radius:10px; padding:0.55rem 1.2rem; font-weight:800; font-size:0.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem;">
+                        <i class="bi bi-trophy-fill"></i>랭킹 보기
+                    </a>
+                    <a sec:authorize="hasRole('ADMIN')" th:href="@{/player/create}"
+                       style="background:rgba(255,255,255,0.95); color:#0066cc; border-radius:10px; padding:0.55rem 1.2rem; font-weight:800; font-size:0.85rem; text-decoration:none; display:inline-flex; align-items:center; gap:0.4rem;">
+                        <i class="bi bi-person-plus-fill"></i>선수 등록
                     </a>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="container my-4">
-        <!-- 검색 및 필터 바 -->
-        <div class="search-filter-bar">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <div class="input-group input-group-lg">
-                        <span class="input-group-text">
-                            <i class="bi bi-search"></i>
-                        </span>
-                        <input type="text"
-                               class="form-control"
-                               id="searchInput"
-                               placeholder="선수 이름 검색...">
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select form-select-lg" id="genderFilter">
-                        <option value="">모든 성별</option>
-                        <option value="남">남성</option>
-                        <option value="여">여성</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select class="form-select form-select-lg" id="sortBy">
-                        <option value="name">이름순</option>
-                        <option value="ranking">랭킹순</option>
-                        <option value="age">나이순</option>
-                    </select>
-                </div>
+    <div class="container pb-5">
+
+        <!-- 필터/검색 바 -->
+        <div class="filter-bar">
+            <div class="search-wrap">
+                <i class="bi bi-search"></i>
+                <input type="text" id="searchInput" placeholder="선수 이름 검색...">
             </div>
+            <select class="filter-select" id="genderFilter">
+                <option value="">모든 성별</option>
+                <option value="남">남성</option>
+                <option value="여">여성</option>
+            </select>
+            <select class="filter-select" id="sortBy">
+                <option value="ranking">랭킹순</option>
+                <option value="name">이름순</option>
+                <option value="age">나이순</option>
+            </select>
+            <span class="text-muted small" style="white-space:nowrap;">
+                <span id="resultCount" th:text="${players.size()}">0</span>명 표시
+            </span>
         </div>
 
-        <!-- 선수가 없을 때 -->
-        <div th:if="${#lists.isEmpty(players)}" class="text-center py-5">
-            <i class="bi bi-person-x" style="font-size: 4rem; color: #dee2e6;"></i>
-            <h3 class="mt-3 text-muted">등록된 선수가 없습니다</h3>
+        <!-- 선수 없음 -->
+        <div class="empty-players" th:if="${#lists.isEmpty(players)}">
+            <i class="bi bi-person-x"></i>
+            <h4 class="fw-bold text-muted">등록된 선수가 없습니다</h4>
             <p class="text-muted">새로운 선수를 등록해주세요.</p>
-            <a sec:authorize="hasRole('ADMIN')"
-               th:href="@{/player/create}"
-               class="btn btn-primary btn-lg mt-3">
-                <i class="bi bi-person-plus-fill me-2"></i>첫 선수 등록하기
+            <a sec:authorize="hasRole('ADMIN')" th:href="@{/player/create}"
+               class="btn btn-primary fw-bold mt-2">
+                <i class="bi bi-person-plus-fill me-1"></i>첫 선수 등록하기
             </a>
         </div>
 
         <!-- 선수 카드 그리드 -->
         <div class="row g-4" id="playerGrid">
             <div class="col-lg-3 col-md-4 col-sm-6 player-item"
-                 th:each="player : ${players}"
-                 th:attr="data-name=${player.name}, data-gender=${player.gender}, data-ranking=${player.ranking}, data-age=${player.age}">
+                 th:each="player,iter : ${players}"
+                 th:attr="data-name=${player.name}, data-gender=${player.gender}, data-ranking=${player.ranking}, data-age=${player.age}"
+                 th:style="'animation: fadeInUp 0.4s ease both; animation-delay:' + ${iter.index * 50} + 'ms'">
                 <div class="player-card">
-                    <!-- 프로필 아바타 -->
-                    <div class="player-avatar">
-                        <span th:text="${#strings.substring(player.name, 0, 1)}">선</span>
+                    <div class="player-card-top">
+                        <!-- 랭킹 뱃지 -->
+                        <div class="ranking-badge-sm"
+                             th:if="${player.ranking != null}"
+                             th:classappend="${player.ranking == 1 ? ' rank-gold' : (player.ranking == 2 ? ' rank-silver' : (player.ranking == 3 ? ' rank-bronze' : ' rank-other'))}">
+                            <i class="bi bi-trophy-fill" th:if="${player.ranking <= 3}"></i>
+                            <span th:text="${player.ranking + '위'}">1위</span>
+                        </div>
+                        <!-- 아바타 -->
+                        <div class="player-avatar"
+                             th:classappend="${player.gender == '남' ? ' avatar-m' : (player.gender == '여' ? ' avatar-f' : ' avatar-n')}">
+                            <span th:text="${#strings.substring(player.name, 0, 1)}">선</span>
+                        </div>
+                        <div class="player-name" th:text="${player.name}">선수명</div>
+                        <div class="player-club">
+                            <i class="bi bi-building" style="color:#0066cc;"></i>
+                            <span th:text="${player.club != null ? player.club.name : '소속 없음'}">클럽</span>
+                        </div>
                     </div>
-
-                    <!-- 랭킹 배지 -->
-                    <div class="text-center" th:if="${player.ranking != null && player.ranking <= 10}">
-                        <span class="badge-ranking">
-                            <i class="bi bi-trophy-fill me-1"></i>
-                            <span th:text="${player.ranking}">1</span>위
-                        </span>
-                    </div>
-
-                    <!-- 선수 이름 -->
-                    <h3 class="player-name" th:text="${player.name}">선수명</h3>
-
-                    <!-- 선수 정보 -->
-                    <div class="player-info">
-                        <div class="info-item">
+                    <div class="player-card-body">
+                        <div class="info-line" th:if="${player.age != null}">
+                            <i class="bi bi-calendar"></i><span th:text="${player.age + '세'}">25세</span>
+                        </div>
+                        <div class="info-line">
                             <i class="bi bi-person-badge"></i>
-                            <span>ID: <strong th:text="${player.id}">1</strong></span>
+                            <span th:text="${player.gender == '남' ? '남성' : (player.gender == '여' ? '여성' : (player.gender != null ? player.gender : '성별 미정'))}">성별</span>
                         </div>
-                        <div class="info-item">
-                            <i class="bi bi-calendar"></i>
-                            <span th:text="${player.age} + '세'">25세</span>
+                        <div class="info-line" th:if="${player.ranking != null}">
+                            <i class="bi bi-award"></i><strong th:text="${player.ranking + '위'}">1위</strong>
                         </div>
-                        <div class="info-item">
-                            <i class="bi bi-gender-ambiguous"></i>
-                            <span th:text="${player.gender == '남' ? '남성' : (player.gender == '여' ? '여성' : player.gender)}">성별</span>
-                        </div>
-                        <div class="info-item" th:if="${player.ranking != null}">
-                            <i class="bi bi-award"></i>
-                            <span>랭킹: <strong th:text="${player.ranking} + '위'">1위</strong></span>
-                        </div>
-                        <div class="info-item" th:if="${player.position != null}">
-                            <i class="bi bi-bullseye"></i>
-                            <span th:text="${player.position}">공격형</span>
-                        </div>
-                        <div class="info-item">
-                            <i class="bi bi-building"></i>
-                            <span th:text="${player.club != null ? player.club.name : '소속 없음'}">클럽명</span>
+                        <div class="info-line" th:if="${player.position != null}">
+                            <i class="bi bi-bullseye"></i><span th:text="${player.position}">공격형</span>
                         </div>
                     </div>
-
-                    <!-- 관리 버튼 (관리자만) -->
-                    <div sec:authorize="hasRole('ADMIN')" class="action-buttons">
-                        <a th:href="@{|/player/edit/${player.id}|}"
-                           class="btn btn-warning btn-sm flex-fill">
-                            <i class="bi bi-pencil-fill me-1"></i>수정
+                    <div class="player-card-footer">
+                        <a th:href="@{/player/detail/{id}(id=${player.id})}" class="btn-view-player">
+                            <i class="bi bi-person me-1"></i>프로필
                         </a>
-                        <form th:action="@{|/player/delete/${player.id}|}"
-                              method="post"
-                              class="flex-fill"
-                              onsubmit="return confirm('정말 이 선수를 삭제하시겠습니까?');">
-                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
-                            <button type="submit" class="btn btn-danger btn-sm w-100">
-                                <i class="bi bi-trash-fill me-1"></i>삭제
-                            </button>
-                        </form>
+                        <div sec:authorize="hasRole('ADMIN')" class="d-flex gap-1">
+                            <a th:href="@{/player/edit/{id}(id=${player.id})}"
+                               class="btn btn-warning btn-sm fw-bold" style="border-radius:7px; padding:0.4rem 0.6rem;">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form th:action="@{/player/delete/{id}(id=${player.id})}" method="post"
+                                  onsubmit="return confirm('이 선수를 삭제하시겠습니까?');">
+                                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                <button type="submit" class="btn btn-danger btn-sm fw-bold" style="border-radius:7px; padding:0.4rem 0.6rem;">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- 검색 결과 없음 -->
+        <div id="noResults" class="empty-players" style="display:none;">
+            <i class="bi bi-search"></i>
+            <h5 class="fw-bold text-muted">검색 결과가 없습니다</h5>
+        </div>
+
     </div>
 </div>
 
 <th:block layout:fragment="script">
     <script>
-        // 검색 기능
-        document.getElementById('searchInput').addEventListener('input', function(e) {
-            filterPlayers();
-        });
+        const searchInput = document.getElementById('searchInput');
+        const genderFilter = document.getElementById('genderFilter');
+        const sortBy = document.getElementById('sortBy');
+        const resultCount = document.getElementById('resultCount');
+        const noResults = document.getElementById('noResults');
+        const grid = document.getElementById('playerGrid');
 
-        // 성별 필터
-        document.getElementById('genderFilter').addEventListener('change', function(e) {
-            filterPlayers();
-        });
-
-        // 정렬
-        document.getElementById('sortBy').addEventListener('change', function(e) {
-            sortPlayers(e.target.value);
-        });
-
-        function filterPlayers() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const genderFilter = document.getElementById('genderFilter').value;
-            const players = document.querySelectorAll('.player-item');
-
-            players.forEach(player => {
-                const name = player.getAttribute('data-name').toLowerCase();
-                const gender = player.getAttribute('data-gender');
-
-                const matchesSearch = name.includes(searchTerm);
-                // ✅ DB에 "남", "여"로 저장되어 있으므로 이 값과 비교
-                const matchesGender = !genderFilter || gender === genderFilter;
-
-                if (matchesSearch && matchesGender) {
-                    player.style.display = '';
-                } else {
-                    player.style.display = 'none';
-                }
+        function applyFilter() {
+            const kw = searchInput.value.toLowerCase().trim();
+            const gender = genderFilter.value;
+            const items = document.querySelectorAll('.player-item');
+            let visible = 0;
+            items.forEach(item => {
+                const name = (item.dataset.name || '').toLowerCase();
+                const g    = item.dataset.gender || '';
+                const show = (!kw || name.includes(kw)) && (!gender || g === gender);
+                item.style.display = show ? '' : 'none';
+                if (show) visible++;
             });
+            resultCount.textContent = visible;
+            noResults.style.display = visible === 0 && items.length > 0 ? 'block' : 'none';
         }
 
-        function sortPlayers(sortBy) {
-            const grid = document.getElementById('playerGrid');
-            const players = Array.from(document.querySelectorAll('.player-item'));
-
-            players.sort((a, b) => {
-                if (sortBy === 'name') {
-                    return a.getAttribute('data-name').localeCompare(b.getAttribute('data-name'));
-                } else if (sortBy === 'ranking') {
-                    const rankA = parseInt(a.getAttribute('data-ranking')) || 999;
-                    const rankB = parseInt(b.getAttribute('data-ranking')) || 999;
-                    return rankA - rankB;
-                } else if (sortBy === 'age') {
-                    return parseInt(a.getAttribute('data-age')) - parseInt(b.getAttribute('data-age'));
-                }
+        function applySort(by) {
+            const items = Array.from(document.querySelectorAll('.player-item'));
+            items.sort((a, b) => {
+                if (by === 'name') return (a.dataset.name || '').localeCompare(b.dataset.name || '');
+                if (by === 'ranking') return (parseInt(a.dataset.ranking) || 9999) - (parseInt(b.dataset.ranking) || 9999);
+                if (by === 'age') return (parseInt(a.dataset.age) || 0) - (parseInt(b.dataset.age) || 0);
             });
-
-            players.forEach(player => grid.appendChild(player));
+            items.forEach(i => grid.appendChild(i));
         }
+
+        searchInput.addEventListener('input', applyFilter);
+        genderFilter.addEventListener('change', applyFilter);
+        sortBy.addEventListener('change', e => applySort(e.target.value));
+        applySort('ranking');
     </script>
 </th:block>
 </body>
