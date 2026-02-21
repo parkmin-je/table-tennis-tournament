@@ -35,6 +35,14 @@ public interface PlayerRepository extends JpaRepository<Player, Long> {
     List<Player> findByNameContainingIgnoreCase(String name);
 
     /**
+     * ⭐ 전역 검색용: 이름 포함 검색 + 클럽 Fetch
+     */
+    @Query("SELECT p FROM Player p LEFT JOIN FETCH p.club " +
+            "WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%')) " +
+            "ORDER BY p.ranking ASC NULLS LAST")
+    List<Player> findByNameContainingWithClub(@Param("name") String name);
+
+    /**
      * ⭐ 클럽별 선수 조회 (클럽 상세 페이지용)
      */
     @Query("SELECT p FROM Player p LEFT JOIN FETCH p.club WHERE p.club.id = :clubId ORDER BY p.ranking DESC")
