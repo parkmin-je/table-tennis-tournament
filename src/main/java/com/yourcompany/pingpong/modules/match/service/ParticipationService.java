@@ -119,6 +119,13 @@ public class ParticipationService {
     }
 
     /**
+     * 대회별 참가자 조회
+     */
+    public List<Participation> findByTournament(Tournament tournament) {
+        return participationRepository.findByTournament(tournament);
+    }
+
+    /**
      * 상태별 통계 계산
      */
     public Map<String, Long> getStatusStats() {

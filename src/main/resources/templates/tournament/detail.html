@@ -2,729 +2,972 @@
 <html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security" xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>대회 상세</title>
-
-    <!-- ⭐⭐⭐ CSRF 메타 태그 직접 추가 ⭐⭐⭐ -->
+    <title th:text="${tournament.title} + ' - 대회 상세'">대회 상세</title>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
     <th:block layout:fragment="css">
-        <link rel="stylesheet" href="https://unpkg.com/jquery-bracket@0.11.1/dist/jquery.bracket.min.css">
         <style>
-            /* app.css에서 기본 bracket 스타일을 오버라이드합니다. */
-
-            /* ⭐ Toast 알림 스타일 */
-            #toast {
-                visibility: hidden;
-                min-width: 300px;
-                background-color: #333;
-                color: #fff;
-                text-align: center;
-                border-radius: 8px;
-                padding: 16px;
-                position: fixed;
-                z-index: 9999;
-                left: 50%;
-                bottom: 30px;
-                transform: translateX(-50%);
-                font-size: 17px;
-                opacity: 0;
-                transition: opacity 0.5s, visibility 0.5s;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            }
-
-            #toast.show {
-                visibility: visible;
-                opacity: 1;
-            }
-
-            /* ⭐⭐⭐ 3D 탁구대 스타일 ⭐⭐⭐ */
-            .table-item {
-                width: 80px;
-                height: 120px;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                border-radius: 12px;
-                cursor: pointer;
-                transition: all 0.3s ease;
+            /* ===== 히어로 ===== */
+            .detail-hero {
+                background: linear-gradient(135deg, #0a2540 0%, #1a3a6b 50%, #0a2540 100%);
+                color: white;
+                padding: 3rem 0 5rem;
                 position: relative;
-                font-weight: bold;
-                font-size: 20px;
-                box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-                transform: perspective(1000px) rotateX(5deg);
-            }
-
-            /* 사용 가능한 탁구대 (초록색 3D) */
-            .table-item.available {
-                background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-                color: white;
-                border: 3px solid #047857;
-            }
-
-            .table-item.available:hover {
-                transform: perspective(1000px) rotateX(0deg) scale(1.1);
-                box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
-                background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
-            }
-
-            .table-item.available:active {
-                transform: perspective(1000px) rotateX(5deg) scale(0.95);
-            }
-
-            /* 사용 중인 탁구대 (빨간색 3D) */
-            .table-item.occupied {
-                background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-                color: white;
-                border: 3px solid #b91c1c;
-                cursor: not-allowed;
-                opacity: 0.8;
-            }
-
-            .table-item.occupied:hover {
-                transform: perspective(1000px) rotateX(0deg) scale(1.05);
-                box-shadow: 0 8px 20px rgba(239, 68, 68, 0.4);
-            }
-
-            /* 탁구대 번호 */
-            .table-item::before {
-                content: '탁구대';
-                font-size: 11px;
-                font-weight: normal;
-                opacity: 0.8;
-                margin-bottom: 5px;
-            }
-
-            /* 경기 정보 (작은 텍스트) */
-            .table-item .small-text {
-                font-size: 9px;
-                text-align: center;
-                margin-top: 8px;
-                line-height: 1.2;
-                opacity: 0.9;
-                max-width: 70px;
                 overflow: hidden;
-                text-overflow: ellipsis;
+            }
+            .detail-hero::before {
+                content: '';
+                position: absolute; inset: 0;
+                background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            }
+            .detail-hero::after {
+                content: '';
+                position: absolute;
+                bottom: -2px; left: 0; right: 0;
+                height: 60px;
+                background: var(--bg-light);
+                clip-path: ellipse(55% 100% at 50% 100%);
+            }
+            .tournament-status-badge {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                padding: 0.4rem 1rem;
+                border-radius: 20px;
+                font-weight: 700;
+                font-size: 0.85rem;
+                letter-spacing: 0.05em;
+            }
+            .status-ready    { background: rgba(255,255,255,0.15); color: #a8c8ff; border: 1px solid rgba(168,200,255,0.4); }
+            .status-recruiting{ background: rgba(0,220,100,0.2); color: #4eff9e; border: 1px solid rgba(78,255,158,0.4); }
+            .status-inprogress{ background: rgba(255,150,0,0.2); color: #ffbb44; border: 1px solid rgba(255,187,68,0.4); }
+            .status-main    { background: rgba(180,100,255,0.2); color: #cc88ff; border: 1px solid rgba(204,136,255,0.4); }
+            .status-completed { background: rgba(120,120,120,0.2); color: #aaaaaa; border: 1px solid rgba(170,170,170,0.4); }
+
+            /* ===== 정보 카드 바 ===== */
+            .info-bar {
+                display: flex; flex-wrap: wrap; gap: 1.5rem;
+                margin-top: 2rem;
+            }
+            .info-chip {
+                display: flex; align-items: center; gap: 0.5rem;
+                background: rgba(255,255,255,0.1);
+                border: 1px solid rgba(255,255,255,0.15);
+                border-radius: 10px;
+                padding: 0.5rem 1rem;
+                font-size: 0.88rem;
+                color: rgba(255,255,255,0.85);
+            }
+            .info-chip i { color: #63b3ed; font-size: 1rem; }
+
+            /* ===== 빠른 통계 ===== */
+            .quick-stats {
+                display: flex; gap: 1rem; flex-wrap: wrap;
+                margin-bottom: 2rem;
+            }
+            .stat-chip {
+                background: var(--bg-white);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                padding: 1rem 1.5rem;
+                text-align: center;
+                flex: 1; min-width: 120px;
+                box-shadow: var(--shadow-sm);
+            }
+            .stat-chip .stat-num {
+                font-size: 1.8rem; font-weight: 900;
+                color: var(--primary-color);
+                line-height: 1;
+                margin-bottom: 0.3rem;
+            }
+            .stat-chip .stat-label {
+                font-size: 0.78rem; color: var(--text-secondary);
+                font-weight: 600; letter-spacing: 0.03em;
+            }
+
+            /* ===== 탭 ===== */
+            .detail-tabs {
+                display: flex; gap: 0.3rem;
+                background: var(--bg-white);
+                border-radius: 14px;
+                padding: 0.4rem;
+                box-shadow: var(--shadow-sm);
+                border: 1px solid var(--border-color);
+                margin-bottom: 1.5rem;
+                overflow-x: auto;
+            }
+            .detail-tab {
+                flex: 1; min-width: 80px;
+                display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+                padding: 0.65rem 1rem;
+                border-radius: 10px;
+                font-weight: 700; font-size: 0.88rem;
+                cursor: pointer; border: none; background: transparent;
+                color: var(--text-secondary);
+                transition: all 0.2s ease; white-space: nowrap;
+            }
+            .detail-tab.active {
+                background: var(--gradient-primary);
+                color: white;
+                box-shadow: 0 4px 12px rgba(0,102,204,0.3);
+            }
+            .detail-tab:hover:not(.active) { background: var(--bg-light); color: var(--text-primary); }
+            .detail-tab .tab-count {
+                background: rgba(255,255,255,0.25);
+                border-radius: 20px;
+                padding: 0.1rem 0.45rem;
+                font-size: 0.72rem;
+            }
+            .detail-tab:not(.active) .tab-count {
+                background: var(--border-color);
+                color: var(--text-secondary);
+            }
+            .tab-pane { display: none; }
+            .tab-pane.active { display: block; }
+
+            /* ===== 경기 카드 ===== */
+            .match-section-title {
+                font-size: 1rem; font-weight: 800;
+                color: var(--text-primary);
+                display: flex; align-items: center; gap: 0.5rem;
+                margin-bottom: 1rem; padding-bottom: 0.6rem;
+                border-bottom: 2px solid var(--border-color);
+            }
+            .match-row {
+                background: var(--bg-white);
+                border: 1px solid var(--border-color);
+                border-radius: 12px;
+                padding: 1rem 1.2rem;
+                margin-bottom: 0.7rem;
+                display: flex; align-items: center; gap: 1rem;
+                box-shadow: var(--shadow-sm);
+                transition: all 0.2s ease;
+                position: relative; overflow: hidden;
+            }
+            .match-row::before {
+                content: '';
+                position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+                background: var(--border-color);
+                transition: background 0.2s;
+            }
+            .match-row.scheduled::before { background: #6c757d; }
+            .match-row.in-progress::before { background: #ff6600; animation: pulse-bar 1.5s infinite; }
+            .match-row.completed::before { background: #28a745; }
+            @keyframes pulse-bar {
+                0%, 100% { opacity: 1; }
+                50% { opacity: 0.4; }
+            }
+            .match-row:hover { transform: translateX(4px); box-shadow: var(--shadow-md); }
+
+            .match-badge {
+                font-size: 0.72rem; font-weight: 700;
+                padding: 0.2rem 0.6rem; border-radius: 4px;
+                white-space: nowrap;
+            }
+            .badge-scheduled  { background: #e9ecef; color: #6c757d; }
+            .badge-inprogress { background: #fff3cd; color: #ff6600; }
+            .badge-completed  { background: #d1fae5; color: #28a745; }
+
+            .match-players {
+                flex: 1;
+                display: flex; align-items: center; gap: 0.7rem;
+            }
+            .player-badge {
+                flex: 1; font-weight: 700; font-size: 0.95rem;
+                color: var(--text-primary);
+                padding: 0.4rem 0.7rem;
+                background: var(--bg-light);
+                border-radius: 8px;
+                text-align: center;
+                white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+                max-width: 160px;
+            }
+            .player-badge.winner {
+                background: linear-gradient(135deg, rgba(0,102,204,0.1), rgba(0,73,153,0.15));
+                color: var(--primary-color);
+                border: 1px solid rgba(0,102,204,0.25);
+            }
+            .vs-text {
+                font-weight: 900; font-size: 0.8rem;
+                color: var(--text-secondary); flex-shrink: 0;
+            }
+            .score-display {
+                display: flex; align-items: center; gap: 0.4rem;
+                flex-shrink: 0;
+            }
+            .score-num {
+                font-size: 1.5rem; font-weight: 900;
+                min-width: 36px; text-align: center;
+                color: var(--text-primary);
+            }
+            .score-num.winner-score { color: var(--primary-color); }
+            .score-sep { font-weight: 700; color: var(--text-secondary); }
+
+            .table-badge {
+                background: #ff6600;
+                color: white; font-size: 0.72rem; font-weight: 700;
+                padding: 0.2rem 0.5rem; border-radius: 6px;
+                white-space: nowrap;
+            }
+            .match-time {
+                font-size: 0.75rem; color: var(--text-secondary);
                 white-space: nowrap;
             }
 
-            /* 탁구대 그리드 레이아웃 */
-            #tableList {
+            /* ===== 라이브 뱃지 ===== */
+            .live-badge {
+                display: inline-flex; align-items: center; gap: 0.35rem;
+                background: #e63946; color: white;
+                border-radius: 4px; padding: 0.15rem 0.5rem;
+                font-size: 0.72rem; font-weight: 800;
+                letter-spacing: 0.05em; animation: blink 1.5s infinite;
+            }
+            .live-badge::before { content: ''; width: 6px; height: 6px; background: white; border-radius: 50%; }
+            @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.6} }
+
+            /* ===== 어드민 패널 ===== */
+            .admin-panel {
+                background: linear-gradient(135deg, #1a1a2e 0%, #0a2540 100%);
+                border-radius: 16px;
+                padding: 1.5rem;
+                margin-bottom: 2rem;
+                border: 1px solid rgba(255,255,255,0.1);
+            }
+            .admin-panel h6 {
+                color: rgba(255,255,255,0.6);
+                font-size: 0.75rem; font-weight: 700;
+                letter-spacing: 0.1em; text-transform: uppercase;
+                margin-bottom: 1rem;
+            }
+            .admin-action-btn {
+                display: inline-flex; align-items: center; gap: 0.4rem;
+                padding: 0.6rem 1.2rem;
+                border-radius: 10px;
+                font-weight: 700; font-size: 0.85rem;
+                border: none; cursor: pointer;
+                transition: all 0.2s ease;
+                text-decoration: none;
+            }
+            .admin-action-btn:hover { transform: translateY(-2px); }
+            .btn-generate-pre { background: linear-gradient(135deg, #28a745, #1e7e34); color: white; box-shadow: 0 4px 12px rgba(40,167,69,0.3); }
+            .btn-generate-main { background: linear-gradient(135deg, #ff9500, #cc7700); color: white; box-shadow: 0 4px 12px rgba(255,149,0,0.3); }
+            .btn-view-bracket { background: linear-gradient(135deg, #0066cc, #004999); color: white; box-shadow: 0 4px 12px rgba(0,102,204,0.3); }
+            .btn-edit-tournament { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.2); }
+            .btn-edit-tournament:hover { background: rgba(255,255,255,0.2); color: white; }
+
+            /* ===== 3D 탁구대 ===== */
+            .table-item {
+                width: 76px; height: 110px;
+                display: flex; flex-direction: column;
+                align-items: center; justify-content: center;
+                border-radius: 12px; cursor: pointer;
+                transition: all 0.3s ease;
+                font-weight: 800; font-size: 1.3rem;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                transform: perspective(800px) rotateX(8deg);
+                position: relative;
+            }
+            .table-item::before { content: '탁구대'; font-size: 10px; font-weight: 600; opacity: 0.75; margin-bottom: 4px; }
+            .table-item.available {
+                background: linear-gradient(160deg, #22c55e 0%, #16a34a 100%);
+                color: white; border: 2px solid #15803d;
+            }
+            .table-item.available:hover {
+                transform: perspective(800px) rotateX(0deg) scale(1.08);
+                box-shadow: 0 10px 24px rgba(34,197,94,0.5);
+            }
+            .table-item.occupied {
+                background: linear-gradient(160deg, #ef4444 0%, #dc2626 100%);
+                color: white; border: 2px solid #b91c1c;
+                cursor: not-allowed; opacity: 0.85;
+            }
+            .table-item .small-text {
+                font-size: 8px; text-align: center;
+                margin-top: 5px; line-height: 1.2;
+                max-width: 68px; overflow: hidden;
+                text-overflow: ellipsis; white-space: nowrap;
+            }
+            #tableGrid {
                 display: grid;
                 grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-                gap: 20px;
-                padding: 20px;
-                justify-items: center;
+                gap: 16px; padding: 0.5rem;
             }
 
-            /* 모달 배경 */
-            .modal-body {
-                background: white !important;
+            /* ===== 모달 ===== */
+            .modal-content { border: none !important; border-radius: 20px !important; overflow: hidden; }
+            .modal-header-custom {
+                background: linear-gradient(135deg, #0a2540, #1a3a6b);
+                color: white; padding: 1.2rem 1.5rem;
+                display: flex; align-items: center; justify-content: space-between;
+            }
+            .score-input-group { display: flex; flex-direction: column; align-items: center; }
+            .score-input-group label { font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.04em; }
+            .score-input {
+                width: 90px; height: 72px; text-align: center;
+                font-size: 2rem; font-weight: 900;
+                border: 2px solid var(--border-color);
+                border-radius: 12px; outline: none;
+                transition: border-color 0.2s;
+            }
+            .score-input:focus { border-color: var(--primary-color); }
+            .vs-divider { font-size: 1.5rem; font-weight: 900; color: var(--text-secondary); margin: 0 1rem; align-self: center; }
+
+            /* ===== 참가자 섹션 ===== */
+            .participant-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+                gap: 0.8rem;
+            }
+            .participant-chip {
+                background: var(--bg-white);
+                border: 1px solid var(--border-color);
+                border-radius: 10px;
+                padding: 0.75rem 1rem;
+                display: flex; align-items: center; gap: 0.6rem;
+                font-size: 0.88rem; font-weight: 600;
+                color: var(--text-primary);
+                box-shadow: var(--shadow-sm);
+            }
+            .participant-avatar {
+                width: 34px; height: 34px;
+                border-radius: 50%;
+                background: var(--gradient-primary);
+                color: white; font-weight: 800; font-size: 0.9rem;
+                display: flex; align-items: center; justify-content: center;
+                flex-shrink: 0;
             }
 
-            /* 모달 헤더 */
-            .modal-header {
-                background: linear-gradient(135deg, #004E89 0%, #003A66 100%) !important;
-                color: white !important;
-                border-bottom: 3px solid #FF6B35 !important;
+            /* ===== 참가 신청 버튼 ===== */
+            .participate-btn {
+                background: linear-gradient(135deg, #28a745, #1e7e34);
+                color: white; border: none;
+                border-radius: 12px; padding: 0.9rem 2rem;
+                font-weight: 800; font-size: 1rem;
+                box-shadow: 0 6px 20px rgba(40,167,69,0.3);
+                transition: all 0.25s; cursor: pointer; width: 100%;
+            }
+            .participate-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(40,167,69,0.45); }
+
+            /* ===== 빈 상태 ===== */
+            .empty-state {
+                text-align: center; padding: 3rem 2rem;
+                color: var(--text-secondary);
+            }
+            .empty-state i { font-size: 3rem; opacity: 0.3; display: block; margin-bottom: 1rem; }
+            .empty-state p { font-size: 0.9rem; }
+
+            /* ===== Toast ===== */
+            #toast {
+                position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+                background: #1a1a2e; color: white;
+                border-radius: 12px; padding: 1rem 1.5rem;
+                font-size: 0.9rem; font-weight: 600;
+                z-index: 9999; display: none;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+                max-width: 420px; text-align: center;
+                animation: slideUp 0.3s ease;
+            }
+            @keyframes slideUp {
+                from { transform: translateX(-50%) translateY(20px); opacity: 0; }
+                to   { transform: translateX(-50%) translateY(0); opacity: 1; }
             }
 
-            .modal-header .btn-close {
-                filter: brightness(0) invert(1);
-            }
-
-            .modal-title {
-                color: white !important;
-                font-weight: 700 !important;
-            }
-
-            /* 모달 전체 */
-            .modal-content {
-                border: 3px solid #FF6B35 !important;
-                border-radius: 20px !important;
-                box-shadow: 0 16px 48px rgba(0, 0, 0, 0.3) !important;
-            }
-
-            /* 탁구대 선택 안내 텍스트 */
-            #tableList::before {
-                content: '탁구대를 선택하세요';
-                display: block;
-                text-align: center;
-                font-size: 1.2rem;
-                font-weight: 700;
-                color: #004E89;
-                margin-bottom: 1rem;
-                padding: 1rem;
-                background: linear-gradient(90deg, rgba(255, 107, 53, 0.1), rgba(0, 168, 120, 0.1));
-                border-radius: 12px;
+            /* ===== 반응형 ===== */
+            @media (max-width: 768px) {
+                .detail-hero { padding: 2rem 0 4rem; }
+                .match-players { flex-wrap: wrap; }
+                .player-badge { max-width: 110px; font-size: 0.82rem; }
+                .score-num { font-size: 1.2rem; }
+                .info-bar { gap: 0.7rem; }
+                .detail-tabs { gap: 0.2rem; }
+                .detail-tab { padding: 0.5rem 0.7rem; font-size: 0.8rem; }
             }
         </style>
     </th:block>
 </head>
 <body>
 <div layout:fragment="content">
-    <div class="container my-5">
-        <div class="row">
-            <div class="col-12 text-center mb-4">
-                <h1 class="display-4 fw-bold mb-3" th:text="${tournament.title}">대회 제목</h1>
-                <p class="lead text-muted mb-4" th:text="${tournament.description}">대회 설명</p>
-                <div class="d-flex justify-content-center flex-wrap gap-2 mb-4">
-                    <!-- ⭐⭐⭐ 수정: .name() 메서드 사용 ⭐⭐⭐ -->
-                    <span th:classappend="${tournament.status.name() == 'READY' ? 'badge bg-secondary' :
-                                            (tournament.status.name() == 'RECRUITING' ? 'badge bg-primary' :
-                                            (tournament.status.name() == 'IN_PROGRESS' ? 'badge bg-warning text-dark' : 'badge bg-success'))}"
-                          th:text="${tournament.status.description}" class="badge fs-6">상태</span>
-                    <span class="badge bg-dark fs-6" th:text="${tournament.type.description}">유형</span>
+
+    <!-- ===== 히어로 ===== -->
+    <div class="detail-hero">
+        <div class="container position-relative" style="z-index:1;">
+            <!-- 상단 네비 -->
+            <div class="d-flex align-items-center gap-2 mb-3" style="font-size:0.82rem; opacity:0.65;">
+                <a th:href="@{/tournament/list}" style="color:inherit; text-decoration:none;">
+                    <i class="bi bi-grid-3x3-gap me-1"></i>대회 목록
+                </a>
+                <i class="bi bi-chevron-right"></i>
+                <span th:text="${tournament.title}">대회명</span>
+            </div>
+
+            <!-- 상태 + 타입 뱃지 -->
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <span class="tournament-status-badge"
+                      th:classappend="${tournament.status.name() == 'READY' ? ' status-ready' :
+                                       (tournament.status.name() == 'RECRUITING' ? ' status-recruiting' :
+                                       (tournament.status.name() == 'IN_PROGRESS' ? ' status-inprogress' :
+                                       (tournament.status.name() == 'MAIN_READY' ? ' status-main' : ' status-completed')))}">
+                    <i class="bi bi-circle-fill" style="font-size:0.5rem;"></i>
+                    <span th:text="${tournament.status.description}">상태</span>
+                </span>
+                <span class="tournament-status-badge status-ready">
+                    <i class="bi bi-trophy"></i>
+                    <span th:text="${tournament.type.description}">유형</span>
+                </span>
+                <span class="live-badge" th:if="${tournament.status.name() == 'IN_PROGRESS'}">LIVE</span>
+            </div>
+
+            <!-- 제목 -->
+            <h1 style="font-size: clamp(1.6rem, 4vw, 2.8rem); font-weight: 900; letter-spacing: -0.02em; margin-bottom: 0.5rem;"
+                th:text="${tournament.title}">대회명</h1>
+            <p style="opacity:0.7; font-size:1rem; margin-bottom:0;" th:text="${tournament.description}">대회 설명</p>
+
+            <!-- 정보 칩 -->
+            <div class="info-bar">
+                <div class="info-chip" th:if="${tournament.startDate != null}">
+                    <i class="bi bi-calendar-event"></i>
+                    <span>
+                        <span th:text="${#temporals.format(tournament.startDate, 'yyyy.MM.dd')}">시작</span>
+                        <span th:if="${tournament.endDate != null}">
+                            ~ <span th:text="${#temporals.format(tournament.endDate, 'MM.dd')}">종료</span>
+                        </span>
+                    </span>
                 </div>
-            </div>
-
-            <!-- 관리자만 볼 수 있는 버튼 -->
-            <div class="col-12 text-center mb-5" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
-                <!-- 예선 대진표 생성 버튼 -->
-                <a href="javascript:void(0)"
-                   th:data-tournament-id="${tournament.id}"
-                   onclick="createPreliminary(this.dataset.tournamentId)"
-                   class="btn btn-success btn-lg me-3 fw-bold">
-                    <i class="bi bi-plus-circle me-2"></i>예선 대진표 생성
-                </a>
-
-                <!-- 본선 대진표 생성 버튼 -->
-                <a href="javascript:void(0)"
-                   th:data-tournament-id="${tournament.id}"
-                   onclick="createMainBracket(this.dataset.tournamentId)"
-                   class="btn btn-warning btn-lg me-3 fw-bold"
-                   th:classappend="${isMainBracketGenerated ? 'disabled' : ''}">
-                    <i class="bi bi-diagram-3 me-2"></i>본선 대진표 생성
-                </a>
-
-            </div>
-
-            <!-- 모든 사용자가 볼 수 있는 본선 대진표 보기 버튼 -->
-            <div class="col-12 text-center mb-4" th:if="${isMainBracketGenerated}">
-                <a th:href="@{/tournament/bracket/{id}(id=${tournament.id})}"
-                   class="btn btn-info btn-lg fw-bold">
-                    <i class="bi bi-bar-chart-line me-2"></i>본선 대진표 보기
-                </a>
-            </div>
-
-            <!-- 예정된 경기 목록 -->
-            <div class="col-lg-6 col-md-12 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-header bg-light">
-                        <h4 class="mb-0"><i class="bi bi-stopwatch me-2"></i>예정된 경기 (Waiting List)</h4>
-                    </div>
-                    <div class="card-body" id="scheduledMatchesContainer">
-                        <div th:each="match : ${scheduledMatches}"
-                             class="match-card"
-                             th:data-match-id="${match.id}">
-                            <div class="match-card-header">
-                                <span th:text="${match.roundName + ' ' + match.matchNumber + '경기'}" class="text-secondary"></span>
-                                <span th:classappend="|status-${match.status.name().toLowerCase()}|" class="status-badge" th:text="${match.status.description}"></span>
-                            </div>
-                            <div class="match-card-body">
-                                <div class="player-info d-flex justify-content-between align-items-center mb-2">
-                                    <span class="player-name text-start" th:text="${match.player1 != null ? match.player1.name : 'BYE'}">강한솔</span>
-                                    <span class="fw-bold mx-2">VS</span>
-                                    <span class="player-name text-end" th:text="${match.player2 != null ? match.player2.name : 'BYE'}">김우진</span>
-                                </div>
-                                <small class="text-muted text-center d-block" th:text="${#temporals.format(match.matchTime, 'MM-dd HH:mm')}"></small>
-                                <div class="text-center mt-3" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
-                                    <button class="btn btn-success btn-sm fw-bold"
-                                            th:data-match-id="${match.id}"
-                                            th:data-round-name="${match.roundName}"
-                                            th:data-player1-name="${match.player1 != null ? match.player1.name : 'BYE'}"
-                                            th:data-player2-name="${match.player2 != null ? match.player2.name : 'BYE'}"
-                                            onclick="openStartMatchModal(this)">
-                                        <i class="bi bi-play-fill me-1"></i>경기 시작
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div th:if="${scheduledMatches.empty}" class="alert alert-info text-center mt-3">
-                            <i class="bi bi-info-circle-fill me-2"></i> 예정된 경기가 없습니다.
-                        </div>
-                    </div>
+                <div class="info-chip">
+                    <i class="bi bi-people"></i>
+                    <span>참가자 <strong th:text="${scheduledMatches.size() + inProgressMatches.size() + completedMatchCount}">0</strong>경기</span>
                 </div>
-            </div>
-
-            <!-- 진행 중인 경기 목록 -->
-            <div class="col-lg-6 col-md-12 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h4 class="mb-0"><i class="bi bi-controller me-2"></i>진행 중인 경기 (Live)</h4>
-                    </div>
-                    <div class="card-body" id="inProgressMatchesContainer">
-                        <div th:each="match : ${inProgressMatches}"
-                             class="match-card"
-                             th:data-match-id="${match.id}">
-                            <div class="match-card-header">
-                                <span th:text="${match.roundName + ' ' + match.matchNumber + '경기'}" class="text-secondary"></span>
-                                <span class="badge bg-danger ms-2" th:text="'탁구대 ' + ${match.tableNumber}">탁구대 1</span>
-                                <span th:classappend="|status-${match.status.name().toLowerCase()}|" class="status-badge" th:text="${match.status.description}"></span>
-                            </div>
-                            <div class="match-card-body">
-                                <div class="player-info d-flex justify-content-between align-items-center mb-2">
-                                    <span class="player-name text-start" th:text="${match.player1 != null ? match.player1.name : 'BYE'}">강한솔</span>
-                                    <span class="fw-bold mx-2">VS</span>
-                                    <span class="player-name text-end" th:text="${match.player2 != null ? match.player2.name : 'BYE'}">김우진</span>
-                                </div>
-                                <small class="text-muted text-center d-block" th:text="${#temporals.format(match.matchTime, 'MM-dd HH:mm')}"></small>
-                                <div class="text-center mt-3" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
-                                    <button class="btn btn-primary btn-sm fw-bold"
-                                            th:data-match-id="${match.id}"
-                                            th:data-round-name="${match.roundName}"
-                                            th:data-player1-name="${match.player1 != null ? match.player1.name : 'BYE'}"
-                                            th:data-player2-name="${match.player2 != null ? match.player2.name : 'BYE'}"
-                                            th:data-score1="${match.score1 ?: 0}"
-                                            th:data-score2="${match.score2 ?: 0}"
-                                            onclick="openCompleteMatchModal(this)">
-                                        <i class="bi bi-trophy-fill me-1"></i>점수 입력
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <div th:if="${inProgressMatches.empty}" class="alert alert-info text-center mt-3">
-                            <i class="bi bi-info-circle-fill me-2"></i> 진행 중인 경기가 없습니다.
-                        </div>
-                    </div>
+                <div class="info-chip" th:if="${isMainBracketGenerated}">
+                    <i class="bi bi-diagram-3"></i>
+                    <span>본선 대진표 생성됨</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- ⭐⭐⭐ Toast 알림 추가 ⭐⭐⭐ -->
+    <!-- ===== 메인 컨텐츠 ===== -->
+    <div class="container pb-5" style="margin-top: -2rem; position: relative; z-index: 2;">
+
+        <!-- ===== 관리자 패널 ===== -->
+        <div class="admin-panel" sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+            <h6><i class="bi bi-shield-check me-2"></i>관리자 컨트롤</h6>
+            <div class="d-flex flex-wrap gap-2">
+                <button class="admin-action-btn btn-generate-pre"
+                        th:data-tournament-id="${tournament.id}"
+                        onclick="createPreliminary(this.dataset.tournamentId)">
+                    <i class="bi bi-plus-circle"></i>예선 대진표 생성
+                </button>
+                <button class="admin-action-btn btn-generate-main"
+                        th:data-tournament-id="${tournament.id}"
+                        onclick="createMainBracket(this.dataset.tournamentId)"
+                        th:disabled="${isMainBracketGenerated}">
+                    <i class="bi bi-diagram-3"></i>본선 대진표 생성
+                </button>
+                <a th:if="${isMainBracketGenerated}"
+                   th:href="@{/tournament/bracket/{id}(id=${tournament.id})}"
+                   class="admin-action-btn btn-view-bracket">
+                    <i class="bi bi-eye"></i>본선 대진표 보기
+                </a>
+                <a th:href="@{/tournament/edit/{id}(id=${tournament.id})}"
+                   class="admin-action-btn btn-edit-tournament">
+                    <i class="bi bi-pencil"></i>대회 수정
+                </a>
+            </div>
+        </div>
+
+        <!-- ===== 본선 대진표 보기 (일반 유저) ===== -->
+        <div class="mb-3" th:if="${isMainBracketGenerated}" sec:authorize="!hasAnyRole('ADMIN', 'MANAGER')">
+            <a th:href="@{/tournament/bracket/{id}(id=${tournament.id})}"
+               class="btn btn-primary fw-bold">
+                <i class="bi bi-diagram-3 me-2"></i>본선 대진표 보기
+            </a>
+        </div>
+
+        <!-- ===== 탭 ===== -->
+        <div class="detail-tabs">
+            <button class="detail-tab active" onclick="switchTab(this, 'tab-matches')">
+                <i class="bi bi-controller"></i>경기 관리
+                <span class="tab-count" th:text="${scheduledMatches.size() + inProgressMatches.size()}">0</span>
+            </button>
+            <button class="detail-tab" onclick="switchTab(this, 'tab-completed')">
+                <i class="bi bi-check-circle"></i>완료된 경기
+                <span class="tab-count" th:text="${completedMatchCount}">0</span>
+            </button>
+            <button class="detail-tab" onclick="switchTab(this, 'tab-participants')">
+                <i class="bi bi-people"></i>참가자
+            </button>
+            <button class="detail-tab" onclick="switchTab(this, 'tab-info')">
+                <i class="bi bi-info-circle"></i>대회 정보
+            </button>
+        </div>
+
+        <!-- ===== 탭: 경기 관리 ===== -->
+        <div id="tab-matches" class="tab-pane active">
+            <div class="row g-4">
+                <!-- 진행 중 경기 -->
+                <div class="col-12" th:if="${!inProgressMatches.empty}">
+                    <div class="match-section-title">
+                        <span class="live-badge">LIVE</span>
+                        진행 중인 경기 (<span th:text="${inProgressMatches.size()}">0</span>)
+                    </div>
+                    <div th:each="match : ${inProgressMatches}" class="match-row in-progress">
+                        <div class="d-flex flex-column gap-1" style="min-width:80px;">
+                            <span class="match-badge badge-inprogress">진행중</span>
+                            <span class="table-badge" th:if="${match.tableNumber != null}">
+                                탁구대 <span th:text="${match.tableNumber}">1</span>
+                            </span>
+                        </div>
+                        <div class="match-players">
+                            <div class="player-badge" th:text="${match.player1 != null ? match.player1.name : 'BYE'}">선수1</div>
+                            <span class="vs-text">VS</span>
+                            <div class="player-badge" th:text="${match.player2 != null ? match.player2.name : 'BYE'}">선수2</div>
+                        </div>
+                        <div class="score-display" th:if="${match.score1 != null}">
+                            <span class="score-num" th:text="${match.score1}">0</span>
+                            <span class="score-sep">:</span>
+                            <span class="score-num" th:text="${match.score2}">0</span>
+                        </div>
+                        <div class="d-flex flex-column gap-1 align-items-end">
+                            <small class="match-time" th:text="${match.roundName}">라운드</small>
+                            <button class="btn btn-sm btn-primary fw-bold"
+                                    th:data-match-id="${match.id}"
+                                    th:data-round-name="${match.roundName}"
+                                    th:data-player1-name="${match.player1 != null ? match.player1.name : 'BYE'}"
+                                    th:data-player2-name="${match.player2 != null ? match.player2.name : 'BYE'}"
+                                    th:data-score1="${match.score1 ?: 0}"
+                                    th:data-score2="${match.score2 ?: 0}"
+                                    onclick="openCompleteMatchModal(this)"
+                                    sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+                                <i class="bi bi-trophy me-1"></i>점수 입력
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 예정된 경기 -->
+                <div class="col-12">
+                    <div class="match-section-title">
+                        <i class="bi bi-stopwatch" style="color:#6c757d;"></i>
+                        예정된 경기 (<span th:text="${scheduledMatches.size()}">0</span>)
+                    </div>
+                    <div th:if="${scheduledMatches.empty}" class="empty-state">
+                        <i class="bi bi-calendar-x"></i>
+                        <p>예정된 경기가 없습니다.</p>
+                    </div>
+                    <div th:each="match,iter : ${scheduledMatches}" class="match-row scheduled"
+                         th:style="'animation-delay:' + ${iter.index * 40} + 'ms'">
+                        <div class="d-flex flex-column gap-1" style="min-width:80px;">
+                            <span class="match-badge badge-scheduled">대기중</span>
+                            <small class="match-time" th:text="${match.matchNumber + '경기'}">1경기</small>
+                        </div>
+                        <div class="match-players">
+                            <div class="player-badge" th:text="${match.player1 != null ? match.player1.name : 'BYE'}">선수1</div>
+                            <span class="vs-text">VS</span>
+                            <div class="player-badge" th:text="${match.player2 != null ? match.player2.name : 'BYE'}">선수2</div>
+                        </div>
+                        <div class="d-flex flex-column gap-1 align-items-end">
+                            <small class="match-time" th:text="${match.roundName}">라운드</small>
+                            <small class="match-time"
+                                   th:if="${match.matchTime != null}"
+                                   th:text="${#temporals.format(match.matchTime, 'MM-dd HH:mm')}">시간</small>
+                            <button class="btn btn-sm btn-success fw-bold"
+                                    th:data-match-id="${match.id}"
+                                    th:data-round-name="${match.roundName}"
+                                    th:data-player1-name="${match.player1 != null ? match.player1.name : 'BYE'}"
+                                    th:data-player2-name="${match.player2 != null ? match.player2.name : 'BYE'}"
+                                    onclick="openStartMatchModal(this)"
+                                    sec:authorize="hasAnyRole('ADMIN', 'MANAGER')">
+                                <i class="bi bi-play-fill me-1"></i>시작
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== 탭: 완료된 경기 ===== -->
+        <div id="tab-completed" class="tab-pane">
+            <div class="match-section-title">
+                <i class="bi bi-check-circle" style="color:#28a745;"></i>
+                완료된 경기
+            </div>
+            <div th:if="${completedMatches != null && !completedMatches.empty}">
+                <div th:each="match : ${completedMatches}" class="match-row completed">
+                    <div style="min-width:70px;">
+                        <span class="match-badge badge-completed">완료</span>
+                    </div>
+                    <div class="match-players">
+                        <div class="player-badge"
+                             th:classappend="${match.winner != null && match.player1 != null && match.winner == match.player1.name ? ' winner' : ''}"
+                             th:text="${match.player1 != null ? match.player1.name : 'BYE'}">선수1</div>
+                        <span class="vs-text">VS</span>
+                        <div class="player-badge"
+                             th:classappend="${match.winner != null && match.player2 != null && match.winner == match.player2.name ? ' winner' : ''}"
+                             th:text="${match.player2 != null ? match.player2.name : 'BYE'}">선수2</div>
+                    </div>
+                    <div class="score-display">
+                        <span class="score-num"
+                              th:classappend="${match.score1 != null && match.score2 != null && match.score1 > match.score2 ? ' winner-score' : ''}"
+                              th:text="${match.score1 ?: 0}">0</span>
+                        <span class="score-sep">:</span>
+                        <span class="score-num"
+                              th:classappend="${match.score1 != null && match.score2 != null && match.score2 > match.score1 ? ' winner-score' : ''}"
+                              th:text="${match.score2 ?: 0}">0</span>
+                    </div>
+                    <div class="d-flex flex-column gap-1 align-items-end">
+                        <small class="match-time" th:text="${match.roundName}">라운드</small>
+                        <small class="match-time fw-bold" style="color:#28a745;"
+                               th:if="${match.winner != null}"
+                               th:text="'🏆 ' + ${match.winner}">승자</small>
+                    </div>
+                </div>
+            </div>
+            <div th:if="${completedMatches == null || completedMatches.empty}" class="empty-state">
+                <i class="bi bi-hourglass"></i>
+                <p>아직 완료된 경기가 없습니다.</p>
+            </div>
+        </div>
+
+        <!-- ===== 탭: 참가자 ===== -->
+        <div id="tab-participants" class="tab-pane">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div class="match-section-title mb-0">
+                    <i class="bi bi-people" style="color:var(--primary-color);"></i>
+                    참가 신청자
+                </div>
+                <form th:action="@{/tournament/participate/{id}(id=${tournament.id})}" method="post"
+                      sec:authorize="isAuthenticated()"
+                      th:if="${tournament.status.name() == 'RECRUITING'}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="participate-btn" style="width:auto; padding: 0.7rem 1.5rem; font-size:0.9rem;">
+                        <i class="bi bi-person-plus me-2"></i>참가 신청하기
+                    </button>
+                </form>
+            </div>
+            <div class="participant-grid" th:if="${participations != null && !participations.empty}">
+                <div class="participant-chip" th:each="p : ${participations}">
+                    <div class="participant-avatar"
+                         th:text="${p.user != null ? #strings.substring(p.user.name, 0, 1) : '?'}">A</div>
+                    <div>
+                        <div style="font-size:0.9rem;" th:text="${p.user != null ? p.user.name : '알 수 없음'}">이름</div>
+                        <div style="font-size:0.72rem; color:var(--text-secondary);" th:text="${p.status}">상태</div>
+                    </div>
+                </div>
+            </div>
+            <div class="empty-state" th:if="${participations == null || participations.empty}">
+                <i class="bi bi-person-plus"></i>
+                <p>아직 참가 신청자가 없습니다.</p>
+                <form th:action="@{/tournament/participate/{id}(id=${tournament.id})}" method="post"
+                      sec:authorize="isAuthenticated()"
+                      th:if="${tournament.status.name() == 'RECRUITING'}">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <button type="submit" class="participate-btn mt-2" style="width:auto; padding:0.7rem 1.5rem; font-size:0.9rem;">
+                        <i class="bi bi-person-plus me-2"></i>첫 번째로 신청하기
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- ===== 탭: 대회 정보 ===== -->
+        <div id="tab-info" class="tab-pane">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card border-0 shadow-sm" style="border-radius:16px; overflow:hidden;">
+                        <div class="card-header" style="background: var(--gradient-primary); color:white; padding:1rem 1.5rem;">
+                            <h6 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>기본 정보</h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-borderless mb-0">
+                                <tr>
+                                    <td style="width:35%; color:var(--text-secondary); font-size:0.85rem; font-weight:600;">대회명</td>
+                                    <td style="font-weight:700;" th:text="${tournament.title}">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="color:var(--text-secondary); font-size:0.85rem; font-weight:600;">방식</td>
+                                    <td th:text="${tournament.type.description}">-</td>
+                                </tr>
+                                <tr>
+                                    <td style="color:var(--text-secondary); font-size:0.85rem; font-weight:600;">상태</td>
+                                    <td th:text="${tournament.status.description}">-</td>
+                                </tr>
+                                <tr th:if="${tournament.startDate != null}">
+                                    <td style="color:var(--text-secondary); font-size:0.85rem; font-weight:600;">시작일</td>
+                                    <td th:text="${#temporals.format(tournament.startDate, 'yyyy년 MM월 dd일')}">-</td>
+                                </tr>
+                                <tr th:if="${tournament.endDate != null}">
+                                    <td style="color:var(--text-secondary); font-size:0.85rem; font-weight:600;">종료일</td>
+                                    <td th:text="${#temporals.format(tournament.endDate, 'yyyy년 MM월 dd일')}">-</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6" th:if="${tournament.description != null}">
+                    <div class="card border-0 shadow-sm h-100" style="border-radius:16px; overflow:hidden;">
+                        <div class="card-header" style="background:#f8f9fa; padding:1rem 1.5rem;">
+                            <h6 class="mb-0 fw-bold" style="color:var(--text-primary);"><i class="bi bi-file-text me-2"></i>대회 설명</h6>
+                        </div>
+                        <div class="card-body" style="font-size:0.92rem; line-height:1.7;" th:text="${tournament.description}">설명</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /container -->
+
+    <!-- ===== Toast ===== -->
     <div id="toast"></div>
 
-    <!-- 경기 시작 모달 -->
-    <div class="modal fade" id="startMatchModal" tabindex="-1" aria-labelledby="startMatchModalLabel" aria-hidden="true">
+    <!-- ===== 경기 시작 모달 ===== -->
+    <div class="modal fade" id="startMatchModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title" id="startMatchModalLabel">경기 시작 및 탁구대 배정</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header-custom">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-play-circle me-2"></i>경기 시작 - 탁구대 배정</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <p class="lead text-center"><strong id="modalMatchInfo"></strong></p>
-                    <hr>
-                    <h6 class="mb-3">탁구대 선택 (최대 24대)</h6>
-                    <div class="table-list d-flex flex-wrap gap-3 justify-content-center" id="tableList">
-                        <!-- 탁구대 목록이 여기에 동적으로 생성 -->
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="fw-bold fs-5" id="modalMatchInfo" style="color:var(--text-primary);"></div>
+                        <small class="text-muted">탁구대를 선택하여 경기를 시작하세요</small>
                     </div>
+                    <div id="tableGrid"></div>
                     <input type="hidden" id="modalMatchId">
                     <input type="hidden" id="modalMatchRoundName">
                     <input type="hidden" id="modalPlayer1Name">
                     <input type="hidden" id="modalPlayer2Name">
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">닫기</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">닫기</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 점수 입력 모달 -->
-    <div class="modal fade" id="completeMatchModal" tabindex="-1" aria-labelledby="completeMatchModalLabel" aria-hidden="true">
+    <!-- ===== 점수 입력 모달 ===== -->
+    <div class="modal fade" id="completeMatchModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title" id="completeMatchModalLabel">경기 결과 입력</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="modal-header-custom">
+                    <h5 class="mb-0 fw-bold"><i class="bi bi-trophy me-2"></i>경기 결과 입력</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <p class="lead text-center mb-4"><strong id="modalCompleteMatchInfo"></strong></p>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-4">
+                        <div class="fw-bold" id="modalCompleteMatchInfo" style="color:var(--text-secondary); font-size:0.9rem;"></div>
+                    </div>
                     <input type="hidden" id="modalCompleteMatchId">
-                    <div class="row g-3">
-                        <div class="col-6">
-                            <label for="score1" class="form-label d-block text-center"><strong id="player1NameScore"></strong></label>
-                            <input type="number" id="score1" class="form-control form-control-lg text-center" value="0" min="0">
+                    <div class="d-flex align-items-center justify-content-center gap-2">
+                        <div class="score-input-group">
+                            <label id="player1NameScore">선수 1</label>
+                            <input type="number" id="score1" class="score-input" value="0" min="0" max="99">
                         </div>
-                        <div class="col-6">
-                            <label for="score2" class="form-label d-block text-center"><strong id="player2NameScore"></strong></label>
-                            <input type="number" id="score2" class="form-control form-control-lg text-center" value="0" min="0">
+                        <span class="vs-divider">:</span>
+                        <div class="score-input-group">
+                            <label id="player2NameScore">선수 2</label>
+                            <input type="number" id="score2" class="score-input" value="0" min="0" max="99">
                         </div>
+                    </div>
+                    <div class="text-center mt-3">
+                        <small class="text-muted">무승부는 허용되지 않습니다</small>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                    <button type="button" class="btn btn-primary" id="confirmCompleteMatchBtn">결과 입력</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary fw-bold" id="confirmCompleteMatchBtn">
+                        <i class="bi bi-check-lg me-1"></i>결과 입력
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-</div>
+</div><!-- /layout:fragment -->
 
 <th:block layout:fragment="script">
-    <!-- ⭐⭐⭐ SockJS와 STOMP 라이브러리 추가 ⭐⭐⭐ -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 
     <script th:inline="javascript">
         /*<![CDATA[*/
-        const TOURNAMENT_ID = /*[[${tournament.id}]]*/ 0; // ⭐ WebSocket 연결용
-        console.log("Thymeleaf에서 전달된 TOURNAMENT_ID:", TOURNAMENT_ID);
+        const TOURNAMENT_ID = /*[[${tournament.id}]]*/ 0;
+        const CSRF_TOKEN    = /*[[${_csrf.token}]]*/ '';
+        const CSRF_HEADER   = /*[[${_csrf.headerName}]]*/ '';
 
-        // ⭐⭐⭐ CSRF 토큰을 서버에서 직접 주입 ⭐⭐⭐
-        const CSRF_TOKEN = /*[[${_csrf.token}]]*/ '';
-        const CSRF_HEADER = /*[[${_csrf.headerName}]]*/ '';
+        /* === 탭 전환 === */
+        function switchTab(btn, tabId) {
+            document.querySelectorAll('.detail-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(tabId).classList.add('active');
+        }
 
-        console.log('✅ CSRF Token injected by Thymeleaf');
-        console.log('   Token:', CSRF_TOKEN ? 'Found (' + CSRF_TOKEN.substring(0, 10) + '...)' : 'MISSING!');
-        console.log('   Header:', CSRF_HEADER);
+        /* === Toast === */
+        function showToast(msg, duration = 3500) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.style.display = 'block';
+            clearTimeout(t._timer);
+            t._timer = setTimeout(() => { t.style.display = 'none'; }, duration);
+        }
 
-        // 페이지 로드 시 추가 확인 (디버깅용)
-        $(document).ready(function() {
-            if (!CSRF_TOKEN || !CSRF_HEADER) {
-                console.error('❌ CSRF token NOT injected properly!');
-                console.error('   CSRF_TOKEN:', CSRF_TOKEN);
-                console.error('   CSRF_HEADER:', CSRF_HEADER);
-
-                // 메타 태그에서 다시 시도
-                const csrfTokenMeta = document.querySelector('meta[name="_csrf"]');
-                const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
-
-                if (csrfTokenMeta && csrfHeaderMeta) {
-                    window.CSRF_TOKEN = csrfTokenMeta.getAttribute('content');
-                    window.CSRF_HEADER = csrfHeaderMeta.getAttribute('content');
-                    console.log('⚠️ CSRF token loaded from meta tags (fallback)');
-                } else {
-                    alert('심각한 보안 설정 오류: 관리자에게 문의하세요.');
-                }
-            }
-        });
-
-        // ⭐⭐⭐ [WebSocket 연결 및 실시간 업데이트] ⭐⭐⭐
-        let stompClient = null;
-
+        /* === WebSocket === */
         function connectWebSocket() {
-            console.log('🔌 Connecting to WebSocket...');
             const socket = new SockJS('/ws');
-            stompClient = Stomp.over(socket);
-
-            stompClient.connect({}, function(frame) {
-                console.log('✅ WebSocket Connected!', frame);
-
-                // 대회별 토픽 구독
-                stompClient.subscribe('/topic/tournament/' + TOURNAMENT_ID, function(message) {
-                    console.log('📩 Received WebSocket message:', message.body);
-                    handleWebSocketMessage(JSON.parse(message.body));
+            const client = Stomp.over(socket);
+            client.debug = null;
+            client.connect({}, function() {
+                client.subscribe('/topic/tournament/' + TOURNAMENT_ID, function(msg) {
+                    const data = JSON.parse(msg.body);
+                    switch(data.type) {
+                        case 'MATCH_STARTED':
+                            showToast('🎾 경기 시작! ' + data.payload.tableNumber + '번 탁구대');
+                            setTimeout(() => location.reload(), 1800);
+                            break;
+                        case 'MATCH_COMPLETED':
+                            showToast('🏆 ' + data.payload.winner + ' 승리! (' + data.payload.score1 + ':' + data.payload.score2 + ')');
+                            setTimeout(() => location.reload(), 1800);
+                            break;
+                        case 'ROUND_COMPLETED':
+                            showToast('🎉 라운드 완료! 다음 라운드가 생성되었습니다.');
+                            setTimeout(() => location.reload(), 2000);
+                            break;
+                    }
                 });
-
-                console.log('📢 Subscribed to tournament updates: /topic/tournament/' + TOURNAMENT_ID);
-            }, function(error) {
-                console.error('❌ WebSocket connection failed:', error);
-                // 5초 후 재연결 시도
+            }, function() {
                 setTimeout(connectWebSocket, 5000);
             });
         }
+        connectWebSocket();
 
-        function handleWebSocketMessage(data) {
-            const messageType = data.type;
-            const payload = data.payload;
-
-            console.log('📦 Message Type:', messageType);
-            console.log('📦 Payload:', payload);
-
-            switch(messageType) {
-                case 'MATCH_STARTED':
-                    console.log('🎾 Match #' + payload.matchId + ' started on table ' + payload.tableNumber);
-                    showToast('🎾 경기 시작! 경기 #' + payload.matchId + '이 ' + payload.tableNumber + '번 탁구대에서 시작되었습니다.');
-                    setTimeout(() => location.reload(), 1500);
-                    break;
-
-                case 'MATCH_COMPLETED':
-                    console.log('🏆 Match #' + payload.matchId + ' completed. Winner: ' + payload.winner + ' (' + payload.score1 + ':' + payload.score2 + ')');
-                    showToast('🏆 경기 완료! ' + payload.winner + ' 선수가 승리했습니다! (' + payload.score1 + ':' + payload.score2 + ')');
-                    setTimeout(() => location.reload(), 1500);
-                    break;
-
-                case 'ROUND_COMPLETED':
-                    console.log('🎉 Round ' + payload.roundName + ' completed! Next round generated.');
-                    showToast('🎉 라운드 완료! ' + payload.roundName + '이 완료되어 다음 라운드가 생성되었습니다!');
-                    setTimeout(() => location.reload(), 2000);
-                    break;
-
-                default:
-                    console.warn('⚠️ Unknown message type:', messageType);
-            }
+        /* === 경기 시작 모달 === */
+        function openStartMatchModal(btn) {
+            document.getElementById('modalMatchId').value       = btn.dataset.matchId;
+            document.getElementById('modalMatchRoundName').value = btn.dataset.roundName;
+            document.getElementById('modalPlayer1Name').value   = btn.dataset.player1Name;
+            document.getElementById('modalPlayer2Name').value   = btn.dataset.player2Name;
+            document.getElementById('modalMatchInfo').textContent =
+                btn.dataset.roundName + ' · ' + btn.dataset.player1Name + ' vs ' + btn.dataset.player2Name;
+            loadTableGrid();
+            new bootstrap.Modal(document.getElementById('startMatchModal')).show();
         }
 
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
-        }
+        /* === 탁구대 그리드 로드 === */
+        function loadTableGrid() {
+            const grid = document.getElementById('tableGrid');
+            grid.innerHTML = '<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>';
 
-        // 페이지 로드 시 WebSocket 연결
-        $(document).ready(function() {
-            connectWebSocket();
-        });
-
-        // ⭐⭐⭐ [경기 시작 모달 열기] ⭐⭐⭐
-        function openStartMatchModal(buttonElement) {
-            const matchId = buttonElement.dataset.matchId;
-            const roundName = buttonElement.dataset.roundName;
-            const player1Name = buttonElement.dataset.player1Name;
-            const player2Name = buttonElement.dataset.player2Name;
-
-            $('#modalMatchId').val(matchId);
-            $('#modalMatchRoundName').val(roundName);
-            $('#modalPlayer1Name').val(player1Name);
-            $('#modalPlayer2Name').val(player2Name);
-            $('#modalMatchInfo').text(`${roundName} ${player1Name} vs ${player2Name}`);
-
-            loadTableList();
-
-            $('#startMatchModal').modal('show');
-        }
-
-        // ⭐⭐⭐ [탁구대 목록 로드 및 클릭 이벤트] ⭐⭐⭐
-        function loadTableList() {
-            console.log('Loading table list...');
-            const tableListDiv = $('#tableList');
-            tableListDiv.empty();
-            const totalTables = 24;
-
-            $.ajax({
-                url: `/match/inProgress/${TOURNAMENT_ID}`,
-                method: 'GET',
-                success: function(inProgressMatches) {
-                    console.log('In-progress matches:', inProgressMatches);
-                    const occupiedTables = inProgressMatches.map(m => m.tableNumber);
-                    console.log('Occupied tables:', occupiedTables);
-
-                    for (let i = 1; i <= totalTables; i++) {
-                        const tableItem = $(`<div class="table-item">${i}</div>`);
-                        let isOccupied = occupiedTables.includes(i);
-
-                        if (isOccupied) {
-                            tableItem.addClass('occupied');
-                            const match = inProgressMatches.find(m => m.tableNumber === i);
-                            const p1Name = match.player1 != null ? match.player1.name : 'BYE';
-                            const p2Name = match.player2 != null ? match.player2.name : 'BYE';
-                            tableItem.append(`<span class="small-text">${p1Name} vs ${p2Name}</span>`);
-                            tableItem.attr('title', `진행중: ${p1Name} vs ${p2Name}`);
+            fetch('/match/inProgress/' + TOURNAMENT_ID)
+                .then(r => r.json())
+                .then(inProgress => {
+                    const occupied = inProgress.map(m => m.tableNumber);
+                    grid.innerHTML = '';
+                    for (let i = 1; i <= 24; i++) {
+                        const div = document.createElement('div');
+                        div.className = 'table-item ' + (occupied.includes(i) ? 'occupied' : 'available');
+                        div.textContent = i;
+                        if (occupied.includes(i)) {
+                            const m = inProgress.find(x => x.tableNumber === i);
+                            const sp = document.createElement('span');
+                            sp.className = 'small-text';
+                            sp.textContent = (m.player1?.name || 'BYE') + ' vs ' + (m.player2?.name || 'BYE');
+                            div.appendChild(sp);
                         } else {
-                            tableItem.addClass('available');
-                            tableItem.attr('title', `탁구대 ${i}번 - 사용 가능`);
-                            tableItem.on('click', function() {
-                                const matchId = $('#modalMatchId').val();
-                                const roundName = $('#modalMatchRoundName').val();
-                                const player1Name = $('#modalPlayer1Name').val();
-                                const player2Name = $('#modalPlayer2Name').val();
-
-                                console.log('Table clicked:', {
-                                    tableNumber: i,
-                                    matchId: matchId,
-                                    roundName: roundName,
-                                    players: `${player1Name} vs ${player2Name}`
-                                });
-
-                                if (confirm(`${roundName}\n${player1Name} vs ${player2Name}\n\n탁구대 ${i}번에서 경기를 시작하시겠습니까?`)) {
+                            div.addEventListener('click', () => {
+                                const matchId  = document.getElementById('modalMatchId').value;
+                                const rnd      = document.getElementById('modalMatchRoundName').value;
+                                const p1       = document.getElementById('modalPlayer1Name').value;
+                                const p2       = document.getElementById('modalPlayer2Name').value;
+                                if (confirm(rnd + '\n' + p1 + ' vs ' + p2 + '\n\n탁구대 ' + i + '번에서 시작?')) {
                                     startMatch(matchId, i);
                                 }
                             });
                         }
-                        tableListDiv.append(tableItem);
+                        grid.appendChild(div);
                     }
-
-                    console.log('Table list loaded successfully');
-                },
-                error: function(xhr, status, error) {
-                    console.error("Failed to load in-progress matches:", {
-                        status: xhr.status,
-                        statusText: xhr.statusText,
-                        error: error
-                    });
-                    alert("진행 중인 경기 정보를 불러오는 데 실패했습니다.");
-                }
-            });
+                });
         }
 
-        // ⭐⭐⭐ [경기 시작 API 호출] ⭐⭐⭐
+        /* === 경기 시작 API === */
         function startMatch(matchId, tableNumber) {
-            console.log('=== startMatch called ===');
-            console.log('Match ID:', matchId);
-            console.log('Table Number:', tableNumber);
-            console.log('CSRF_TOKEN:', CSRF_TOKEN ? 'Available' : 'NULL');
-            console.log('CSRF_HEADER:', CSRF_HEADER);
-
-            // ⭐ 전역 변수 사용
-            if (!CSRF_TOKEN || !CSRF_HEADER) {
-                console.error('❌ CSRF token not available');
-                alert('보안 토큰을 찾을 수 없습니다. 페이지를 새로고침해주세요.');
-                return;
-            }
-
-            $.ajax({
-                url: `/match/start/${matchId}`,
+            const fd = new FormData();
+            fd.append('tableNumber', tableNumber);
+            fetch('/match/start/' + matchId, {
                 method: 'POST',
-                data: { tableNumber: tableNumber },
-                beforeSend: function(xhr) {
-                    xhr.setRequestHeader(CSRF_HEADER, CSRF_TOKEN);
-                    console.log('📤 Sending request with CSRF header:', CSRF_HEADER);
-                },
-                success: function(response) {
-                    console.log('✅ Match started successfully:', response);
-                    alert(response.message || '경기가 시작되었습니다.');
-                    $('#startMatchModal').modal('hide');
-                    setTimeout(() => location.reload(), 500);
-                },
-                error: function(xhr, status, error) {
-                    console.error('❌ Error starting match:', {
-                        status: xhr.status,
-                        statusText: xhr.statusText,
-                        response: xhr.responseJSON,
-                        error: error
-                    });
-                    let errorMessage = xhr.responseJSON?.error || xhr.responseJSON?.message || "경기 시작에 실패했습니다.";
-                    alert(errorMessage);
-                }
-            });
+                headers: { [CSRF_HEADER]: CSRF_TOKEN },
+                body: new URLSearchParams({ tableNumber })
+            })
+            .then(r => r.json())
+            .then(data => {
+                bootstrap.Modal.getInstance(document.getElementById('startMatchModal')).hide();
+                showToast(data.message || '경기가 시작되었습니다.');
+                setTimeout(() => location.reload(), 800);
+            })
+            .catch(() => showToast('❌ 경기 시작에 실패했습니다.'));
         }
 
-        // ⭐⭐⭐ [점수 입력 모달 열기] ⭐⭐⭐
-        function openCompleteMatchModal(buttonElement) {
-            const matchId = buttonElement.dataset.matchId;
-            const roundName = buttonElement.dataset.roundName;
-            const player1Name = buttonElement.dataset.player1Name;
-            const player2Name = buttonElement.dataset.player2Name;
-            const score1 = buttonElement.dataset.score1;
-            const score2 = buttonElement.dataset.score2;
-
-            $('#modalCompleteMatchId').val(matchId);
-            $('#modalCompleteMatchInfo').text(`${roundName} ${player1Name} vs ${player2Name}`);
-            $('#player1NameScore').text(player1Name);
-            $('#player2NameScore').text(player2Name);
-            $('#score1').val(score1);
-            $('#score2').val(score2);
-            $('#completeMatchModal').modal('show');
+        /* === 점수 입력 모달 === */
+        function openCompleteMatchModal(btn) {
+            document.getElementById('modalCompleteMatchId').value    = btn.dataset.matchId;
+            document.getElementById('modalCompleteMatchInfo').textContent =
+                btn.dataset.roundName + ' · ' + btn.dataset.player1Name + ' vs ' + btn.dataset.player2Name;
+            document.getElementById('player1NameScore').textContent  = btn.dataset.player1Name;
+            document.getElementById('player2NameScore').textContent  = btn.dataset.player2Name;
+            document.getElementById('score1').value = btn.dataset.score1 || 0;
+            document.getElementById('score2').value = btn.dataset.score2 || 0;
+            new bootstrap.Modal(document.getElementById('completeMatchModal')).show();
         }
 
-        // ⭐⭐⭐ [점수 입력 및 완료 API 호출] ⭐⭐⭐
-        $('#confirmCompleteMatchBtn').on('click', function() {
-            const matchId = $('#modalCompleteMatchId').val();
-            const score1 = $('#score1').val();
-            const score2 = $('#score2').val();
+        document.getElementById('confirmCompleteMatchBtn').addEventListener('click', function() {
+            const matchId = document.getElementById('modalCompleteMatchId').value;
+            const s1 = parseInt(document.getElementById('score1').value);
+            const s2 = parseInt(document.getElementById('score2').value);
+            if (isNaN(s1) || isNaN(s2)) { showToast('점수를 입력해주세요.'); return; }
+            if (s1 === s2) { showToast('무승부는 허용되지 않습니다.'); return; }
 
-            if (score1 === '' || score2 === '') {
-                alert('점수를 모두 입력해 주세요.');
-                return;
-            }
-            if (parseInt(score1) === parseInt(score2)) {
-                alert('무승부는 허용되지 않습니다. 승패를 명확히 입력해 주세요.');
-                return;
-            }
-
-            // ⭐ CSRF 토큰 가져오기
-            const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
-            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
-
-            $.ajax({
-                url: `/match/complete/${matchId}`,
+            fetch('/match/complete/' + matchId, {
                 method: 'POST',
-                data: { score1: score1, score2: score2 },
-                beforeSend: function(xhr) {
-                    // ⭐ CSRF 토큰 헤더에 추가
-                    xhr.setRequestHeader(csrfHeader, csrfToken);
-                },
-                success: function(response) {
-                    alert(response.message);
-                    $('#completeMatchModal').modal('hide');
-                    // WebSocket이 자동 업데이트하지만, 즉시 반영을 위해 리로드
-                    setTimeout(() => location.reload(), 500);
-                },
-                error: function(xhr, status, error) {
-                    let errorMessage = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : "경기 완료에 실패했습니다.";
-                    alert(errorMessage);
-                    console.error("Error completing match:", status, error, xhr);
-                }
-            });
+                headers: { [CSRF_HEADER]: CSRF_TOKEN },
+                body: new URLSearchParams({ score1: s1, score2: s2 })
+            })
+            .then(r => r.json())
+            .then(data => {
+                bootstrap.Modal.getInstance(document.getElementById('completeMatchModal')).hide();
+                showToast(data.message || '결과가 입력되었습니다.');
+                setTimeout(() => location.reload(), 800);
+            })
+            .catch(() => showToast('❌ 결과 입력에 실패했습니다.'));
         });
 
-        // ⭐⭐⭐ [예선 대진표 생성 API 호출] ⭐⭐⭐
+        /* === 예선 대진표 생성 === */
         function createPreliminary(tournamentId) {
-            if (confirm("예선 대진표를 생성하시겠습니까?\n조별 리그전 경기가 자동으로 생성됩니다.")) {
-                console.log('=== createPreliminary called ===');
-                console.log('Tournament ID:', tournamentId);
-
-                if (!CSRF_TOKEN || !CSRF_HEADER) {
-                    console.error('❌ CSRF token not available');
-                    alert('보안 토큰을 찾을 수 없습니다. 페이지를 새로고침해주세요.');
-                    return;
-                }
-
-                $.ajax({
-                    url: `/tournament/createPreliminary/${tournamentId}`,
-                    method: 'POST',
-                    beforeSend: function(xhr) {
-                        xhr.setRequestHeader(CSRF_HEADER, CSRF_TOKEN);
-                        console.log('📤 Sending createPreliminary request with CSRF');
-                    },
-                    success: function(response) {
-                        console.log('✅ Preliminary bracket created successfully:', response);
-                        alert(response.message + '\n생성된 경기 수: ' + response.matchCount + '개');
-                        location.reload();
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('❌ Error creating preliminary bracket:', {
-                            status: xhr.status,
-                            statusText: xhr.statusText,
-                            response: xhr.responseJSON,
-                            responseText: xhr.responseText,
-                            error: error
-                        });
-                        let errorMessage = xhr.responseJSON?.error || xhr.responseJSON?.message || "예선 대진표 생성에 실패했습니다.";
-                        alert(errorMessage);
-                    }
-                });
-            }
+            if (!confirm('예선 대진표를 생성하시겠습니까?\n조별 리그전 경기가 자동 생성됩니다.')) return;
+            fetch('/tournament/createPreliminary/' + tournamentId, {
+                method: 'POST',
+                headers: { [CSRF_HEADER]: CSRF_TOKEN }
+            })
+            .then(r => r.json())
+            .then(data => {
+                showToast(data.message + ' (' + data.matchCount + '경기 생성)');
+                setTimeout(() => location.reload(), 1500);
+            })
+            .catch(() => showToast('❌ 예선 대진표 생성에 실패했습니다.'));
         }
 
-        // ⭐⭐⭐ [본선 대진표 생성 API 호출] ⭐⭐⭐
+        /* === 본선 대진표 생성 === */
         function createMainBracket(tournamentId) {
-            if (confirm("본선 대진표를 생성하시겠습니까? (예선 모든 경기가 완료되어야 합니다.)")) {
-                console.log('=== createMainBracket called ===');
-                console.log('Tournament ID:', tournamentId);
-                console.log('CSRF_TOKEN:', CSRF_TOKEN ? 'Available' : 'NULL');
-                console.log('CSRF_HEADER:', CSRF_HEADER);
-
-                if (!CSRF_TOKEN || !CSRF_HEADER) {
-                    console.error('❌ CSRF token not available');
-                    alert('보안 토큰을 찾을 수 없습니다. 페이지를 새로고침해주세요.');
-                    return;
-                }
-
-                $.ajax({
-                    url: `/tournament/createMainBracket/${tournamentId}`,
-                    method: 'POST',
-                    beforeSend: function(xhr) {
-                        xhr.setRequestHeader(CSRF_HEADER, CSRF_TOKEN);
-                        console.log('📤 Sending createMainBracket request with CSRF');
-                    },
-                    success: function(response) {
-                        console.log('✅ Main bracket created successfully:', response);
-                        alert(response.message || '본선 대진표가 생성되었습니다.');
-                        // 강제 새로고침 (캐시 무시)
-                        window.location.href = window.location.href + '?refresh=' + new Date().getTime();
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('❌ Error creating main bracket:', {
-                            status: xhr.status,
-                            statusText: xhr.statusText,
-                            response: xhr.responseJSON,
-                            responseText: xhr.responseText,
-                            error: error
-                        });
-                        let errorMessage = xhr.responseJSON?.error || xhr.responseJSON?.message || "본선 대진표 생성에 실패했습니다.";
-                        alert(errorMessage);
-                    }
-                });
-            }
+            if (!confirm('본선 대진표를 생성하시겠습니까?\n예선 모든 경기가 완료되어야 합니다.')) return;
+            fetch('/tournament/createMainBracket/' + tournamentId, {
+                method: 'POST',
+                headers: { [CSRF_HEADER]: CSRF_TOKEN }
+            })
+            .then(r => r.json())
+            .then(data => {
+                showToast(data.message || '본선 대진표가 생성되었습니다.');
+                setTimeout(() => location.reload(), 1200);
+            })
+            .catch(() => showToast('❌ 본선 대진표 생성에 실패했습니다.'));
         }
         /*]]>*/
     </script>

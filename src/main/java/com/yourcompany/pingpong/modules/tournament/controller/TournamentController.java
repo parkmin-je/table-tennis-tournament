@@ -92,10 +92,21 @@ public class TournamentController {
                 .filter(m -> m.getStatus() == MatchStatus.IN_PROGRESS)
                 .collect(Collectors.toList());
 
+        // COMPLETED 상태 경기
+        List<Match> completedMatches = matches.stream()
+                .filter(m -> m.getStatus() == MatchStatus.COMPLETED)
+                .collect(Collectors.toList());
+
+        // 참가자 목록
+        List<Participation> participations = participationService.findByTournament(tournament);
+
         model.addAttribute("tournament", tournament);
         model.addAttribute("isMainBracketGenerated", isMainBracketGenerated);
         model.addAttribute("scheduledMatches", scheduledMatches);
         model.addAttribute("inProgressMatches", inProgressMatches);
+        model.addAttribute("completedMatches", completedMatches);
+        model.addAttribute("completedMatchCount", completedMatches.size());
+        model.addAttribute("participations", participations);
 
         return "tournament/detail";
     }
