@@ -1,124 +1,463 @@
 <!DOCTYPE html>
-<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}">
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" layout:decorate="~{layout}"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
 <head>
     <title>대회 통계</title>
     <th:block layout:fragment="css">
         <style>
-            .stat-card {
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            .stats-hero {
+                background: linear-gradient(135deg, #1565c0 0%, #0d47a1 60%, #01579b 100%);
                 color: white;
+                padding: 2.5rem 0 2rem;
+                margin-bottom: 2rem;
+                position: relative;
+                overflow: hidden;
+            }
+            .stats-hero::after {
+                content: '';
+                position: absolute;
+                bottom: -1px; left: 0; right: 0;
+                height: 40px;
+                background: var(--bg-light);
+                clip-path: ellipse(55% 100% at 50% 100%);
+            }
+
+            /* KPI 카드 */
+            .kpi-card {
                 border-radius: 16px;
-                padding: 2rem;
+                padding: 1.8rem;
                 height: 100%;
-                box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-                transition: transform 0.3s ease;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+                transition: all 0.3s ease;
+                position: relative;
+                overflow: hidden;
+                color: white;
             }
-            .stat-card:hover {
-                transform: translateY(-5px);
+            .kpi-card::after {
+                content: '';
+                position: absolute;
+                bottom: -25px; right: -25px;
+                width: 100px; height: 100px;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.08);
             }
-            .stat-number {
+            .kpi-card::before {
+                content: '';
+                position: absolute;
+                top: -20px; right: -20px;
+                width: 60px; height: 60px;
+                border-radius: 50%;
+                background: rgba(255,255,255,0.06);
+            }
+            .kpi-card:hover {
+                transform: translateY(-6px);
+                box-shadow: 0 16px 40px rgba(0,0,0,0.22);
+            }
+            .kpi-icon {
+                font-size: 2.2rem;
+                margin-bottom: 1rem;
+                display: block;
+                opacity: 0.9;
+            }
+            .kpi-value {
                 font-size: 3rem;
                 font-weight: 900;
                 line-height: 1;
+                margin-bottom: 0.3rem;
+                display: block;
             }
-            .stat-label {
+            .kpi-label {
+                font-size: 0.95rem;
+                opacity: 0.85;
+            }
+
+            .kpi-1 { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+            .kpi-2 { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); }
+            .kpi-3 { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+            .kpi-4 { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); }
+
+            /* 진행률 바 */
+            .progress-section {
+                background: var(--bg-white);
+                border-radius: 16px;
+                padding: 2rem;
+                box-shadow: var(--shadow-md);
+                border: 1px solid var(--border-color);
+                margin-bottom: 2rem;
+            }
+
+            .progress-bar-wrapper {
+                height: 24px;
+                background: var(--bg-light);
+                border-radius: 12px;
+                overflow: hidden;
+                margin: 1rem 0 0.5rem;
+            }
+
+            .progress-fill {
+                height: 100%;
+                border-radius: 12px;
+                background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+                transition: width 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                padding-right: 0.8rem;
+                font-weight: 800;
+                font-size: 0.85rem;
+                color: white;
+                text-shadow: 0 1px 3px rgba(0,0,0,0.2);
+                min-width: 50px;
+            }
+
+            /* 차트 카드 */
+            .chart-card {
+                background: var(--bg-white);
+                border-radius: 16px;
+                padding: 1.8rem;
+                box-shadow: var(--shadow-md);
+                border: 1px solid var(--border-color);
+                margin-bottom: 2rem;
+            }
+            .chart-card-title {
                 font-size: 1.1rem;
-                opacity: 0.9;
-                margin-top: 0.5rem;
+                font-weight: 700;
+                color: var(--text-primary);
+                margin-bottom: 1.5rem;
+                display: flex;
+                align-items: center;
+                gap: 0.6rem;
             }
-            .progress-bar-animated {
-                animation: progress-animation 2s ease-out;
+            .chart-card-title i {
+                width: 32px; height: 32px;
+                border-radius: 8px;
+                display: flex; align-items: center; justify-content: center;
+                background: linear-gradient(135deg, #0066cc, #4d94ff);
+                color: white;
+                font-size: 0.9rem;
             }
-            @keyframes progress-animation {
-                from { width: 0%; }
+
+            /* 최고 득점 경기 */
+            .highlight-match {
+                background: linear-gradient(135deg, #fff8e1, #fffde7);
+                border: 2px solid #ffd54f;
+                border-radius: 16px;
+                padding: 2rem;
+            }
+            [data-theme="dark"] .highlight-match {
+                background: linear-gradient(135deg, #2d2800, #1a1600);
+                border-color: #ffd54f;
+            }
+
+            .score-display {
+                font-size: 4rem;
+                font-weight: 900;
+                line-height: 1;
+                color: var(--primary-color);
+                letter-spacing: -2px;
+            }
+            .score-sep {
+                font-size: 2.5rem;
+                color: var(--text-secondary);
+                margin: 0 0.5rem;
             }
         </style>
     </th:block>
 </head>
 <body>
-<div layout:fragment="content" class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="section-title mb-0">
-            <i class="bi bi-graph-up me-2"></i>
-            <span th:text="${tournament.title}">대회명</span> 통계
-        </h2>
-        <a th:href="@{/tournament/detail/{id}(id=${tournament.id})}" class="btn btn-outline-primary">
-            <i class="bi bi-arrow-left me-1"></i>대회로 돌아가기
-        </a>
-    </div>
+<div layout:fragment="content">
 
-    <!-- 주요 통계 카드 -->
-    <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-                <i class="bi bi-clipboard-check" style="font-size: 2.5rem;"></i>
-                <div class="stat-number" th:text="${totalMatches}">0</div>
-                <div class="stat-label">전체 경기 수</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-                <i class="bi bi-check-circle" style="font-size: 2.5rem;"></i>
-                <div class="stat-number" th:text="${completedMatches}">0</div>
-                <div class="stat-label">완료된 경기</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-                <i class="bi bi-hourglass-split" style="font-size: 2.5rem;"></i>
-                <div class="stat-number" th:text="${totalMatches - completedMatches}">0</div>
-                <div class="stat-label">남은 경기</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="stat-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
-                <i class="bi bi-speedometer2" style="font-size: 2.5rem;"></i>
-                <div class="stat-number" th:text="${progressRate + '%'}">0%</div>
-                <div class="stat-label">진행률</div>
+    <!-- 히어로 -->
+    <div class="stats-hero">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center position-relative" style="z-index:1;">
+                <div>
+                    <h1 class="fw-black mb-1" style="font-size:2.2rem; letter-spacing:-0.02em;">
+                        <i class="bi bi-graph-up me-2" style="color:#64b5f6;"></i>
+                        <span th:text="${tournament.title}">대회명</span> 통계
+                    </h1>
+                    <p class="mb-0 opacity-80">실시간 대회 진행 현황 및 통계 분석</p>
+                </div>
+                <a th:href="@{/tournament/detail/{id}(id=${tournament.id})}"
+                   class="btn btn-light fw-bold">
+                    <i class="bi bi-arrow-left me-1"></i>대회로 돌아가기
+                </a>
             </div>
         </div>
     </div>
 
-    <!-- 진행률 바 -->
-    <div class="card shadow-sm mb-4">
-        <div class="card-body">
-            <h5 class="card-title mb-3"><i class="bi bi-bar-chart-line me-2"></i>대회 진행 상황</h5>
-            <div class="progress" style="height: 30px;">
-                <div class="progress-bar progress-bar-striped progress-bar-animated bg-success"
-                     role="progressbar"
-                     th:style="'width: ' + ${progressRate} + '%'"
+    <div class="container pb-5">
+
+        <!-- KPI 카드 -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-3 col-6">
+                <div class="kpi-card kpi-1">
+                    <span class="kpi-icon"><i class="bi bi-clipboard-check"></i></span>
+                    <span class="kpi-value count-up" th:attr="data-target=${totalMatches}" th:text="${totalMatches}">0</span>
+                    <span class="kpi-label">전체 경기 수</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="kpi-card kpi-2">
+                    <span class="kpi-icon"><i class="bi bi-check-circle"></i></span>
+                    <span class="kpi-value count-up" th:attr="data-target=${completedMatches}" th:text="${completedMatches}">0</span>
+                    <span class="kpi-label">완료된 경기</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="kpi-card kpi-3">
+                    <span class="kpi-icon"><i class="bi bi-hourglass-split"></i></span>
+                    <span class="kpi-value count-up"
+                          th:attr="data-target=${totalMatches - completedMatches}"
+                          th:text="${totalMatches - completedMatches}">0</span>
+                    <span class="kpi-label">남은 경기</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="kpi-card kpi-4">
+                    <span class="kpi-icon"><i class="bi bi-speedometer2"></i></span>
+                    <span class="kpi-value count-up"
+                          th:attr="data-target=${progressRate}"
+                          th:text="${progressRate}">0</span>
+                    <span class="kpi-label">진행률 (%)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 진행률 바 -->
+        <div class="progress-section">
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <h5 class="fw-bold mb-0">
+                    <i class="bi bi-bar-chart-steps me-2 text-primary"></i>대회 진행 상황
+                </h5>
+                <span class="badge bg-success">
+                    <span th:text="${completedMatches}">0</span> / <span th:text="${totalMatches}">0</span> 경기
+                </span>
+            </div>
+            <p class="text-muted small mb-0">완료된 경기와 전체 경기 수의 비율</p>
+            <div class="progress-bar-wrapper">
+                <div class="progress-fill" id="progressBar"
+                     th:style="'width: 0%'"
+                     th:attr="data-target=${progressRate}"
                      th:text="${progressRate + '%'}">0%</div>
             </div>
-            <p class="text-muted mt-2 mb-0">
-                <span th:text="${completedMatches}">0</span> / <span th:text="${totalMatches}">0</span> 경기 완료
-            </p>
+            <div class="d-flex justify-content-between text-muted small mt-1">
+                <span>0%</span>
+                <span style="font-weight:700; color: var(--primary-color);" th:text="${progressRate + '% 완료'}">완료</span>
+                <span>100%</span>
+            </div>
         </div>
-    </div>
 
-    <!-- 최고 득점 경기 -->
-    <div class="card shadow-sm" th:if="${highestScoreMatch != null}">
-        <div class="card-header bg-warning text-dark">
-            <h5 class="mb-0"><i class="bi bi-star-fill me-2"></i>최고 득점 경기</h5>
-        </div>
-        <div class="card-body">
-            <div class="row align-items-center">
-                <div class="col-md-4 text-center">
-                    <h3 th:text="${highestScoreMatch.player1 != null ? highestScoreMatch.player1.name : 'BYE'}">선수1</h3>
+        <!-- 차트 섹션 -->
+        <div class="row g-4 mb-4">
+            <!-- 도넛 차트: 경기 현황 -->
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-card-title">
+                        <i class="bi bi-pie-chart"></i>경기 현황 분석
+                    </div>
+                    <div style="position:relative; height:260px;">
+                        <canvas id="matchStatusChart"></canvas>
+                    </div>
                 </div>
-                <div class="col-md-4 text-center">
-                    <h1 class="display-3 text-primary mb-0">
-                        <span th:text="${highestScoreMatch.score1}">0</span>
-                        :
-                        <span th:text="${highestScoreMatch.score2}">0</span>
-                    </h1>
-                    <p class="text-muted" th:text="${highestScoreMatch.roundName}">라운드명</p>
-                </div>
-                <div class="col-md-4 text-center">
-                    <h3 th:text="${highestScoreMatch.player2 != null ? highestScoreMatch.player2.name : 'BYE'}">선수2</h3>
+            </div>
+
+            <!-- 바 차트: 진행률 -->
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <div class="chart-card-title">
+                        <i class="bi bi-bar-chart"></i>대회 진행률 요약
+                    </div>
+                    <div style="position:relative; height:260px;">
+                        <canvas id="progressChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
+
+        <!-- 최고 득점 경기 -->
+        <div th:if="${highestScoreMatch != null}" class="mb-4">
+            <div class="chart-card">
+                <div class="chart-card-title">
+                    <i class="bi bi-star-fill" style="background:linear-gradient(135deg,#ffd700,#ffb300)!important;"></i>
+                    최고 득점 경기
+                </div>
+                <div class="highlight-match">
+                    <div class="row align-items-center text-center">
+                        <div class="col-5">
+                            <div class="player-avatar mx-auto mb-2"
+                                 style="width:64px;height:64px;background:linear-gradient(135deg,#0066cc,#4d94ff);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-person-fill text-white" style="font-size:2.2rem;"></i>
+                            </div>
+                            <h4 class="fw-bold" th:text="${highestScoreMatch.player1 != null ? highestScoreMatch.player1.name : 'BYE'}">선수1</h4>
+                        </div>
+                        <div class="col-2">
+                            <div class="score-display">
+                                <span th:text="${highestScoreMatch.score1}">0</span>
+                                <span class="score-sep">:</span>
+                                <span th:text="${highestScoreMatch.score2}">0</span>
+                            </div>
+                            <p class="text-muted small mt-1 mb-0" th:text="${highestScoreMatch.roundName}">라운드</p>
+                        </div>
+                        <div class="col-5">
+                            <div class="player-avatar mx-auto mb-2"
+                                 style="width:64px;height:64px;background:linear-gradient(135deg,#e53935,#ef5350);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                                <i class="bi bi-person-fill text-white" style="font-size:2.2rem;"></i>
+                            </div>
+                            <h4 class="fw-bold" th:text="${highestScoreMatch.player2 != null ? highestScoreMatch.player2.name : 'BYE'}">선수2</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 </div>
+
+<th:block layout:fragment="script">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const totalMatches    = /*[[${totalMatches}]]*/ 0;
+        const completedMatches = /*[[${completedMatches}]]*/ 0;
+        const progressRate    = /*[[${progressRate}]]*/ 0;
+        const remaining       = totalMatches - completedMatches;
+
+        // ===== 카운터 애니메이션 =====
+        function animateCount(el, target, duration) {
+            const start = performance.now();
+            function tick(now) {
+                const elapsed  = now - start;
+                const progress = Math.min(elapsed / duration, 1);
+                const eased    = 1 - Math.pow(1 - progress, 3);
+                el.textContent = Math.round(target * eased);
+                if (progress < 1) requestAnimationFrame(tick);
+            }
+            requestAnimationFrame(tick);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // KPI 카운터
+            document.querySelectorAll('.count-up').forEach(function(el) {
+                const target = parseInt(el.getAttribute('data-target')) || 0;
+                animateCount(el, target, 1600);
+            });
+
+            // 진행률 바 애니메이션
+            setTimeout(function() {
+                const bar = document.getElementById('progressBar');
+                if (bar) bar.style.width = progressRate + '%';
+            }, 300);
+
+            // 도넛 차트 - 경기 현황
+            const statusCtx = document.getElementById('matchStatusChart');
+            if (statusCtx) {
+                new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['완료된 경기', '남은 경기'],
+                        datasets: [{
+                            data: [completedMatches, remaining],
+                            backgroundColor: [
+                                'rgba(67, 233, 123, 0.85)',
+                                'rgba(79, 172, 254, 0.75)'
+                            ],
+                            borderColor: [
+                                '#2ed573',
+                                '#1e90ff'
+                            ],
+                            borderWidth: 2,
+                            hoverOffset: 12
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    padding: 20,
+                                    usePointStyle: true,
+                                    font: { weight: '700', size: 13 }
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                        const pct = total > 0 ? Math.round(ctx.raw / total * 100) : 0;
+                                        return ctx.label + ': ' + ctx.raw + '경기 (' + pct + '%)';
+                                    }
+                                }
+                            }
+                        },
+                        cutout: '65%',
+                        animation: {
+                            animateRotate: true,
+                            duration: 1800,
+                            easing: 'easeInOutQuart'
+                        }
+                    }
+                });
+            }
+
+            // 바 차트 - 진행률
+            const progressCtx = document.getElementById('progressChart');
+            if (progressCtx) {
+                new Chart(progressCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['완료', '진행중 / 대기'],
+                        datasets: [{
+                            label: '경기 수',
+                            data: [completedMatches, remaining],
+                            backgroundColor: [
+                                'rgba(67,233,123,0.8)',
+                                'rgba(79,172,254,0.8)'
+                            ],
+                            borderColor: ['#2ed573', '#1e90ff'],
+                            borderWidth: 2,
+                            borderRadius: 10,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y',
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(ctx) {
+                                        return ctx.raw + '경기';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                grid: { color: 'rgba(0,0,0,0.05)' },
+                                ticks: { font: { weight: '600' } }
+                            },
+                            y: {
+                                grid: { display: false },
+                                ticks: { font: { weight: '700', size: 14 } }
+                            }
+                        },
+                        animation: {
+                            duration: 1600,
+                            easing: 'easeInOutQuart'
+                        }
+                    }
+                });
+            }
+        });
+        /*]]>*/
+    </script>
+</th:block>
+
 </body>
 </html>
