@@ -1,91 +1,82 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" 
+<html xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
-      layout:decorate="~{layout}" 
-      lang="ko">
+      layout:decorate="~{layout}" lang="ko">
 <head>
-    <title>글 수정</title>
+    <title>게시글 수정</title>
     <th:block layout:fragment="css">
-        <style>
-            .edit-container {
-                max-width: 900px;
-                margin: 0 auto;
-            }
-            .form-label {
-                font-weight: 600;
-                color: #212529;
-            }
-            .category-select {
-                max-width: 200px;
-            }
-            #content {
-                min-height: 400px;
-                font-family: inherit;
-            }
-        </style>
+    <style>
+        .write-hero { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: #fff; padding: 2rem 0 1.8rem; margin-bottom: 2.5rem; border-radius: 0 0 20px 20px; }
+        .write-hero h1 { font-size: 1.6rem; font-weight: 800; }
+        .write-hero .breadcrumb { opacity: 0.6; font-size: 0.82rem; }
+        .write-hero .breadcrumb-item + .breadcrumb-item::before { color: rgba(255,255,255,0.3); }
+        .write-card { background: var(--bg-white); border-radius: 16px; box-shadow: var(--shadow-md); overflow: hidden; max-width: 800px; margin: 0 auto; }
+        .write-card-header { background: linear-gradient(135deg, #854d0e 0%, #451a03 100%); color: #fff; padding: 1.2rem 1.8rem; }
+        .write-card-header h4 { margin: 0; font-weight: 700; font-size: 1rem; }
+        .write-body { padding: 2rem 1.8rem; }
+        .field-label { font-weight: 600; font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+        .field-input { width: 100%; border: 1.5px solid var(--border-color); border-radius: 10px; padding: 11px 14px; font-size: 0.93rem; color: var(--text-primary); background: var(--bg-white); transition: border-color 0.2s, box-shadow 0.2s; font-family: inherit; }
+        .field-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); outline: none; }
+        select.field-input { cursor: pointer; }
+        textarea.field-input { min-height: 400px; resize: vertical; }
+        .btn-update { background: linear-gradient(135deg, #b45309, #f59e0b); color: #fff; border: none; border-radius: 10px; padding: 12px 32px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-update:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,0.4); }
+        .btn-cancel { background: var(--bg-white); color: var(--text-secondary); border: 1.5px solid var(--border-color); border-radius: 10px; padding: 12px 24px; font-size: 0.95rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+        .btn-cancel:hover { border-color: #6b7280; color: var(--text-primary); }
+    </style>
     </th:block>
 </head>
 <body>
 <div layout:fragment="content">
-    <div class="container my-5">
-        <div class="edit-container">
-            <h2 class="fw-bold mb-4">
-                <i class="bi bi-pencil-square me-2"></i>글 수정
-            </h2>
+    <div class="write-hero">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="/board/list" class="text-white-50">게시판</a></li>
+                    <li class="breadcrumb-item active text-white">글 수정</li>
+                </ol>
+            </nav>
+            <h1><i class="bi bi-pencil-fill me-3"></i>게시글 수정</h1>
+        </div>
+    </div>
 
-            <form th:action="@{/board/edit/{id}(id=${post.id})}" method="post">
-                <!-- 카테고리 선택 -->
-                <div class="mb-3">
-                    <label for="category" class="form-label">카테고리</label>
-                    <select id="category" 
-                            name="category" 
-                            class="form-select category-select" 
-                            required>
-                        <!-- 공지사항은 관리자만 보이게 -->
-                        <option value="NOTICE" 
-                                sec:authorize="hasRole('ADMIN')"
-                                th:selected="${post.category.name() == 'NOTICE'}">
-                            공지사항
-                        </option>
-                        <option value="FREE" 
-                                th:selected="${post.category.name() == 'FREE'}">
-                            자유게시판
-                        </option>
-                    </select>
-                </div>
-
-                <!-- 제목 -->
-                <div class="mb-3">
-                    <label for="title" class="form-label">제목</label>
-                    <input type="text" 
-                           id="title" 
-                           name="title" 
-                           class="form-control" 
-                           th:value="${post.title}"
-                           required>
-                </div>
-
-                <!-- 내용 -->
-                <div class="mb-4">
-                    <label for="content" class="form-label">내용</label>
-                    <textarea id="content" 
-                              name="content" 
-                              class="form-control" 
-                              required
-                              th:text="${post.content}"></textarea>
-                </div>
-
-                <!-- 버튼 -->
-                <div class="d-flex justify-content-between">
-                    <a th:href="@{/board/detail/{id}(id=${post.id})}" class="btn btn-secondary">
-                        <i class="bi bi-arrow-left me-2"></i>취소
-                    </a>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-2"></i>수정완료
-                    </button>
-                </div>
-            </form>
+    <div class="container pb-5">
+        <div class="write-card">
+            <div class="write-card-header">
+                <h4><i class="bi bi-pencil me-2"></i>게시글 수정</h4>
+            </div>
+            <div class="write-body">
+                <form th:action="@{/board/edit/{id}(id=${post.id})}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                    <div class="mb-4">
+                        <label class="field-label">카테고리</label>
+                        <select name="category" class="field-input">
+                            <option value="FREE" th:selected="${post.category.name() == 'FREE'}">💬 자유게시판</option>
+                            <option value="NOTICE" th:selected="${post.category.name() == 'NOTICE'}"
+                                    sec:authorize="hasRole('ADMIN')">📌 공지사항</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label for="title" class="field-label">제목</label>
+                        <input type="text" id="title" name="title" class="field-input"
+                               th:value="${post.title}" required maxlength="200">
+                    </div>
+                    <div class="mb-4">
+                        <label for="content" class="field-label">내용</label>
+                        <textarea id="content" name="content" class="field-input"
+                                  required th:text="${post.content}"></textarea>
+                    </div>
+                    <div class="d-flex gap-3 justify-content-end pt-2">
+                        <a th:href="@{/board/detail/{id}(id=${post.id})}" class="btn-cancel">
+                            <i class="bi bi-x-lg"></i>취소
+                        </a>
+                        <button type="submit" class="btn-update">
+                            <i class="bi bi-check-lg"></i>수정 완료
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
 </div>

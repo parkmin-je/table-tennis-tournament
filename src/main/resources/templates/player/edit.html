@@ -4,63 +4,88 @@
       layout:decorate="~{layout}">
 <head>
     <title>선수 정보 수정</title>
+    <th:block layout:fragment="css">
+    <style>
+        .form-hero { background: linear-gradient(135deg, #78350f 0%, #451a03 100%); color: #fff; padding: 2rem 0 1.8rem; margin-bottom: 2.5rem; border-radius: 0 0 20px 20px; }
+        .form-hero h1 { font-size: 1.6rem; font-weight: 800; }
+        .form-hero .breadcrumb { opacity: 0.6; font-size: 0.82rem; }
+        .form-hero .breadcrumb-item + .breadcrumb-item::before { color: rgba(255,255,255,0.3); }
+        .form-card { background: var(--bg-white); border-radius: 16px; box-shadow: var(--shadow-md); overflow: hidden; max-width: 600px; margin: 0 auto; }
+        .form-card-header { background: linear-gradient(135deg, #92400e, #b45309); color: #fff; padding: 1.2rem 1.8rem; }
+        .form-card-header h4 { margin: 0; font-weight: 700; font-size: 1rem; }
+        .form-body { padding: 2rem 1.8rem; }
+        .field-label { font-weight: 600; font-size: 0.88rem; color: var(--text-secondary); margin-bottom: 6px; display: block; }
+        .field-input { width: 100%; border: 1.5px solid var(--border-color); border-radius: 10px; padding: 11px 14px; font-size: 0.93rem; color: var(--text-primary); background: var(--bg-white); transition: border-color 0.2s, box-shadow 0.2s; font-family: inherit; }
+        .field-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.15); outline: none; }
+        select.field-input { cursor: pointer; }
+        .form-divider { border: none; border-top: 1px solid var(--border-color); margin: 1.5rem 0; }
+        .btn-update { background: linear-gradient(135deg, #b45309, #f59e0b); color: #fff; border: none; border-radius: 10px; padding: 13px; font-size: 0.95rem; font-weight: 700; cursor: pointer; width: 100%; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-update:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(245,158,11,0.4); }
+        .btn-cancel { background: var(--bg-white); color: var(--text-secondary); border: 1.5px solid var(--border-color); border-radius: 10px; padding: 10px; font-size: 0.88rem; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.2s; }
+        .btn-cancel:hover { border-color: #6b7280; color: var(--text-primary); }
+    </style>
+    </th:block>
 </head>
 <body>
 <div layout:fragment="content">
-    <div class="container mt-5">
-        <h2>선수 정보 수정</h2>
+    <div class="form-hero">
+        <div class="container">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-2">
+                    <li class="breadcrumb-item"><a href="/player/list" class="text-white-50">선수</a></li>
+                    <li class="breadcrumb-item"><a th:href="@{|/player/detail/${player.id}|}" class="text-white-50" th:text="${player.name}">선수명</a></li>
+                    <li class="breadcrumb-item active text-white">수정</li>
+                </ol>
+            </nav>
+            <h1><i class="bi bi-person-gear me-3"></i>선수 정보 수정</h1>
+        </div>
+    </div>
 
-        <form th:action="@{/player/edit/{id}(id=${player.id})}"
-              th:object="${player}"
-              method="post">
-
-            <!-- 이름 -->
-            <div class="mb-3">
-                <label for="name" class="form-label">이름</label>
-                <input type="text"
-                       class="form-control"
-                       id="name"
-                       th:field="*{name}"
-                       required>
+    <div class="container pb-5">
+        <div class="form-card">
+            <div class="form-card-header">
+                <h4><i class="bi bi-pencil-fill me-2"></i>정보 수정 - <span th:text="${player.name}">선수명</span></h4>
             </div>
+            <div class="form-body">
+                <form th:action="@{/player/edit/{id}(id=${player.id})}" th:object="${player}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
 
-            <!-- 클럽 -->
-            <div class="mb-3">
-                <label for="club" class="form-label">소속 클럽</label>
-                <select class="form-control"
-                        id="club"
-                        th:field="*{club.id}">
-                    <option value="">클럽 선택</option>
-                    <option th:each="club : ${clubs}"
-                            th:value="${club.id}"
-                            th:text="${club.name}"></option>
-                </select>
-            </div>
+                    <div class="mb-3">
+                        <label for="name" class="field-label">이름 <span class="text-danger">*</span></label>
+                        <input type="text" id="name" class="field-input" th:field="*{name}" required>
+                    </div>
 
-            <!-- 랭킹 -->
-            <div class="mb-3">
-                <label for="ranking" class="form-label">랭킹</label>
-                <input type="number"
-                       class="form-control"
-                       id="ranking"
-                       th:field="*{ranking}">
-            </div>
+                    <div class="mb-3">
+                        <label for="club" class="field-label">소속 클럽</label>
+                        <select id="club" class="field-input" th:field="*{club.id}">
+                            <option value="">클럽 없음</option>
+                            <option th:each="club : ${clubs}" th:value="${club.id}" th:text="${club.name}"></option>
+                        </select>
+                    </div>
 
-            <!-- 연락처 -->
-            <div class="mb-3">
-                <label for="contactInfo" class="form-label">연락처</label>
-                <input type="text"
-                       class="form-control"
-                       id="contactInfo"
-                       th:field="*{contactInfo}">
-            </div>
+                    <div class="row g-3 mb-3">
+                        <div class="col-sm-6">
+                            <label for="ranking" class="field-label">랭킹</label>
+                            <input type="number" id="ranking" class="field-input" th:field="*{ranking}" min="1">
+                        </div>
+                        <div class="col-sm-6">
+                            <label for="contactInfo" class="field-label">연락처</label>
+                            <input type="text" id="contactInfo" class="field-input" th:field="*{contactInfo}" placeholder="010-0000-0000">
+                        </div>
+                    </div>
 
-            <!-- 버튼 -->
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">수정</button>
-                <a th:href="@{/player/list}" class="btn btn-secondary">취소</a>
+                    <hr class="form-divider">
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn-update">
+                            <i class="bi bi-check-circle-fill"></i>수정 완료
+                        </button>
+                        <a href="/player/list" class="btn-cancel">
+                            <i class="bi bi-x-lg"></i>취소
+                        </a>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
     </div>
 </div>
 </body>
