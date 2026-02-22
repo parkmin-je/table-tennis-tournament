@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "Spring Boot (Gradle)",
-      "runtimeExecutable": "./gradlew",
-      "runtimeArgs": ["bootRun"],
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "gradlew.bat", "bootRun"],
       "port": 8080
     }
   ]

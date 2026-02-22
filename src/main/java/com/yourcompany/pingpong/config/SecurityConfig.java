@@ -44,7 +44,7 @@ public class SecurityConfig {
                     "/", "/user/login", "/user/signup",
                     "/css/**", "/js/**", "/images/**",
                     "/favicon.ico", "/manifest.json",
-                    "/api/search", "/api/player/stats/**"
+                    "/api/search", "/api/player/stats/**", "/player/stats/**"
                 ).permitAll()
                 .requestMatchers(
                     "/tournament/list", "/tournament/detail/**",

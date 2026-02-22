@@ -73,4 +73,35 @@ public interface MatchRepository extends JpaRepository<Match, Long> {
     List<Match> findMatchesForToday(@Param("startOfDay") LocalDateTime startOfDay,
                                     @Param("endOfDay") LocalDateTime endOfDay,
                                     @Param("tournamentStatus") TournamentStatus tournamentStatus);
+
+    // ⭐ 라이브 스코어보드용: 현재 진행 중인 모든 경기
+    @Query("SELECT m FROM Match m " +
+            "LEFT JOIN FETCH m.player1 " +
+            "LEFT JOIN FETCH m.player2 " +
+            "LEFT JOIN FETCH m.tournament " +
+            "WHERE m.status = com.yourcompany.pingpong.domain.MatchStatus.IN_PROGRESS " +
+            "ORDER BY m.tableNumber ASC NULLS LAST, m.id ASC")
+    List<Match> findAllInProgress();
+
+    // ⭐ 선수 전적 통계용: 특정 선수의 완료된 경기
+    @Query("SELECT m FROM Match m " +
+            "LEFT JOIN FETCH m.player1 " +
+            "LEFT JOIN FETCH m.player2 " +
+            "LEFT JOIN FETCH m.tournament " +
+            "WHERE (m.player1.id = :playerId OR m.player2.id = :playerId) " +
+            "AND m.status = com.yourcompany.pingpong.domain.MatchStatus.COMPLETED " +
+            "ORDER BY m.updatedAt DESC")
+    List<Match> findCompletedMatchesByPlayerId(@Param("playerId") Long playerId);
+
+    // ⭐ 경기 관리 패널용: 특정 대회 SCHEDULED + IN_PROGRESS 경기
+    @Query("SELECT m FROM Match m " +
+            "LEFT JOIN FETCH m.player1 " +
+            "LEFT JOIN FETCH m.player2 " +
+            "LEFT JOIN FETCH m.tournament " +
+            "LEFT JOIN FETCH m.matchGroup " +
+            "WHERE m.tournament.id = :tournamentId " +
+            "AND m.status IN (com.yourcompany.pingpong.domain.MatchStatus.SCHEDULED, " +
+            "                 com.yourcompany.pingpong.domain.MatchStatus.IN_PROGRESS) " +
+            "ORDER BY m.status DESC, m.roundName ASC, m.matchNumber ASC")
+    List<Match> findActiveMatchesByTournamentId(@Param("tournamentId") Long tournamentId);
 }
