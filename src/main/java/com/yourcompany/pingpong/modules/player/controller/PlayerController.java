@@ -1,5 +1,6 @@
 package com.yourcompany.pingpong.modules.player.controller;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,11 +9,13 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.yourcompany.pingpong.domain.Club;
 import com.yourcompany.pingpong.domain.Player;
 import com.yourcompany.pingpong.modules.club.service.ClubService;
+import com.yourcompany.pingpong.modules.player.dto.PlayerStatsDto;
 import com.yourcompany.pingpong.modules.player.service.PlayerService;
 
 import lombok.RequiredArgsConstructor;
@@ -149,6 +152,17 @@ public class PlayerController {
             redirectAttributes.addFlashAttribute("error", "선수 삭제에 실패했습니다.");
             return "redirect:/player/detail/" + id;
         }
+    }
+
+    /**
+     * ⭐ 선수 전적 통계 API (JSON)
+     */
+    @GetMapping("/stats/{id}")
+    @ResponseBody
+    public ResponseEntity<PlayerStatsDto> getStats(@PathVariable Long id) {
+        log.info("CONTROLLER INFO: Fetching player stats for ID: {}", id);
+        PlayerStatsDto stats = playerService.getPlayerStats(id);
+        return ResponseEntity.ok(stats);
     }
 
     /**

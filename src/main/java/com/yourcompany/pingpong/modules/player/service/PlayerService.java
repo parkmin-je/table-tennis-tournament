@@ -6,7 +6,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.yourcompany.pingpong.domain.Match;
 import com.yourcompany.pingpong.domain.Player;
+import com.yourcompany.pingpong.modules.match.repository.MatchRepository;
+import com.yourcompany.pingpong.modules.player.dto.PlayerStatsDto;
 import com.yourcompany.pingpong.modules.player.repository.PlayerRepository;
 
 import lombok.RequiredArgsConstructor;
@@ -19,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 public class PlayerService {
 
     private final PlayerRepository playerRepository;
+    private final MatchRepository matchRepository;
 
     /**
      * 전체 선수 목록 조회 (클럽 정보 포함)
@@ -125,5 +129,16 @@ public class PlayerService {
     public List<Player> findByClubId(Long clubId) {
         log.info("SERVICE INFO: Finding players by club ID: {}", clubId);
         return playerRepository.findByClubId(clubId);
+    }
+
+    /**
+     * ⭐ 선수 전적 통계 조회
+     */
+    public PlayerStatsDto getPlayerStats(Long playerId) {
+        Player player = playerRepository.findByIdWithClub(playerId)
+                .orElseThrow(() -> new IllegalArgumentException("선수를 찾을 수 없습니다. ID=" + playerId));
+        List<Match> completed = matchRepository.findCompletedMatchesByPlayerId(playerId);
+        log.info("SERVICE INFO: Stats for player {} - {} completed matches", player.getName(), completed.size());
+        return new PlayerStatsDto(player, completed);
     }
 }

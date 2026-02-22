@@ -111,4 +111,29 @@ public class MatchController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "경기 완료 중 서버 오류 발생."));
         }
     }
+
+    // ⭐⭐ 관리자: 완료된 경기 결과 수정 ⭐⭐
+    @PostMapping("/edit/{matchId}")
+    @ResponseBody
+    public ResponseEntity<?> editMatch(@PathVariable("matchId") Long matchId,
+                                       @RequestParam("score1") Integer score1,
+                                       @RequestParam("score2") Integer score2) {
+        log.info("CONTROLLER INFO: Admin request to edit match ID {} → {}:{}", matchId, score1, score2);
+        try {
+            Match match = matchService.editMatch(matchId, score1, score2);
+            return ResponseEntity.ok(Map.of(
+                    "message", "경기 결과가 수정되었습니다.",
+                    "score1", match.getScore1(),
+                    "score2", match.getScore2(),
+                    "winner", match.getWinner()
+            ));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            log.error("CONTROLLER ERROR: Error editing match ID {}: {}", matchId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", "경기 수정 중 서버 오류 발생."));
+        }
+    }
 }

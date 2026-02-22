@@ -93,13 +93,24 @@
             <!-- 바디 -->
             <div class="auth-body">
                 <!-- 에러 메시지 -->
-                <div th:if="${param.error}" class="alert alert-danger mb-4" style="border-radius:10px; font-size:0.88rem;">
+                <div th:if="${param.blocked}" class="alert alert-danger mb-4" style="border-radius:10px; font-size:0.88rem;">
+                    <i class="bi bi-shield-exclamation me-2"></i>
+                    <strong>로그인 시도 횟수 초과.</strong>
+                    <span th:if="${param.minutes}">
+                        약 <span th:text="${param.minutes}">15</span>분 후 다시 시도해주세요.
+                    </span>
+                </div>
+                <div th:if="${param.error and !param.blocked}" class="alert alert-danger mb-4" style="border-radius:10px; font-size:0.88rem;">
                     <i class="bi bi-exclamation-circle-fill me-2"></i>
                     아이디 또는 비밀번호가 올바르지 않습니다.
                 </div>
                 <div th:if="${param.logout}" class="alert alert-success mb-4" style="border-radius:10px; font-size:0.88rem;">
                     <i class="bi bi-check-circle-fill me-2"></i>
                     로그아웃 되었습니다.
+                </div>
+                <div th:if="${param.signup}" class="alert alert-success mb-4" style="border-radius:10px; font-size:0.88rem;">
+                    <i class="bi bi-check-circle-fill me-2"></i>
+                    회원가입이 완료되었습니다. 로그인해주세요.
                 </div>
 
                 <form th:action="@{/user/login}" method="post">

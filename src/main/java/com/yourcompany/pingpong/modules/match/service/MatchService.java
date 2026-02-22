@@ -129,4 +129,40 @@ public class MatchService {
         log.debug("SERVICE DEBUG: Found {} matches for tournament ID: {}", matches.size(), tournamentId);
         return matches;
     }
+
+    /**
+     * ⭐ 경기 결과 수정 (관리자 전용 - 완료된 경기 점수 수정)
+     */
+    public Match editMatch(Long matchId, Integer score1, Integer score2) {
+        log.info("SERVICE INFO: Admin editing match ID {} → {}:{}", matchId, score1, score2);
+        Match match = matchRepository.findById(matchId)
+                .orElseThrow(() -> new IllegalArgumentException("경기를 찾을 수 없습니다. ID=" + matchId));
+
+        if (match.getStatus() != MatchStatus.COMPLETED) {
+            throw new IllegalStateException("완료된 경기만 수정할 수 있습니다. 현재 상태: " + match.getStatus());
+        }
+        if (score1 == null || score2 == null) {
+            throw new IllegalArgumentException("점수를 모두 입력해야 합니다.");
+        }
+        if (score1.equals(score2)) {
+            throw new IllegalArgumentException("무승부는 허용되지 않습니다.");
+        }
+
+        String winnerName;
+        if (score1 > score2) {
+            winnerName = match.getPlayer1() != null ? match.getPlayer1().getName() : "Unknown";
+        } else {
+            winnerName = match.getPlayer2() != null ? match.getPlayer2().getName() : "Unknown";
+        }
+
+        match.setScore1(score1);
+        match.setScore2(score2);
+        match.setWinner(winnerName);
+        match.setUpdatedAt(LocalDateTime.now());
+
+        Match updated = matchRepository.save(match);
+        webSocketService.notifyMatchCompleted(updated);
+        log.info("SERVICE INFO: Match ID {} result updated. Winner: {}, Score: {}:{}", matchId, winnerName, score1, score2);
+        return updated;
+    }
 }
