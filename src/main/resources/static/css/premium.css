@@ -427,3 +427,93 @@ mark.search-hl { background: #fef3c7; color: #92400e; padding: 0 2px; border-rad
   .toast-stack { width: calc(100vw - 24px); right: 12px; top: 76px; }
   .search-box { border-radius: 16px; }
 }
+
+/* ==================== 토너먼트 통일 CSS 변수 ==================== */
+/* 전 페이지 히어로 그라데이션 및 카드 radius 통일 */
+:root {
+  --hero-gradient: linear-gradient(135deg, var(--primary-color, #0056b3) 0%, var(--primary-dark, #003d82) 100%);
+  --hero-gradient-dark: linear-gradient(135deg, #0a1628 0%, #0d2244 100%);
+  --card-radius: var(--radius-lg, 16px);
+  --input-radius: var(--radius-md, 12px);
+}
+[data-theme="dark"] {
+  --hero-gradient: var(--hero-gradient-dark);
+}
+
+/* ==================== 대회 목록 / 상세 공통 히어로 ==================== */
+.page-hero,
+.detail-hero,
+.bracket-hero,
+.form-hero {
+  background: var(--hero-gradient) !important;
+}
+[data-theme="dark"] .page-hero,
+[data-theme="dark"] .detail-hero,
+[data-theme="dark"] .bracket-hero,
+[data-theme="dark"] .form-hero {
+  background: var(--hero-gradient-dark) !important;
+}
+
+/* ==================== 토너먼트 카드 다크모드 ==================== */
+[data-theme="dark"] .tournament-card {
+  background: var(--bg-white) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .tournament-card:hover {
+  border-color: var(--primary-color) !important;
+}
+[data-theme="dark"] .bracket-container,
+[data-theme="dark"] .bracket-wrapper {
+  background: var(--bg-white) !important;
+}
+[data-theme="dark"] .bracket-display {
+  background: var(--bg-light) !important;
+}
+[data-theme="dark"] .round-header {
+  background: var(--bg-white) !important;
+  border-color: var(--border-color) !important;
+  color: var(--primary-color) !important;
+}
+[data-theme="dark"] .match {
+  background: var(--bg-white) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .match-row {
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .match-item {
+  background: var(--bg-white) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .group-item {
+  background: var(--bg-white) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .bracket-tabs {
+  background: var(--bg-light) !important;
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .bracket-tab {
+  border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .match-players .player {
+  background: var(--bg-light) !important;
+}
+
+/* ==================== 폼 다크모드 ==================== */
+[data-theme="dark"] .form-card {
+  background: var(--bg-white) !important;
+}
+[data-theme="dark"] .field-input {
+  background: var(--bg-light) !important;
+  border-color: var(--border-color) !important;
+  color: var(--text-primary) !important;
+}
+[data-theme="dark"] .field-input:focus {
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 3px rgba(77,148,255,0.2) !important;
+}
+[data-theme="dark"] select.field-input option {
+  background: var(--bg-white);
+  color: var(--text-primary);
+}
