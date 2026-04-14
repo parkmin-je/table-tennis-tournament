@@ -1,7 +1,7 @@
 # 탁구 대회 관리 시스템
 
-안산 지역 탁구 동호회를 위한 대회 관리 웹 애플리케이션입니다.
-실제 사용자 요구사항을 반영해 토너먼트 대진표 자동 생성부터 WebSocket 기반 실시간 결과 업데이트까지 구현했습니다.
+실제 안산 지역 탁구 동호회 요청으로 만든 대회 관리 웹 애플리케이션입니다.
+토너먼트 대진표 자동 생성부터 WebSocket 기반 실시간 결과 업데이트까지 구현했습니다.
 
 ## 기술 스택
 
@@ -36,7 +36,7 @@
 ## 프로젝트 구조
 
 ```
-src/main/java/com/yourcompany/pingpong/
+src/main/java/com/parkminje/pingpong/
 ├── modules/
 │   ├── tournament/   # 대회 생성·대진표 알고리즘
 │   ├── match/        # 경기 결과 처리, WebSocket 이벤트
