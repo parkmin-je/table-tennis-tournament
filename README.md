@@ -40,6 +40,18 @@
 - 인쇄용 대진표, 대회 일정 캘린더, 선수 랭킹·전적·레이팅 이력, 클럽, 게시판(공지/자유/후기), 알림
 - 참가 신청: 선수 프로필(성별·부수·클럽) 기반 자격 검사(부수 범위·성별·정원·마감), 복식 파트너 지정
 
+## 디자인
+
+화면 언어는 **"대진표 벽"**: 체육관 벽에 붙인 종이 대진표를 매직으로 채워 가는 모습을 옮겼다.
+벽색 바탕 위 흰 종이, 검정 잉크 괘선, 그리고 역할이 고정된 매직 색(빨강=승자 경로·진행중, 파랑=동작, 초록=확정, 형광 노랑=나).
+대진표에서는 이긴 선수의 선이 빨갛게 다음 라운드까지 이어지고, 로그인한 회원의 이름은 형광펜으로 칠해진다.
+TV 현황판은 열이 고정된 시간표이며 바뀐 줄만 한 번 형광펜으로 표시된다.
+
+- 토큰·규칙: [DESIGN.md](DESIGN.md) (사이드카 `.impeccable/design.json`)
+- 제품 맥락: [PRODUCT.md](PRODUCT.md)
+- 디자인 방향은 [impeccable](https://github.com/pbakaus/impeccable) 절차(방향 선정 → 품질 기준 → 안티패턴 검출 → 리뷰 → 문서화)로 잡았고,
+  [ui-ux-pro-max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) 데이터와 Anthropic [frontend-design](https://github.com/anthropics/skills) 원칙을 참고했다.
+
 ## 보안·운영 설계
 
 - **권한 3단계**: 회원(USER) / 운영진(STAFF: 대회 진행) / 관리자(ADMIN: 대회 생성·회원 관리). 권한 변경·비활성화 시 해당 세션 즉시 만료

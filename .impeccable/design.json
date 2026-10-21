@@ -1,0 +1,166 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-21T15:16:58+09:00",
+  "title": "Design System: 안산시 탁구 협회",
+  "extensions": {
+    "colorMeta": {
+      "wall": {
+        "role": "neutral",
+        "displayName": "Gym Wall"
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Paper"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Marker Black"
+      },
+      "marker-red": {
+        "role": "primary",
+        "displayName": "Marker Red"
+      },
+      "marker-blue": {
+        "role": "primary",
+        "displayName": "Marker Blue"
+      },
+      "marker-green": {
+        "role": "secondary",
+        "displayName": "Marker Green"
+      },
+      "highlighter": {
+        "role": "secondary",
+        "displayName": "Highlighter"
+      }
+    },
+    "shadows": [
+      {
+        "name": "pinned-sheet",
+        "value": "0 1px 0 rgba(21,24,29,.06), 0 3px 10px -4px rgba(21,24,29,.16)",
+        "purpose": "Panels and match boxes sitting on the wall."
+      },
+      {
+        "name": "lifted-note",
+        "value": "0 10px 30px -10px rgba(21,24,29,.35)",
+        "purpose": "Flash messages and dropdowns."
+      }
+    ],
+    "motion": [
+      {
+        "name": "state",
+        "value": "150ms ease",
+        "purpose": "Button and link color changes."
+      },
+      {
+        "name": "highlight-flash",
+        "value": "2.4s cubic-bezier(.2,.8,.2,1)",
+        "purpose": "A live board row that changed is highlighted once."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "576px"
+      },
+      {
+        "name": "md",
+        "value": "768px"
+      },
+      {
+        "name": "lg",
+        "value": "992px"
+      },
+      {
+        "name": "tv",
+        "value": "1200px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Main action: save, start, confirm.",
+      "html": "<button class=\"ds-btn-primary\">결과 저장</button>",
+      "css": ".ds-btn-primary{background:#1d4ccc;color:#fff;border:1px solid #1d4ccc;border-radius:8px;padding:8px 16px;font-weight:680;font-family:'Pretendard Variable',sans-serif;transition:background .15s}.ds-btn-primary:hover{background:#173fa9}.ds-btn-primary:focus-visible{outline:2.5px solid #1d4ccc;outline-offset:2px}"
+    },
+    {
+      "name": "Danger Outline Button",
+      "kind": "button",
+      "refersTo": "button-soft",
+      "description": "Withdraw, delete, cancel result. Kept apart from other actions.",
+      "html": "<button class=\"ds-btn-danger\">기권</button>",
+      "css": ".ds-btn-danger{background:transparent;color:#d42a1f;border:1px solid #d42a1f;border-radius:6px;padding:5px 10px;font-weight:680}.ds-btn-danger:hover{background:#d42a1f;color:#fff}"
+    },
+    {
+      "name": "Live Status",
+      "kind": "chip",
+      "refersTo": "status-live",
+      "description": "Match or tournament in progress.",
+      "html": "<span class=\"ds-live\"><i></i>진행중</span>",
+      "css": ".ds-live{display:inline-flex;align-items:center;gap:6px;background:#d42a1f;color:#fff;font-size:12.8px;font-weight:720;padding:5px 9px;border-radius:5px}.ds-live i{width:7px;height:7px;border-radius:50%;background:#fff}"
+    },
+    {
+      "name": "Sheet Panel",
+      "kind": "card",
+      "refersTo": "sheet",
+      "description": "Paper panel on the wall with an ink-ruled header.",
+      "html": "<section class=\"ds-sheet\"><h3>다음 경기</h3><p>정우진 vs 한지훈</p></section>",
+      "css": ".ds-sheet{background:#fff;border:1px solid #c7cec8;border-radius:3px;box-shadow:0 1px 0 rgba(21,24,29,.06),0 3px 10px -4px rgba(21,24,29,.16)}.ds-sheet h3{margin:0;padding:14px 18px;border-bottom:2px solid #15181d;font-size:17px;font-weight:820}.ds-sheet p{margin:0;padding:14px 18px;font-weight:720}"
+    },
+    {
+      "name": "Bracket Match",
+      "kind": "custom",
+      "refersTo": "match-box",
+      "description": "Match box; the winner line is red and the winner's path continues in red.",
+      "html": "<div class=\"ds-match\"><div class=\"w\"><span>김민준</span><b>2</b></div><div><span>박지호</span><b>0</b></div></div>",
+      "css": ".ds-match{width:232px;background:#fff;border:1.5px solid #15181d;border-radius:4px}.ds-match div{display:flex;justify-content:space-between;padding:7px 10px;font-weight:620}.ds-match div+div{border-top:1px solid #e1e6e2}.ds-match .w{font-weight:840}.ds-match .w b{color:#d42a1f}.ds-match b{color:#59626e}"
+    },
+    {
+      "name": "Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Text field.",
+      "html": "<input class=\"ds-input\" placeholder=\"대회 이름이나 장소\">",
+      "css": ".ds-input{min-height:44px;padding:8px 12px;border:1px solid #c7cec8;border-radius:8px;background:#fff;color:#15181d}.ds-input:focus{outline:none;border-color:#1d4ccc;box-shadow:0 0 0 3px #e8eefc}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Bracket Wall",
+    "keyCharacteristics": [
+      "벽(ground) 위에 종이(sheet): 검정 2px 괘선으로 머리를 나누는 종이 패널",
+      "매직 색마다 고정된 역할, 장식용 색은 없다",
+      "승자 경로는 빨간 선으로 다음 라운드까지 이어진다",
+      "로그인한 회원의 엔트리는 형광펜으로 칠해진다",
+      "이름이 주인공: 굵은 이름 아래 작은 소속(이름표)"
+    ],
+    "rules": [
+      {
+        "name": "The Marker Jobs Rule",
+        "body": "매직 색은 정해진 일만 한다. 빨강을 강조나 장식에 쓰지 않는다. 빨강이 보이면 반드시 승자 또는 진행 중이다.",
+        "section": "colors"
+      },
+      {
+        "name": "The Highlighter Is Me Rule",
+        "body": "형광 노랑은 \"나\"와 \"방금 바뀐 것\"에만 쓴다. 섹션 배경이나 배지 장식에 쓰지 않는다.",
+        "section": "colors"
+      },
+      {
+        "name": "The Name Plate Rule",
+        "body": "엔트리는 어디서나 같은 이름표로 나온다: 굵은 이름 한 줄, 그 아래 작은 소속 한 줄.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Kicker Rule",
+        "body": "제목 위에 작은 라벨을 붙이지 않는다. 제목이 스스로 말한다.",
+        "section": "typography"
+      },
+      {
+        "name": "The Paper Not Glass Rule",
+        "body": "유리, 블러, 그라데이션 바탕을 쓰지 않는다. 깊이는 종이 한 장 두께까지만.",
+        "section": "elevation"
+      }
+    ]
+  }
+}
