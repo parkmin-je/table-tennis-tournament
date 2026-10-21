@@ -1,262 +1,38 @@
 <!DOCTYPE html>
-<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-<head>
-    <title th:text="${club.name} + ' - 클럽 상세'">클럽 상세</title>
-    <th:block layout:fragment="css">
-    <style>
-        .club-hero {
-            background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
-            color: #fff; padding: 3rem 0 2.5rem; margin-bottom: 2.5rem;
-            border-radius: 0 0 24px 24px; position: relative; overflow: hidden;
-        }
-        .club-hero::before {
-            content: '🏓'; font-size: 8rem; position: absolute;
-            right: 5%; top: 50%; transform: translateY(-50%); opacity: 0.06;
-        }
-        .club-hero .breadcrumb { opacity: 0.65; font-size: 0.82rem; }
-        .club-hero .breadcrumb-item + .breadcrumb-item::before { color: rgba(255,255,255,0.4); }
-        .club-avatar-hero {
-            width: 72px; height: 72px; border-radius: 18px;
-            background: rgba(255,255,255,0.2); border: 3px solid rgba(255,255,255,0.3);
-            display: flex; align-items: center; justify-content: center;
-            font-size: 2rem; font-weight: 900; color: #fff;
-            margin-bottom: 1rem; flex-shrink: 0;
-        }
-        .club-hero h1 { font-size: 2rem; font-weight: 900; letter-spacing: -0.5px; }
-        .club-meta-pills { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 0.8rem; }
-        .meta-pill {
-            display: inline-flex; align-items: center; gap: 5px;
-            background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
-            border-radius: 50px; padding: 5px 14px; font-size: 0.82rem;
-        }
-        .admin-actions { display: flex; gap: 8px; }
-        .btn-hero-edit {
-            background: rgba(255,255,255,0.15); color: #fff; border: 1.5px solid rgba(255,255,255,0.3);
-            border-radius: 8px; padding: 8px 16px; font-size: 0.88rem; font-weight: 600;
-            text-decoration: none; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s;
-        }
-        .btn-hero-edit:hover { background: rgba(255,255,255,0.25); color: #fff; }
-        .btn-hero-delete {
-            background: rgba(239,68,68,0.2); color: #fca5a5; border: 1.5px solid rgba(239,68,68,0.3);
-            border-radius: 8px; padding: 8px 16px; font-size: 0.88rem; font-weight: 600;
-            cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: all 0.2s;
-        }
-        .btn-hero-delete:hover { background: rgba(239,68,68,0.35); }
-
-        .info-card {
-            background: var(--bg-white); border-radius: 14px; box-shadow: var(--shadow-sm);
-            overflow: hidden; margin-bottom: 1.5rem;
-        }
-        .info-card-header {
-            background: #f8faff; padding: 1rem 1.5rem;
-            border-bottom: 1px solid var(--border-color);
-            font-weight: 700; font-size: 0.95rem;
-            display: flex; align-items: center; gap: 8px; color: var(--text-primary);
-        }
-        .info-row {
-            display: flex; align-items: center; padding: 14px 1.5rem;
-            border-bottom: 1px solid var(--border-color); gap: 12px;
-        }
-        .info-row:last-child { border-bottom: none; }
-        .info-icon { width: 32px; height: 32px; border-radius: 8px; background: #f0fdf4; color: #16a34a; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
-        .info-label { font-size: 0.8rem; color: var(--text-secondary); font-weight: 600; margin-bottom: 1px; }
-        .info-value { font-size: 0.92rem; font-weight: 600; color: var(--text-primary); }
-
-        .player-table { width: 100%; }
-        .player-table th { background: #f8faff; color: #6b7280; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 11px 16px; border-bottom: 2px solid #e5e7eb; }
-        .player-table td { padding: 12px 16px; font-size: 0.9rem; border-bottom: 1px solid #f3f4f6; vertical-align: middle; }
-        .player-table tr:hover td { background: #f8faff; }
-        .player-table .player-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 0.8rem; font-weight: 700; flex-shrink: 0; }
-        .gender-male { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
-        .gender-female { background: linear-gradient(135deg, #ec4899, #be185d); }
-        .ranking-badge { display: inline-block; background: #fef3c7; color: #92400e; border-radius: 8px; padding: 2px 10px; font-size: 0.78rem; font-weight: 700; }
-        .btn-view-player { background: #eff6ff; color: #3b82f6; border: 1.5px solid #bfdbfe; border-radius: 8px; padding: 5px 12px; font-size: 0.82rem; font-weight: 600; text-decoration: none; transition: all 0.2s; }
-        .btn-view-player:hover { background: #3b82f6; color: #fff; }
-        .empty-players { text-align: center; padding: 50px 20px; color: var(--text-secondary); }
-        .empty-players i { font-size: 3rem; display: block; margin-bottom: 10px; opacity: 0.3; }
-
-        [data-theme="dark"] .info-card-header { background: rgba(255,255,255,0.03); }
-        [data-theme="dark"] .info-icon { background: rgba(22,163,74,0.15); }
-        [data-theme="dark"] .player-table th { background: rgba(255,255,255,0.05); color: #9ca3af; border-color: rgba(255,255,255,0.08); }
-        [data-theme="dark"] .player-table td { border-color: rgba(255,255,255,0.06); }
-        [data-theme="dark"] .player-table tr:hover td { background: rgba(255,255,255,0.03); }
-        [data-theme="dark"] .ranking-badge { background: rgba(245,158,11,0.15); color: #fbbf24; }
-        [data-theme="dark"] .btn-view-player { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); }
-    </style>
-    </th:block>
-</head>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout}">
+<head><title th:text="${club.name}">클럽</title></head>
 <body>
-<div layout:fragment="content">
-
-    <!-- Hero -->
-    <div class="club-hero">
-        <div class="container">
-            <nav aria-label="breadcrumb">
-                <ol class="breadcrumb mb-3">
-                    <li class="breadcrumb-item"><a href="/" class="text-white-50">홈</a></li>
-                    <li class="breadcrumb-item"><a href="/club/list" class="text-white-50">클럽</a></li>
-                    <li class="breadcrumb-item active text-white" th:text="${club.name}">클럽명</li>
-                </ol>
-            </nav>
-            <div class="d-flex align-items-start justify-content-between gap-3 flex-wrap">
-                <div class="d-flex gap-3 align-items-center">
-                    <div class="club-avatar-hero"
-                         th:text="${#strings.substring(club.name, 0, 1)}">C</div>
-                    <div>
-                        <h1 th:text="${club.name}">클럽명</h1>
-                        <div class="club-meta-pills">
-                            <span class="meta-pill"><i class="bi bi-geo-alt-fill"></i><span th:text="${club.region}">지역</span></span>
-                            <span class="meta-pill"><i class="bi bi-people-fill"></i><span th:text="${players.size()}">0</span>명</span>
-                            <span class="meta-pill"><i class="bi bi-calendar-check"></i>
-                                <span th:text="${#temporals.format(club.createdAt, 'yyyy.MM.dd')} + ' 설립'">날짜</span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div class="admin-actions" sec:authorize="hasRole('ADMIN')">
-                    <a th:href="@{|/club/edit/${club.id}|}" class="btn-hero-edit">
-                        <i class="bi bi-pencil-fill"></i>수정
-                    </a>
-                    <button type="button" class="btn-hero-delete delete-btn"
-                            th:data-club-id="${club.id}" th:data-club-name="${club.name}">
-                        <i class="bi bi-trash-fill"></i>삭제
-                    </button>
-                </div>
-            </div>
-        </div>
+<div layout:fragment="content" class="container" style="max-width: 960px">
+  <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-2">
+    <div>
+      <a class="back-link" th:href="@{/clubs}"><i class="bi bi-chevron-left"></i>클럽</a>
+      <h1 class="mt-1" th:text="${club.name}">클럽</h1>
+      <p class="lead" th:text="${club.region ?: ''}"></p>
     </div>
-
-    <div class="container pb-5">
-        <!-- Alerts -->
-        <div th:if="${message}" class="alert alert-success alert-dismissible fade show rounded-3 mb-4">
-            <i class="bi bi-check-circle-fill me-2"></i><span th:text="${message}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show rounded-3 mb-4">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i><span th:text="${error}"></span>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-
-        <div class="row g-4">
-            <!-- Club Info -->
-            <div class="col-lg-4">
-                <div class="info-card">
-                    <div class="info-card-header">
-                        <i class="bi bi-info-circle-fill text-success"></i>클럽 정보
-                    </div>
-                    <div class="info-row">
-                        <div class="info-icon"><i class="bi bi-geo-alt-fill"></i></div>
-                        <div>
-                            <div class="info-label">활동 지역</div>
-                            <div class="info-value" th:text="${club.region}">-</div>
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-icon"><i class="bi bi-people-fill"></i></div>
-                        <div>
-                            <div class="info-label">소속 선수</div>
-                            <div class="info-value"><span th:text="${players.size()}">0</span>명</div>
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-icon"><i class="bi bi-calendar-fill"></i></div>
-                        <div>
-                            <div class="info-label">등록일</div>
-                            <div class="info-value"
-                                 th:text="${#temporals.format(club.createdAt, 'yyyy.MM.dd')}">-</div>
-                        </div>
-                    </div>
-                    <div class="info-row">
-                        <div class="info-icon"><i class="bi bi-clock-fill"></i></div>
-                        <div>
-                            <div class="info-label">최근 수정</div>
-                            <div class="info-value"
-                                 th:text="${#temporals.format(club.updatedAt, 'yyyy.MM.dd')}">-</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Player List -->
-            <div class="col-lg-8">
-                <div class="info-card">
-                    <div class="info-card-header">
-                        <i class="bi bi-person-badge-fill text-primary"></i>소속 선수
-                        <span class="ms-auto badge bg-primary" th:text="${players.size()}">0</span>
-                    </div>
-                    <div th:if="${!#lists.isEmpty(players)}" class="table-responsive">
-                        <table class="player-table">
-                            <thead>
-                            <tr>
-                                <th>선수</th><th>나이</th><th>성별</th><th>랭킹</th><th>포지션</th><th class="text-center">상세</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            <tr th:each="player : ${players}">
-                                <td>
-                                    <div class="d-flex align-items-center gap-2">
-                                        <div th:class="'player-avatar ' + (${player.gender?.name() == 'MALE'} ? 'gender-male' : 'gender-female')"
-                                             th:text="${#strings.substring(player.name,0,1)}">P</div>
-                                        <span class="fw-semibold" th:text="${player.name}">이름</span>
-                                    </div>
-                                </td>
-                                <td class="text-muted" th:text="${player.age != null ? player.age + '세' : '-'}">-</td>
-                                <td>
-                                    <span th:if="${player.gender?.name() == 'MALE'}"
-                                          class="badge" style="background:#dbeafe;color:#1d4ed8;">남</span>
-                                    <span th:if="${player.gender?.name() != 'MALE'}"
-                                          class="badge" style="background:#fce7f3;color:#be185d;">여</span>
-                                </td>
-                                <td><span class="ranking-badge" th:text="${player.ranking}">-</span></td>
-                                <td class="text-muted small" th:text="${player.position != null ? player.position : '-'}">-</td>
-                                <td class="text-center">
-                                    <a th:href="@{|/player/detail/${player.id}|}" class="btn-view-player">
-                                        <i class="bi bi-eye"></i> 보기
-                                    </a>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div th:if="${#lists.isEmpty(players)}" class="empty-players">
-                        <i class="bi bi-person-x"></i>
-                        <p class="fw-semibold">소속 선수가 없습니다</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="mt-3">
-            <a href="/club/list" class="btn btn-secondary btn-sm">
-                <i class="bi bi-arrow-left me-1"></i>목록으로
-            </a>
-        </div>
+    <div class="d-flex gap-2" sec:authorize="hasRole('STAFF')">
+      <a class="btn btn-soft btn-sm" th:href="@{/manage/clubs/{id}/edit(id=${club.id})}"><i class="bi bi-pencil me-1"></i>수정</a>
+      <form th:action="@{/manage/clubs/{id}/delete(id=${club.id})}" method="post" data-confirm="클럽을 삭제할까요? 소속 선수가 있으면 삭제되지 않습니다.">
+        <button class="btn btn-danger-outline btn-sm" type="submit">삭제</button>
+      </form>
     </div>
-
-    <form id="deleteForm" method="post" style="display:none;">
-        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
-    </form>
-
-    <th:block layout:fragment="script">
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const deleteBtn = document.querySelector('.delete-btn');
-            if (deleteBtn) {
-                deleteBtn.addEventListener('click', function() {
-                    const id = this.getAttribute('data-club-id');
-                    const name = this.getAttribute('data-club-name');
-                    if (confirm('"' + name + '" 클럽을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.')) {
-                        const form = document.getElementById('deleteForm');
-                        form.action = '/club/delete/' + id;
-                        form.submit();
-                    }
-                });
-            }
-        });
-    </script>
-    </th:block>
+  </div>
+  <section class="panel mb-4" th:if="${club.description != null}">
+    <div class="panel-body pre-wrap" th:text="${club.description}"></div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2>소속 선수 <span class="text-muted fw-normal" th:text="${members.size()}"></span></h2></div>
+    <th:block th:if="${members.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-people', '소속 선수가 없습니다.')}"></div></th:block>
+    <a class="list-row" th:each="p, st : ${members}" th:href="@{/player/{id}(id=${p.id})}">
+      <span class="rank-no" th:text="${st.count}">1</span>
+      <span class="avatar" th:text="${#strings.substring(p.name, 0, 1)}">김</span>
+      <div class="min-w-0 flex-grow-1">
+        <div class="fw-semibold" th:text="${p.name}"></div>
+        <div class="entry-sub" th:text="${p.divisionLabel + ', ' + p.gender.label}"></div>
+      </div>
+      <span class="rating" th:text="${p.rating}">1500</span>
+    </a>
+  </section>
 </div>
 </body>
 </html>

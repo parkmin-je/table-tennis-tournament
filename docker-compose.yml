@@ -1,0 +1,39 @@
+# 운영 서버 한 대로 띄우기: cp .env.example .env 후 값 채우고 `docker compose up -d`
+services:
+  db:
+    image: mariadb:11.4
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: pingpong
+      MARIADB_USER: pingpong
+      MARIADB_PASSWORD: ${DB_PASS:?DB_PASS 를 .env 에 지정하세요}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASS:?DB_ROOT_PASS 를 .env 에 지정하세요}
+      TZ: Asia/Seoul
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_unicode_ci"]
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mariadb://db:3306/pingpong
+      DB_USER: pingpong
+      DB_PASS: ${DB_PASS}
+      ADMIN_USERNAME: ${ADMIN_USERNAME:-admin}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:?ADMIN_PASSWORD 를 .env 에 지정하세요 (최초 관리자 생성용)}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      APP_ALLOWED_ORIGINS: ${APP_ALLOWED_ORIGINS:-}
+    ports:
+      - "127.0.0.1:8080:8080"   # 앞단 Nginx/Caddy 가 HTTPS 를 처리하고 이 포트로 전달
+
+volumes:
+  db-data:

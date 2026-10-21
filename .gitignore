@@ -43,3 +43,14 @@ out/
 ### Local scripts ###
 *.bat
 !gradlew.bat
+
+### Local data ###
+/data/
+*.mv.db
+*.trace.db
+
+### Env ###
+.env
+
+### Impeccable 리뷰 캡처 ###
+.impeccable/review/

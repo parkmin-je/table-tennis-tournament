@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<body>
+
+<!-- 상태 배지 (TournamentStatus / MatchStatus / EntryStatus 공용: label, tone) -->
+<span th:fragment="status(s)" class="tag" th:classappend="${'tag-' + s.tone}">
+  <span class="live-dot" th:if="${s.tone == 'live'}"></span><span th:text="${s.label}">상태</span>
+</span>
+
+<!-- 이름표: 이름 위, 소속 아래. 내 엔트리는 형광펜, 기권은 빨간 취소선 -->
+<div th:fragment="entry(e)" class="plate"
+     th:classappend="${e != null and mine != null and mine.contains(e.id)} ? 'mine' : ''">
+  <th:block th:if="${e != null}">
+    <div class="entry-name truncate" th:classappend="${e.withdrawn} ? 'is-withdrawn'">
+      <span th:text="${e.displayName}">이름</span><span class="tag tag-secondary ms-1" th:if="${e.withdrawn}">기권</span>
+    </div>
+    <div class="entry-sub truncate" th:text="${e.subLabel}">클럽</div>
+  </th:block>
+  <div class="entry-name text-faint" th:if="${e == null}">미정</div>
+</div>
+
+<!-- 날짜 칩 -->
+<div th:fragment="dateChip(dt)" class="date-chip">
+  <div class="m" th:text="${#temporals.format(dt, 'M') + '월'}">10월</div>
+  <div class="d" th:text="${#temporals.format(dt, 'd')}">21</div>
+</div>
+
+<!-- 빈 상태 -->
+<div th:fragment="empty(icon, text)" class="empty">
+  <i class="bi" th:classappend="${icon}"></i>
+  <p th:text="${text}">내용이 없습니다.</p>
+</div>
+
+<!-- 경기 한 줄 (선수1 | 점수 | 선수2) -->
+<div th:fragment="matchLine(m)" class="match-row">
+  <div class="side" th:classappend="${m.completed and m.isWinner(m.entry1)} ? 'is-winner'">
+    <div th:replace="~{fragments/ui :: entry(${m.entry1})}"></div>
+  </div>
+  <div class="text-center">
+    <div class="score tnum" th:if="${m.completed}" th:text="${m.scoreLabel}">3 : 1</div>
+    <div class="tag tag-live" th:if="${m.inProgress}"><span class="live-dot"></span><span th:text="${m.tableNumber + '번 테이블'}">1번 테이블</span></div>
+    <div class="score text-faint" th:if="${m.scheduled}">vs</div>
+    <div class="games" th:if="${m.gameScores != null}" th:text="${#strings.replace(m.gameScores, ',', '  ')}">11-9 · 8-11</div>
+  </div>
+  <div class="side right" th:classappend="${m.completed and m.isWinner(m.entry2)} ? 'is-winner'">
+    <div th:replace="~{fragments/ui :: entry(${m.entry2})}"></div>
+  </div>
+</div>
+
+<!-- 페이지 이동 (base: 쿼리를 포함할 수 있는 목록 주소) -->
+<nav th:fragment="pager(page, base)" th:if="${page.totalPages > 1}" class="d-flex justify-content-center mt-4" aria-label="페이지">
+  <ul class="pagination pagination-sm mb-0"
+      th:with="sep=${#strings.contains(base, '?') ? '&' : '?'},
+               start=${T(java.lang.Math).max(0, page.number - 4)},
+               end=${T(java.lang.Math).min(page.totalPages - 1, page.number + 4)}">
+    <li class="page-item" th:classappend="${page.first} ? 'disabled'">
+      <a class="page-link" th:href="${base + sep + 'page=' + (page.number - 1)}" aria-label="이전">&lsaquo;</a>
+    </li>
+    <li class="page-item" th:each="i : ${#numbers.sequence(start, end)}" th:classappend="${i == page.number} ? 'active'">
+      <a class="page-link" th:href="${base + sep + 'page=' + i}" th:text="${i + 1}">1</a>
+    </li>
+    <li class="page-item" th:classappend="${page.last} ? 'disabled'">
+      <a class="page-link" th:href="${base + sep + 'page=' + (page.number + 1)}" aria-label="다음">&rsaquo;</a>
+    </li>
+  </ul>
+</nav>
+
+<!-- 필드 오류 -->
+<div th:fragment="fieldError(field)" class="invalid-feedback" th:if="${#fields.hasErrors(field)}" th:errors="*{__${field}__}"></div>
+
+<!-- 전역 폼 오류 -->
+<div th:fragment="globalErrors" class="alert alert-danger py-2" th:if="${#fields.hasGlobalErrors()}">
+  <div th:each="err : ${#fields.globalErrors()}" th:text="${err}">오류</div>
+</div>
+
+</body>
+</html>

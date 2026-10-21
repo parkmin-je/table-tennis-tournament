@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+      minimum-idle: 2
+  thymeleaf:
+    cache: true
+
+server:
+  # 리버스 프록시(Nginx 등) 뒤에서 X-Forwarded-* 헤더를 신뢰 (프록시가 덮어쓰도록 설정할 것)
+  forward-headers-strategy: native
+  servlet:
+    session:
+      cookie:
+        secure: true
+
+app:
+  sample-data: false

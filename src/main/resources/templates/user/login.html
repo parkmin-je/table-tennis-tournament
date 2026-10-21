@@ -1,142 +1,32 @@
 <!DOCTYPE html>
-<html layout:decorate="~{layout}" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
-      xmlns:th="http://www.thymeleaf.org">
-<head>
-    <title>로그인 - 탁구대회</title>
-    <th:block layout:fragment="css">
-        <style>
-            .auth-wrapper {
-                min-height: calc(100vh - 160px);
-                display: flex; align-items: center; justify-content: center;
-                padding: 2rem 1rem;
-            }
-            .auth-box {
-                width: 100%; max-width: 420px;
-                background: var(--bg-white);
-                border-radius: 24px;
-                box-shadow: var(--shadow-xl);
-                overflow: hidden;
-                border: 1px solid var(--border-color);
-            }
-            .auth-header {
-                background: linear-gradient(135deg, #0a2540 0%, #1a3a6b 100%);
-                padding: 2.5rem 2rem 2rem;
-                text-align: center; color: white;
-            }
-            .auth-logo {
-                width: 64px; height: 64px; border-radius: 18px;
-                background: rgba(255,255,255,0.15);
-                display: flex; align-items: center; justify-content: center;
-                font-size: 1.8rem; margin: 0 auto 1rem;
-                border: 2px solid rgba(255,255,255,0.25);
-            }
-            .auth-body { padding: 2rem; }
-            .form-floating .form-control {
-                border-radius: 12px !important;
-                border: 2px solid var(--border-color) !important;
-                background: var(--bg-white) !important;
-                color: var(--text-primary) !important;
-                height: 58px !important;
-                font-size: 0.95rem !important;
-                transition: all 0.2s !important;
-            }
-            .form-floating .form-control:focus {
-                border-color: var(--primary-color) !important;
-                box-shadow: 0 0 0 4px rgba(0,102,204,0.1) !important;
-            }
-            .form-floating label { color: var(--text-secondary) !important; font-size: 0.9rem !important; }
-            .btn-login {
-                width: 100%; padding: 0.9rem;
-                background: var(--gradient-primary);
-                color: white; border: none; border-radius: 12px;
-                font-size: 1rem; font-weight: 800;
-                box-shadow: 0 6px 20px rgba(0,102,204,0.35);
-                cursor: pointer; transition: all 0.25s;
-                letter-spacing: 0.02em;
-            }
-            .btn-login:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(0,102,204,0.45); }
-            .divider {
-                display: flex; align-items: center; gap: 1rem;
-                color: var(--text-secondary); font-size: 0.82rem; margin: 1.2rem 0;
-            }
-            .divider::before, .divider::after {
-                content: ''; flex: 1; height: 1px; background: var(--border-color);
-            }
-            .signup-link {
-                display: block; text-align: center;
-                padding: 0.9rem;
-                background: var(--bg-light);
-                border-radius: 12px;
-                font-size: 0.9rem; font-weight: 600;
-                text-decoration: none; color: var(--primary-color);
-                border: 2px solid var(--border-color);
-                transition: all 0.2s;
-            }
-            .signup-link:hover {
-                background: var(--primary-color); color: white;
-                border-color: var(--primary-color);
-            }
-        </style>
-    </th:block>
-</head>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>로그인</title></head>
 <body>
-<div layout:fragment="content">
-    <div class="auth-wrapper">
-        <div class="auth-box">
-            <!-- 헤더 -->
-            <div class="auth-header">
-                <div class="auth-logo">🏓</div>
-                <h2 class="fw-black mb-1" style="font-size:1.5rem;">로그인</h2>
-                <p class="mb-0 opacity-70" style="font-size:0.85rem;">탁구대회 관리 시스템에 오신 것을 환영합니다</p>
-            </div>
-
-            <!-- 바디 -->
-            <div class="auth-body">
-                <!-- 에러 메시지 -->
-                <div th:if="${param.blocked}" class="alert alert-danger mb-4" style="border-radius:10px; font-size:0.88rem;">
-                    <i class="bi bi-shield-exclamation me-2"></i>
-                    <strong>로그인 시도 횟수 초과.</strong>
-                    <span th:if="${param.minutes}">
-                        약 <span th:text="${param.minutes}">15</span>분 후 다시 시도해주세요.
-                    </span>
-                </div>
-                <div th:if="${param.error and !param.blocked}" class="alert alert-danger mb-4" style="border-radius:10px; font-size:0.88rem;">
-                    <i class="bi bi-exclamation-circle-fill me-2"></i>
-                    아이디 또는 비밀번호가 올바르지 않습니다.
-                </div>
-                <div th:if="${param.logout}" class="alert alert-success mb-4" style="border-radius:10px; font-size:0.88rem;">
-                    <i class="bi bi-check-circle-fill me-2"></i>
-                    로그아웃 되었습니다.
-                </div>
-                <div th:if="${param.signup}" class="alert alert-success mb-4" style="border-radius:10px; font-size:0.88rem;">
-                    <i class="bi bi-check-circle-fill me-2"></i>
-                    회원가입이 완료되었습니다. 로그인해주세요.
-                </div>
-
-                <form th:action="@{/user/login}" method="post">
-                    <div class="form-floating mb-3">
-                        <input type="text" name="username" id="username" class="form-control"
-                               placeholder="아이디" required autofocus>
-                        <label for="username"><i class="bi bi-person me-1"></i>아이디</label>
-                    </div>
-                    <div class="form-floating mb-4">
-                        <input type="password" name="password" id="password" class="form-control"
-                               placeholder="비밀번호" required>
-                        <label for="password"><i class="bi bi-lock me-1"></i>비밀번호</label>
-                    </div>
-                    <button type="submit" class="btn-login">
-                        <i class="bi bi-box-arrow-in-right me-2"></i>로그인
-                    </button>
-                </form>
-
-                <div class="divider">또는</div>
-
-                <a th:href="@{/user/signup}" class="signup-link">
-                    <i class="bi bi-person-plus me-2"></i>아직 계정이 없으신가요? 회원가입
-                </a>
-            </div>
-        </div>
-    </div>
+<div layout:fragment="content" class="container py-5" style="max-width: 420px">
+  <div class="text-center mb-4">
+    <span class="brand-mark mx-auto mb-3" style="width: 48px; height: 48px; font-size: 1.4rem"><i class="bi bi-lightning-charge-fill"></i></span>
+    <h1 class="h4 fw-black">로그인</h1>
+  </div>
+  <div class="panel panel-body">
+    <div class="alert alert-danger py-2 small" th:if="${param.error}">아이디 또는 비밀번호가 올바르지 않습니다.</div>
+    <div class="alert alert-danger py-2 small" th:if="${param.locked}" th:text="${'로그인 시도가 너무 많아 잠시 차단되었습니다. 약 ' + param.locked[0] + '분 후 다시 시도하세요.'}"></div>
+    <div class="alert alert-warning py-2 small" th:if="${param.disabled}">비활성화된 계정입니다. 관리자에게 문의하세요.</div>
+    <div class="alert alert-info py-2 small" th:if="${param.expired}">권한이 변경되었거나 다른 곳에서 로그아웃되어 다시 로그인이 필요합니다.</div>
+    <form th:action="@{/user/login}" method="post" class="d-grid gap-3" data-allow-resubmit>
+      <div>
+        <label class="form-label" for="username">아이디</label>
+        <input class="form-control" id="username" name="username" required autocomplete="username" autofocus maxlength="50">
+      </div>
+      <div>
+        <label class="form-label" for="password">비밀번호</label>
+        <input class="form-control" id="password" name="password" type="password" required autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary btn-lg" type="submit">로그인</button>
+    </form>
+  </div>
+  <p class="text-center small text-muted mt-3">아직 회원이 아니신가요? <a th:href="@{/user/signup}">회원가입</a></p>
+  <p class="text-center small text-muted">비밀번호를 잊으셨다면 운영진에게 임시 비밀번호 발급을 요청하세요.</p>
 </div>
 </body>
 </html>

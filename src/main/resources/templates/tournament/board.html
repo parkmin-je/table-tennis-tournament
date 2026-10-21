@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" data-force-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${t.title + ' 현황판'}">현황판</title>
+  <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
+  <script th:src="@{/js/theme.js}"></script>
+  <link rel="stylesheet" th:href="@{/vendor/bootstrap/bootstrap.min.css}">
+  <link rel="stylesheet" th:href="@{/vendor/icons/bootstrap-icons.min.css}">
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body class="tv" th:attr="data-live-tournament=${t.id}">
+  <header class="tv-head">
+    <div class="min-w-0">
+      <div class="sub" th:text="${t.venue != null ? t.status.label + ', ' + t.venue : t.status.label}">진행중</div>
+      <h1 class="truncate" th:text="${t.title}">대회명</h1>
+    </div>
+    <div style="min-width: 260px" data-fragment="progress"><div th:replace="~{tournament/fragments :: progress}"></div></div>
+    <div class="clock tnum" data-clock>--:--</div>
+    <div class="d-flex flex-column align-items-end gap-2">
+      <span class="tv-conn" data-conn><span class="conn-dot"></span><span data-conn-label>연결 중</span></span>
+      <button class="icon-btn" type="button" data-fullscreen aria-label="전체 화면"><i class="bi bi-fullscreen"></i></button>
+    </div>
+  </header>
+  <div data-fragment="board"><div th:replace="~{tournament/fragments :: board}"></div></div>
+  <div class="flash-stack"></div>
+  <script th:src="@{/js/app.js}"></script>
+  <script th:src="@{/vendor/stomp/stomp.umd.min.js}"></script>
+  <script th:src="@{/js/live.js}"></script>
+</body>
+</html>

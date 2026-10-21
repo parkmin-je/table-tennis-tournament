@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>내 정보</title></head>
+<body>
+<div layout:fragment="content" class="container" style="max-width: 1000px">
+  <div class="page-head d-flex flex-wrap gap-3 align-items-center">
+    <span class="avatar lg" th:text="${#strings.substring(user.name, 0, 1)}">김</span>
+    <div class="flex-grow-1">
+      <h1 th:text="${user.name}">이름</h1>
+      <div class="small text-muted" th:text="${user.username + ', ' + user.role.label}"></div>
+    </div>
+    <a class="btn btn-soft btn-sm" th:href="@{/me/password}"><i class="bi bi-key me-1"></i>비밀번호 변경</a>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-5">
+      <section class="panel mb-4">
+        <div class="panel-head"><h2>선수 프로필</h2><a class="btn btn-soft btn-sm" th:href="@{/me/player}" th:text="${player == null ? '등록' : '수정'}">등록</a></div>
+        <div class="panel-body" th:if="${player == null}">
+          <p class="mb-0 small text-muted">대회에 신청하려면 선수 프로필(성별·부수·클럽)이 필요합니다.</p>
+        </div>
+        <div class="panel-body" th:if="${player != null}">
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            <span class="tag tag-brand" th:text="${player.clubName}"></span>
+            <span class="tag" th:text="${player.divisionLabel}"></span>
+            <span class="tag" th:text="${player.gender.label}"></span>
+          </div>
+          <div class="row text-center">
+            <div class="col"><div class="label small text-muted">레이팅</div><div class="fs-4 fw-black tnum" th:text="${player.rating}"></div></div>
+            <div class="col"><div class="label small text-muted">전적</div><div class="fs-4 fw-black tnum" th:text="${stats.wins + '-' + stats.losses}"></div></div>
+            <div class="col"><div class="label small text-muted">승률</div><div class="fs-4 fw-black tnum" th:text="${stats.winRate() + '%'}"></div></div>
+          </div>
+          <a class="btn btn-soft btn-sm w-100 mt-3" th:href="@{/player/{id}(id=${player.id})}">공개 선수 페이지</a>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head"><h2>회원 정보</h2></div>
+        <form class="panel-body d-grid gap-3" th:action="@{/me/profile}" method="post" th:object="${profileForm}">
+          <div>
+            <label class="form-label" for="name">이름</label>
+            <input class="form-control" id="name" th:field="*{name}" required maxlength="20">
+          </div>
+          <div>
+            <label class="form-label" for="email">이메일</label>
+            <input class="form-control" type="email" id="email" th:field="*{email}" required maxlength="120">
+          </div>
+          <button class="btn btn-primary" type="submit">저장</button>
+        </form>
+      </section>
+    </div>
+
+    <div class="col-lg-7">
+      <section class="panel">
+        <div class="panel-head"><h2>내 대회</h2><a class="back-link" th:href="@{/tournaments(status='RECRUITING')}">접수 중인 대회</a></div>
+        <th:block th:if="${entries == null or entries.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-trophy', '참가 신청한 대회가 없습니다.')}"></div></th:block>
+        <a class="list-row" th:each="e : ${entries}" th:href="@{/tournament/{id}(id=${e.tournament.id})}">
+          <div th:replace="~{fragments/ui :: dateChip(${e.tournament.startAt})}"></div>
+          <div class="min-w-0 flex-grow-1">
+            <div class="fw-semibold truncate" th:text="${e.tournament.title}"></div>
+            <div class="entry-sub" th:text="${e.tournament.status.label + (e.partner != null ? ', ' + e.displayName : '')}"></div>
+          </div>
+          <span th:replace="~{fragments/ui :: status(${e.status})}"></span>
+        </a>
+      </section>
+    </div>
+  </div>
+</div>
+</body>
+</html>

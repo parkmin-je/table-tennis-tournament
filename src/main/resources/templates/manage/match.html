@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title th:text="${m.roundLabel + ' 경기'}">경기</title></head>
+<body>
+<div layout:fragment="content" class="container py-3" style="max-width: 560px"
+     th:with="back=${'/manage/matches/' + m.id}">
+  <a class="back-link" th:href="@{/manage/tournaments/{id}(id=${t.id}, tab='matches')}"><i class="bi bi-chevron-left"></i>운영 콘솔</a>
+  <div class="d-flex align-items-center gap-2 mt-2 mb-3">
+    <h1 class="h4 fw-black m-0" th:text="${m.roundLabel}">8강</h1>
+    <span th:replace="~{fragments/ui :: status(${m.status})}"></span>
+    <span class="tag tag-live" th:if="${m.inProgress}" th:text="${m.tableNumber + '번 테이블'}"></span>
+  </div>
+  <p class="small text-muted" th:text="${t.title + ', ' + t.bestOfLabel}"></p>
+
+  <section class="panel mb-3">
+    <div class="panel-body">
+      <div th:replace="~{fragments/ui :: matchLine(${m})}"></div>
+    </div>
+  </section>
+
+  <th:block th:if="${!m.hasBothEntries()}">
+    <div class="alert alert-secondary">아직 상대가 정해지지 않은 경기입니다.</div>
+  </th:block>
+
+  <!-- 시작 -->
+  <section class="panel mb-3" th:if="${m.scheduled and m.hasBothEntries()}">
+    <div class="panel-head"><h2>테이블 배정 후 시작</h2></div>
+    <div class="panel-body">
+      <form class="d-flex gap-2" th:action="@{/manage/matches/{id}/start(id=${m.id})}" method="post" th:if="${!freeTables.isEmpty()}">
+        <input type="hidden" name="returnTo" th:value="${back}">
+        <select class="form-select" name="table">
+          <option th:each="n : ${freeTables}" th:value="${n}" th:text="${n + '번 테이블'}">1번</option>
+        </select>
+        <button class="btn btn-primary text-nowrap" type="submit">시작 · 호출</button>
+      </form>
+      <div class="text-muted small" th:if="${freeTables.isEmpty()}">빈 테이블이 없습니다.</div>
+    </div>
+  </section>
+
+  <!-- 결과 입력/수정 -->
+  <section class="panel mb-3" th:if="${m.hasBothEntries() and (m.inProgress or m.scheduled or (m.completed and !m.bye))}">
+    <div class="panel-head"><h2 th:text="${m.completed ? '결과 수정' : '결과 입력'}">결과 입력</h2></div>
+    <div class="panel-body">
+      <form th:action="@{/manage/matches/{id}/result(id=${m.id})}" method="post" data-score-form data-autoinit
+            th:attr="data-bestof=${t.bestOf}, data-e1=${m.entry1.displayName}, data-e2=${m.entry2.displayName}, data-default-mode=${m.scheduled ? 'WALKOVER' : 'GAMES'}">
+        <input type="hidden" name="mode" value="GAMES">
+        <input type="hidden" name="gameScores">
+        <input type="hidden" name="games1">
+        <input type="hidden" name="games2">
+        <input type="hidden" name="correction" th:value="${m.completed}">
+        <input type="hidden" name="returnTo" th:value="${back}">
+
+        <div class="btn-group w-100 mb-3" role="group">
+          <button type="button" class="btn btn-soft btn-sm active" data-mode-btn="GAMES" th:disabled="${m.scheduled}">점수</button>
+          <button type="button" class="btn btn-soft btn-sm" data-mode-btn="RETIRED" th:disabled="${m.scheduled}">경기 중 기권</button>
+          <button type="button" class="btn btn-soft btn-sm" data-mode-btn="WALKOVER">부전승</button>
+        </div>
+
+        <div data-mode-pane="GAMES">
+          <div class="d-flex justify-content-between small fw-bold mb-2 px-4">
+            <span class="truncate" data-name1></span><span class="truncate text-end" data-name2></span>
+          </div>
+          <div class="d-grid gap-2">
+            <div class="d-flex gap-2 align-items-center" data-game-row th:each="g : ${#numbers.sequence(1, 9)}">
+              <span class="text-muted small fw-bold" style="width: 28px" th:text="${g + 'G'}">1G</span>
+              <input class="form-control form-control-lg text-center fw-bold" type="number" min="0" max="99" inputmode="numeric" data-g1>
+              <span class="text-faint">:</span>
+              <input class="form-control form-control-lg text-center fw-bold" type="number" min="0" max="99" inputmode="numeric" data-g2>
+            </div>
+          </div>
+          <div class="mt-3 text-center" data-preview></div>
+          <hr>
+          <div class="small text-muted mb-2">게임 수만 빠르게 입력</div>
+          <div class="quick-scores" data-quick></div>
+        </div>
+        <div data-mode-pane="RETIRED" hidden>
+          <div class="d-grid gap-2">
+            <div class="choice"><input type="radio" name="winnerSide" value="1" id="r1"><label for="r1"><strong data-name1></strong><small>승 (상대 기권)</small></label></div>
+            <div class="choice"><input type="radio" name="winnerSide" value="2" id="r2"><label for="r2"><strong data-name2></strong><small>승 (상대 기권)</small></label></div>
+          </div>
+        </div>
+        <div data-mode-pane="WALKOVER" hidden>
+          <div class="d-grid gap-2">
+            <div class="choice"><input type="radio" name="winnerSide" value="1" id="w1"><label for="w1"><strong data-name1></strong><small>부전승</small></label></div>
+            <div class="choice"><input type="radio" name="winnerSide" value="2" id="w2"><label for="w2"><strong data-name2></strong><small>부전승</small></label></div>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-lg w-100 mt-3" type="submit">저장</button>
+      </form>
+    </div>
+  </section>
+
+  <div class="d-flex gap-2">
+    <form th:if="${m.inProgress}" th:action="@{/manage/matches/{id}/cancel-start(id=${m.id})}" method="post" data-confirm="테이블 배정을 취소할까요?">
+      <input type="hidden" name="returnTo" th:value="${back}">
+      <button class="btn btn-soft" type="submit">배정 취소</button>
+    </form>
+    <form th:if="${m.completed and !m.bye}" th:action="@{/manage/matches/{id}/reset(id=${m.id})}" method="post" data-confirm="결과를 취소하고 대기로 되돌릴까요?">
+      <input type="hidden" name="returnTo" th:value="${back}">
+      <button class="btn btn-soft text-danger" type="submit">결과 취소</button>
+    </form>
+  </div>
+</div>
+<th:block layout:fragment="scripts">
+  <script th:src="@{/js/score.js}"></script>
+</th:block>
+</body>
+</html>
