@@ -2,13 +2,12 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.5.7'
 	id 'io.spring.dependency-management' version '1.1.7'
-	id 'org.gradle.idea'
-	id 'eclipse'
+	id 'jacoco'
 }
 
-group = 'com.yourcompany.pingpong'
-version = '0.0.1-SNAPSHOT'
-description = 'Ansan Ping Pong Tournament Platform'
+group = 'com.parkminje'
+version = '1.0.0'
+description = 'Ansan Table Tennis Tournament Platform'
 
 java {
 	toolchain {
@@ -27,45 +26,54 @@ repositories {
 }
 
 dependencies {
-	// Spring Boot 기본
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	implementation 'org.springframework.boot:spring-boot-starter-validation'
-	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
-
-	// ⭐⭐⭐ WebSocket 추가 ⭐⭐⭐
 	implementation 'org.springframework.boot:spring-boot-starter-websocket'
-
-	// Gson
-	implementation 'com.google.code.gson:gson:2.10.1'
-
-	// Thymeleaf + Spring Security 연동
+	implementation 'org.springframework.boot:spring-boot-starter-actuator'
 	implementation 'org.thymeleaf.extras:thymeleaf-extras-springsecurity6'
+	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.3.0'
 
-	// DB 드라이버 (MariaDB)
+	implementation 'org.flywaydb:flyway-core'
+	implementation 'org.flywaydb:flyway-mysql'
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
+	runtimeOnly 'com.h2database:h2'
 
-	// Lombok
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 
-	// 개발용
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
-	// 테스트
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-
-	// Thymeleaf Layout Dialect
-	implementation 'nz.net.ultraq.thymeleaf:thymeleaf-layout-dialect:3.3.0'
 }
 
-tasks.withType(JavaCompile) {
-	options.compilerArgs << "-parameters"
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
+	options.compilerArgs << '-parameters'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	finalizedBy jacocoTestReport
+}
+
+jacocoTestReport {
+	reports {
+		xml.required = true
+		html.required = true
+	}
+}
+
+bootJar {
+	archiveFileName = 'pingpong.jar'
+}
+
+jar {
+	enabled = false
 }

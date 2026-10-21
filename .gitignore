@@ -43,3 +43,11 @@ out/
 ### Local scripts ###
 *.bat
 !gradlew.bat
+
+### Local data ###
+/data/
+*.mv.db
+*.trace.db
+
+### Env ###
+.env

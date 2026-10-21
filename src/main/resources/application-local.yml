@@ -1,0 +1,19 @@
+# 로컬 개발용: 별도 DB 설치 없이 H2 파일 DB(MariaDB 호환 모드)로 기동
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/pingpong;MODE=MariaDB;DATABASE_TO_LOWER=TRUE;CASE_INSENSITIVE_IDENTIFIERS=TRUE
+    username: sa
+    password:
+  thymeleaf:
+    cache: false
+  h2:
+    console:
+      enabled: false
+
+app:
+  # 로컬에서만 샘플 데이터 생성 (admin / admin1234!, user1~8 / user1234!)
+  sample-data: true
+
+logging:
+  level:
+    com.parkminje.pingpong: DEBUG
