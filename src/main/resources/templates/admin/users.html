@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>회원·권한</title></head>
+<body>
+<div layout:fragment="content" class="container">
+  <div class="page-head">
+    <a class="small fw-semibold" th:href="@{/admin}"><i class="bi bi-chevron-left"></i>관리자</a>
+    <h1 class="mt-1">회원·권한</h1>
+    <p class="lead">운영진(STAFF)은 엔트리 관리·대진 생성·경기 진행을, 관리자(ADMIN)는 대회 생성과 회원 관리까지 할 수 있습니다.</p>
+  </div>
+  <form class="panel p-2 mb-3 d-flex gap-2" method="get" th:action="@{/admin/users}">
+    <input class="form-control form-control-sm" type="search" name="q" th:value="${q}" placeholder="아이디·이름·이메일" maxlength="50">
+    <button class="btn btn-soft btn-sm" type="submit"><i class="bi bi-search"></i></button>
+  </form>
+  <section class="panel">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle">
+        <thead><tr><th>아이디</th><th>이름</th><th>이메일</th><th>가입일</th><th>권한</th><th>상태</th><th class="text-end">작업</th></tr></thead>
+        <tbody>
+        <tr th:each="u : ${page.content}" th:classappend="${!u.enabled} ? 'row-muted'">
+          <td class="fw-semibold" th:text="${u.username}"></td>
+          <td th:text="${u.name}"></td>
+          <td class="small" th:text="${u.email}"></td>
+          <td class="small text-nowrap" th:text="${#temporals.format(u.createdAt, 'yyyy.MM.dd')}"></td>
+          <td>
+            <form th:action="@{/admin/users/{id}/role(id=${u.id})}" method="post">
+              <select class="form-select form-select-sm" name="role" style="width: 120px" th:attr="data-original=${u.role}"
+                      data-autosubmit="권한을 변경할까요? 해당 회원은 다시 로그인해야 합니다.">
+                <option th:each="r : ${roles}" th:value="${r}" th:text="${r.label}" th:selected="${r == u.role}"></option>
+              </select>
+            </form>
+          </td>
+          <td><span class="tag" th:classappend="${u.enabled} ? 'tag-success' : 'tag-secondary'" th:text="${u.enabled ? '활성' : '비활성'}"></span></td>
+          <td class="text-end text-nowrap">
+            <form class="d-inline" th:action="@{/admin/users/{id}/reset-password(id=${u.id})}" method="post"
+                  th:attr="data-confirm=${u.username + ' 회원에게 임시 비밀번호를 발급할까요?'}">
+              <button class="btn btn-soft btn-xs" type="submit">임시 비밀번호</button>
+            </form>
+            <form class="d-inline" th:action="@{/admin/users/{id}/enabled(id=${u.id})}" method="post"
+                  th:attr="data-confirm=${u.enabled ? '계정을 비활성화할까요? 로그인할 수 없게 됩니다.' : '계정을 다시 활성화할까요?'}">
+              <input type="hidden" name="value" th:value="${!u.enabled}">
+              <button class="btn btn-ghost btn-xs" th:classappend="${u.enabled} ? 'text-danger'" type="submit" th:text="${u.enabled ? '비활성화' : '활성화'}"></button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <div th:replace="~{fragments/ui :: pager(${page}, @{/admin/users(q=${q})})}"></div>
+</div>
+</body>
+</html>

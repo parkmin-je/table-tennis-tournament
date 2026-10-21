@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout}">
+<head><title>선수</title></head>
+<body>
+<div layout:fragment="content" class="container">
+  <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-2">
+    <div><div class="eyebrow">Players</div><h1>선수</h1><p class="lead">등록된 선수와 소속 클럽, 부수, 레이팅을 확인하세요.</p></div>
+    <a class="btn btn-primary" sec:authorize="hasRole('STAFF')" th:href="@{/manage/players/new}"><i class="bi bi-person-plus me-1"></i>선수 등록</a>
+  </div>
+
+  <form class="panel p-2 mb-3 row g-2 mx-0" method="get" th:action="@{/players}">
+    <div class="col-12 col-md-4"><input class="form-control form-control-sm" type="search" name="q" th:value="${q}" placeholder="이름·클럽 검색" maxlength="50"></div>
+    <div class="col-4 col-md-3">
+      <select class="form-select form-select-sm" name="clubId">
+        <option value="">모든 클럽</option>
+        <option th:each="c : ${clubs}" th:value="${c.id}" th:text="${c.name}" th:selected="${c.id == clubId}"></option>
+      </select>
+    </div>
+    <div class="col-4 col-md-2">
+      <select class="form-select form-select-sm" name="division">
+        <option value="">모든 부수</option>
+        <option th:each="d : ${#numbers.sequence(1, 9)}" th:value="${d}" th:text="${d + '부'}" th:selected="${d == division}"></option>
+      </select>
+    </div>
+    <div class="col-4 col-md-2">
+      <select class="form-select form-select-sm" name="gender">
+        <option value="">성별</option>
+        <option th:each="g : ${genders}" th:value="${g}" th:text="${g.label}" th:selected="${g == gender}"></option>
+      </select>
+    </div>
+    <div class="col-12 col-md-1 d-grid"><button class="btn btn-soft btn-sm" type="submit">검색</button></div>
+  </form>
+
+  <section class="panel">
+    <th:block th:if="${page.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-people', '조건에 맞는 선수가 없습니다.')}"></div></th:block>
+    <div class="table-responsive" th:unless="${page.isEmpty()}">
+      <table class="table table-hover align-middle">
+        <thead><tr><th>선수</th><th>클럽</th><th>부수</th><th>성별</th><th class="text-end">레이팅</th><th class="text-end">레이팅 경기</th></tr></thead>
+        <tbody>
+        <tr th:each="p : ${page.content}">
+          <td><a class="d-flex align-items-center gap-2 text-reset" th:href="@{/player/{id}(id=${p.id})}">
+            <span class="avatar" th:text="${#strings.substring(p.name, 0, 1)}">김</span><span class="fw-semibold" th:text="${p.name}"></span></a></td>
+          <td th:text="${p.clubName}"></td>
+          <td th:text="${p.divisionLabel}"></td>
+          <td th:text="${p.gender.label}"></td>
+          <td class="text-end rating" th:text="${p.rating}"></td>
+          <td class="text-end tnum text-muted" th:text="${p.ratedMatches}"></td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <div th:replace="~{fragments/ui :: pager(${page}, @{/players(q=${q}, clubId=${clubId}, division=${division}, gender=${gender})})}"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout}">
+<head><title>게시판</title></head>
+<body>
+<div layout:fragment="content" class="container" style="max-width: 960px">
+  <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-2">
+    <div><div class="eyebrow">Community</div><h1 th:text="${category != null ? category.label : '게시판'}">게시판</h1></div>
+    <a class="btn btn-primary" sec:authorize="isAuthenticated()" th:href="@{/board/write(category=${category})}"><i class="bi bi-pencil me-1"></i>글쓰기</a>
+  </div>
+
+  <div class="d-flex flex-wrap gap-2 align-items-center mb-3">
+    <a class="btn btn-sm" th:classappend="${category == null} ? 'btn-primary' : 'btn-ghost'" th:href="@{/board(q=${q})}">전체</a>
+    <a class="btn btn-sm" th:each="c : ${categories}" th:classappend="${category == c} ? 'btn-primary' : 'btn-ghost'"
+       th:href="@{/board(category=${c}, q=${q})}" th:text="${c.label}"></a>
+    <form class="ms-auto d-flex gap-2" method="get" th:action="@{/board}">
+      <input type="hidden" name="category" th:value="${category}" th:if="${category != null}">
+      <input class="form-control form-control-sm" type="search" name="q" th:value="${q}" placeholder="제목·내용 검색" maxlength="50">
+      <button class="btn btn-soft btn-sm" type="submit"><i class="bi bi-search"></i></button>
+    </form>
+  </div>
+
+  <section class="panel">
+    <th:block th:if="${page.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-chat-square', '게시글이 없습니다.')}"></div></th:block>
+    <a class="list-row" th:each="p : ${page.content}" th:href="@{/board/{id}(id=${p.id})}">
+      <i class="bi bi-pin-angle-fill text-danger" th:if="${p.pinned}"></i>
+      <div class="min-w-0 flex-grow-1">
+        <div class="d-flex align-items-center gap-2">
+          <span class="tag" th:classappend="${p.category.name() == 'NOTICE'} ? 'tag-danger'" th:text="${p.category.label}"></span>
+          <span class="fw-semibold truncate" th:text="${p.title}"></span>
+          <span class="small text-brand fw-bold" th:if="${p.commentCount > 0}" th:text="${'[' + p.commentCount + ']'}"></span>
+        </div>
+        <div class="entry-sub mt-1" th:text="${p.author.name + ' · ' + #temporals.format(p.createdAt, 'yyyy.MM.dd HH:mm')}"></div>
+      </div>
+      <div class="text-end small text-muted text-nowrap">
+        <div><i class="bi bi-eye me-1"></i><span th:text="${p.viewCount}"></span></div>
+        <div><i class="bi bi-heart me-1"></i><span th:text="${p.likeCount}"></span></div>
+      </div>
+    </a>
+  </section>
+  <div th:replace="~{fragments/ui :: pager(${page}, @{/board(category=${category}, q=${q})})}"></div>
+</div>
+</body>
+</html>

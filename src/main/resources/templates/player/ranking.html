@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>랭킹</title></head>
+<body>
+<div layout:fragment="content" class="container" style="max-width: 900px">
+  <div class="page-head">
+    <div class="eyebrow">Ranking</div>
+    <h1>레이팅 랭킹</h1>
+    <p class="lead">대회 단식 경기 결과로 계산한 Elo 레이팅입니다. (기본 1500 · 부전승·BYE 제외 · 30경기 미만은 변동 폭이 큽니다)</p>
+  </div>
+  <section class="panel">
+    <th:block th:if="${page.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-bar-chart', '아직 레이팅이 반영된 선수가 없습니다.')}"></div></th:block>
+    <a class="list-row" th:each="p, st : ${page.content}" th:href="@{/player/{id}(id=${p.id})}"
+       th:with="rank=${page.number * page.size + st.count}">
+      <span class="rank-no fs-5" th:classappend="${rank <= 3} ? 'top'" th:text="${rank}">1</span>
+      <span class="avatar" th:text="${#strings.substring(p.name, 0, 1)}">김</span>
+      <div class="min-w-0 flex-grow-1">
+        <div class="fw-bold truncate" th:text="${p.name}"></div>
+        <div class="entry-sub" th:text="${p.clubName + ' · ' + p.divisionLabel + ' · ' + p.ratedMatches + '경기'}"></div>
+      </div>
+      <span class="rating fs-5" th:text="${p.rating}">1500</span>
+    </a>
+  </section>
+  <div th:replace="~{fragments/ui :: pager(${page}, @{/ranking})}"></div>
+</div>
+</body>
+</html>

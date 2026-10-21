@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>알림</title></head>
+<body>
+<div layout:fragment="content" class="container" style="max-width: 760px">
+  <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-2">
+    <h1>알림</h1>
+    <div class="d-flex gap-2">
+      <form th:action="@{/notifications/read-all}" method="post"><button class="btn btn-soft btn-sm" type="submit">모두 읽음</button></form>
+      <form th:action="@{/notifications/delete-read}" method="post" data-confirm="읽은 알림을 모두 삭제할까요?"><button class="btn btn-ghost btn-sm" type="submit">읽은 알림 삭제</button></form>
+    </div>
+  </div>
+  <section class="panel">
+    <th:block th:if="${page.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-bell-slash', '알림이 없습니다.')}"></div></th:block>
+    <div class="list-row align-items-start" th:each="n : ${page.content}" th:classappend="${n.read} ? 'opacity-75'">
+      <i class="bi fs-5 mt-1" th:classappend="${n.type.name() == 'CALL'} ? 'bi-megaphone-fill text-danger' : (${n.type.name() == 'SUCCESS'} ? 'bi-check-circle-fill text-success' : (${n.type.name() == 'WARNING'} ? 'bi-exclamation-circle-fill text-warning' : 'bi-info-circle-fill text-primary'))"></i>
+      <div class="min-w-0 flex-grow-1">
+        <div class="d-flex align-items-center gap-2">
+          <span class="fw-bold" th:text="${n.title}"></span>
+          <span class="tag tag-brand" th:unless="${n.read}">NEW</span>
+        </div>
+        <div class="small" th:text="${n.message}"></div>
+        <div class="entry-sub mt-1" th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd HH:mm')}"></div>
+      </div>
+      <div class="d-flex gap-1">
+        <form th:action="@{/notifications/{id}/read(id=${n.id})}" method="post" th:if="${n.link != null}">
+          <button class="btn btn-soft btn-xs" type="submit">보기</button>
+        </form>
+        <form th:action="@{/notifications/{id}/delete(id=${n.id})}" method="post">
+          <button class="btn btn-ghost btn-xs" type="submit" aria-label="삭제"><i class="bi bi-x-lg"></i></button>
+        </form>
+      </div>
+    </div>
+  </section>
+  <div th:replace="~{fragments/ui :: pager(${page}, @{/notifications})}"></div>
+</div>
+</body>
+</html>

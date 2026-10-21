@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title th:text="${tournament == null ? '대회 만들기' : '대회 설정'}">대회</title></head>
+<body>
+<div layout:fragment="content" class="container" style="max-width: 880px">
+  <div class="page-head">
+    <a class="small fw-semibold" th:href="${tournament == null ? '/admin/tournaments' : '/manage/tournaments/' + tournament.id}"><i class="bi bi-chevron-left"></i>돌아가기</a>
+    <h1 class="mt-1" th:text="${tournament == null ? '대회 만들기' : '대회 설정'}">대회</h1>
+    <p class="lead" th:if="${tournament == null}">만든 직후에는 비공개(준비중) 상태입니다. 운영 콘솔에서 '접수 시작'을 누르면 공개됩니다.</p>
+  </div>
+
+  <form class="panel panel-body" method="post" th:object="${form}"
+        th:action="${tournament == null} ? @{/admin/tournaments/new} : @{/admin/tournaments/{id}/edit(id=${tournament.id})}">
+    <div th:replace="~{fragments/ui :: globalErrors}"></div>
+
+    <div class="form-section">
+      <h3>기본 정보</h3>
+      <div class="mb-3">
+        <label class="form-label" for="title">대회명</label>
+        <input class="form-control" id="title" th:field="*{title}" th:errorclass="is-invalid" required maxlength="200" placeholder="예: 2026 안산시장배 생활체육 탁구대회 (남자 3~5부)">
+        <div class="invalid-feedback" th:if="${#fields.hasErrors('title')}" th:errors="*{title}"></div>
+      </div>
+      <div class="row g-3">
+        <div class="col-md-6">
+          <label class="form-label" for="venue">장소</label>
+          <input class="form-control" id="venue" th:field="*{venue}" maxlength="200" placeholder="체육관 이름">
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="registrationDeadline">접수 마감</label>
+          <input class="form-control" type="datetime-local" id="registrationDeadline" th:field="*{registrationDeadline}">
+          <div class="form-text">비우면 '접수 마감' 버튼을 누를 때까지 받습니다.</div>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="startAt">시작</label>
+          <input class="form-control" type="datetime-local" id="startAt" th:field="*{startAt}" th:errorclass="is-invalid" required>
+        </div>
+        <div class="col-md-6">
+          <label class="form-label" for="endAt">종료</label>
+          <input class="form-control" type="datetime-local" id="endAt" th:field="*{endAt}" th:errorclass="is-invalid" required>
+        </div>
+        <div class="col-12">
+          <label class="form-label" for="description">대회 안내</label>
+          <textarea class="form-control" id="description" rows="5" th:field="*{description}" maxlength="4000"
+                    placeholder="일정, 시상, 준비물, 주차 안내 등"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>경기 방식</h3>
+      <div class="choice-grid mb-3">
+        <div class="choice" th:each="f : ${formats}">
+          <input type="radio" th:id="${'fmt-' + f}" th:field="*{format}" th:value="${f}">
+          <label th:for="${'fmt-' + f}"><strong th:text="${f.label}"></strong><small th:text="${f.description}"></small></label>
+        </div>
+      </div>
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="entryType">종목</label>
+          <select class="form-select" id="entryType" th:field="*{entryType}">
+            <option th:each="e : ${entryTypes}" th:value="${e}" th:text="${e.label}"></option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="bestOf">게임 수</label>
+          <select class="form-select" id="bestOf" th:field="*{bestOf}">
+            <option value="3">3게임 (2선승)</option>
+            <option value="5">5게임 (3선승)</option>
+            <option value="7">7게임 (4선승)</option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="groupSize">조 인원</label>
+          <input class="form-control" type="number" id="groupSize" min="3" max="8" th:field="*{groupSize}">
+          <div class="form-text">리그+본선일 때</div>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="advancePerGroup">조별 본선 진출</label>
+          <input class="form-control" type="number" id="advancePerGroup" min="1" max="4" th:field="*{advancePerGroup}">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="tableCount">테이블 수</label>
+          <input class="form-control" type="number" id="tableCount" min="1" max="100" th:field="*{tableCount}">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <h3>참가 조건</h3>
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="divisionMin">부수 (상위)</label>
+          <select class="form-select" id="divisionMin" th:field="*{divisionMin}">
+            <option value="">제한 없음</option>
+            <option th:each="d : ${#numbers.sequence(1, 9)}" th:value="${d}" th:text="${d + '부'}"></option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="divisionMax">부수 (하위)</label>
+          <select class="form-select" id="divisionMax" th:field="*{divisionMax}">
+            <option value="">제한 없음</option>
+            <option th:each="d : ${#numbers.sequence(1, 9)}" th:value="${d}" th:text="${d + '부'}"></option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="genderRestriction">성별</label>
+          <select class="form-select" id="genderRestriction" th:field="*{genderRestriction}">
+            <option th:each="g : ${genderRestrictions}" th:value="${g}" th:text="${g.label}"></option>
+          </select>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="maxEntries">정원 (팀)</label>
+          <input class="form-control" type="number" id="maxEntries" min="2" th:field="*{maxEntries}" placeholder="제한 없음">
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label" for="entryFee">참가비 (원)</label>
+          <input class="form-control" type="number" id="entryFee" min="0" step="1000" th:field="*{entryFee}">
+        </div>
+        <div class="col-12 d-flex flex-wrap gap-4">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" th:field="*{autoConfirm}" id="autoConfirm">
+            <label class="form-check-label" for="autoConfirm">신청 즉시 확정 (운영진 승인 생략)</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" th:field="*{requireCheckIn}" id="requireCheckIn">
+            <label class="form-check-label" for="requireCheckIn">현장 체크인한 선수만 대진에 포함</label>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+      <a class="btn btn-soft" th:href="${tournament == null ? '/admin/tournaments' : '/manage/tournaments/' + tournament.id}">취소</a>
+      <button class="btn btn-primary" type="submit" th:text="${tournament == null ? '대회 만들기' : '저장'}">저장</button>
+    </div>
+  </form>
+</div>
+</body>
+</html>

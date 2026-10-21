@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout}">
+<head><title th:text="${t.title}">대회</title></head>
+<body>
+<div layout:fragment="content" class="container" th:attr="data-live-tournament=${board.live ? t.id : null}" data-live-toast>
+
+  <div class="page-head">
+    <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+      <span th:replace="~{fragments/ui :: status(${t.status})}"></span>
+      <span class="tag tag-brand" th:text="${t.entryType.label}">단식</span>
+      <span class="tag" th:text="${t.format.label}">방식</span>
+      <span class="tv-conn ms-auto" data-conn th:if="${board.live}"><span class="conn-dot"></span><span data-conn-label>연결 중…</span></span>
+    </div>
+    <h1 th:text="${t.title}">대회명</h1>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-8 order-2 order-lg-1">
+      <ul class="nav tabs mb-3" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-overview" type="button">개요</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-entries" type="button">참가자<span class="count" th:text="${board.activeEntries().size()}">0</span></button></li>
+        <li class="nav-item" th:if="${t.hasGroupStage()}"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-groups" type="button">예선 리그</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-bracket" type="button">본선 대진</button></li>
+        <li class="nav-item" th:if="${ratingChanges != null}"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-rating" type="button">레이팅 변동</button></li>
+      </ul>
+
+      <div class="tab-content">
+        <!-- 개요 -->
+        <div class="tab-pane fade show active" id="tab-overview" role="tabpanel">
+          <th:block th:if="${board.hasDraw()}">
+            <div class="mb-3" data-fragment="stats"><div th:replace="~{tournament/fragments :: stats}"></div></div>
+          </th:block>
+          <section class="panel mb-3" th:if="${board.live}">
+            <div class="panel-head"><h2><span class="live-dot me-2"></span>테이블 현황</h2>
+              <a class="btn btn-soft btn-sm" th:href="@{/tournament/{id}/board(id=${t.id})}" target="_blank"><i class="bi bi-tv me-1"></i>현황판</a></div>
+            <div class="panel-body" data-fragment="tables"><div th:replace="~{tournament/fragments :: tables}"></div></div>
+          </section>
+          <div class="row g-3 mb-3" th:if="${board.hasDraw()}">
+            <div class="col-md-6">
+              <section class="panel h-100"><div class="panel-head"><h2>다음 경기</h2></div>
+                <div data-fragment="queue"><div th:replace="~{tournament/fragments :: queue}"></div></div></section>
+            </div>
+            <div class="col-md-6">
+              <section class="panel h-100"><div class="panel-head"><h2>최근 결과</h2></div>
+                <div data-fragment="recent"><div th:replace="~{tournament/fragments :: recent}"></div></div></section>
+            </div>
+          </div>
+          <section class="panel">
+            <div class="panel-head"><h2>대회 안내</h2></div>
+            <div class="panel-body">
+              <p class="pre-wrap mb-0" th:text="${t.description ?: '등록된 안내가 없습니다.'}">안내</p>
+            </div>
+          </section>
+        </div>
+
+        <!-- 참가자 -->
+        <div class="tab-pane fade" id="tab-entries" role="tabpanel">
+          <section class="panel">
+            <div class="panel-head">
+              <h2>참가자 <span class="text-muted fw-normal" th:text="${board.activeEntries().size()}"></span></h2>
+              <input class="form-control form-control-sm" style="max-width: 200px" type="search" placeholder="이름·클럽 검색" data-filter-target="#entryList">
+            </div>
+            <th:block th:if="${board.activeEntries().isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-people', '아직 참가자가 없습니다.')}"></div></th:block>
+            <div class="table-responsive" th:unless="${board.activeEntries().isEmpty()}">
+              <table class="table table-hover">
+                <thead><tr><th>#</th><th>선수</th><th>부수</th><th class="text-end">레이팅</th><th th:if="${t.hasGroupStage()}">조</th><th>상태</th></tr></thead>
+                <tbody id="entryList">
+                <tr th:each="e, st : ${board.activeEntries()}" th:attr="data-filter-text=${e.displayName + ' ' + e.subLabel}">
+                  <td class="text-muted tnum" th:text="${st.count}">1</td>
+                  <td>
+                    <a class="text-reset" th:href="@{/player/{id}(id=${e.player.id})}"><div th:replace="~{fragments/ui :: entry(${e})}"></div></a>
+                  </td>
+                  <td th:text="${e.player.divisionLabel}">3부</td>
+                  <td class="text-end tnum" th:text="${e.strength}">1500</td>
+                  <td th:if="${t.hasGroupStage()}" th:text="${e.group != null ? e.group.name : '-'}">A조</td>
+                  <td><span th:replace="~{fragments/ui :: status(${e.status})}"></span></td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div class="tab-pane fade" id="tab-groups" role="tabpanel" th:if="${t.hasGroupStage()}">
+          <div data-fragment="groups"><div th:replace="~{tournament/fragments :: groups}"></div></div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-bracket" role="tabpanel">
+          <div class="d-flex justify-content-end mb-2 no-print">
+            <a class="btn btn-soft btn-sm" th:href="@{/tournament/{id}/bracket(id=${t.id})}"><i class="bi bi-arrows-fullscreen me-1"></i>크게 보기·인쇄</a>
+          </div>
+          <div data-fragment="bracket"><div th:replace="~{tournament/fragments :: bracket}"></div></div>
+        </div>
+
+        <div class="tab-pane fade" id="tab-rating" role="tabpanel" th:if="${ratingChanges != null}">
+          <section class="panel">
+            <div class="panel-head"><h2>이 대회 레이팅 변동</h2><span class="small text-muted">Elo · 부전승 제외</span></div>
+            <div class="table-responsive">
+              <table class="table">
+                <thead><tr><th>선수</th><th class="text-center">경기</th><th class="text-center">승</th><th class="text-end">전</th><th class="text-end">후</th><th class="text-end">변동</th></tr></thead>
+                <tbody>
+                <tr th:each="h : ${ratingChanges}">
+                  <td><a th:href="@{/player/{id}(id=${h.player.id})}" th:text="${h.player.name}">선수</a></td>
+                  <td class="text-center tnum" th:text="${h.matchCount}">3</td>
+                  <td class="text-center tnum" th:text="${h.wins}">2</td>
+                  <td class="text-end tnum text-muted" th:text="${h.beforeRating}">1500</td>
+                  <td class="text-end tnum fw-bold" th:text="${h.afterRating}">1516</td>
+                  <td class="text-end tnum" th:classappend="${h.delta >= 0} ? 'delta-up' : 'delta-down'" th:text="${(h.delta > 0 ? '+' : '') + h.delta}">+16</td>
+                </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- 우측: 정보 & 신청 -->
+    <aside class="col-lg-4 order-1 order-lg-2">
+      <section class="panel mb-3">
+        <div class="panel-body">
+          <dl class="row small mb-0 gy-2">
+            <dt class="col-4 text-muted fw-semibold">일시</dt>
+            <dd class="col-8 mb-0" th:text="${#temporals.format(t.startAt, 'yyyy.M.d (E) HH:mm')} + ' ~ ' + ${#temporals.format(t.endAt, 'HH:mm')}">일시</dd>
+            <dt class="col-4 text-muted fw-semibold">장소</dt><dd class="col-8 mb-0" th:text="${t.venue ?: '미정'}">장소</dd>
+            <dt class="col-4 text-muted fw-semibold">경기 규칙</dt><dd class="col-8 mb-0" th:text="${t.bestOfLabel}">5게임 3선승제</dd>
+            <dt class="col-4 text-muted fw-semibold">진행 방식</dt>
+            <dd class="col-8 mb-0">
+              <span th:text="${t.format.label}"></span>
+              <div class="text-muted" th:if="${t.hasGroupStage()}" th:text="${t.groupSize + '인 1조 · 조별 상위 ' + t.advancePerGroup + '명 본선'}"></div>
+            </dd>
+            <dt class="col-4 text-muted fw-semibold">참가 자격</dt>
+            <dd class="col-8 mb-0" th:text="${t.divisionLabel + ' · ' + t.genderRestriction.label}">부수</dd>
+            <dt class="col-4 text-muted fw-semibold">참가비</dt>
+            <dd class="col-8 mb-0" th:text="${t.entryFee > 0 ? #numbers.formatInteger(t.entryFee, 1, 'COMMA') + '원' : '무료'}">무료</dd>
+            <dt class="col-4 text-muted fw-semibold">정원</dt>
+            <dd class="col-8 mb-0" th:text="${t.maxEntries != null ? board.activeEntries().size() + ' / ' + t.maxEntries + '팀' : board.activeEntries().size() + '팀 (제한 없음)'}">정원</dd>
+            <th:block th:if="${t.registrationDeadline != null}">
+              <dt class="col-4 text-muted fw-semibold">접수 마감</dt>
+              <dd class="col-8 mb-0" th:text="${#temporals.format(t.registrationDeadline, 'M.d (E) HH:mm')}">마감</dd>
+            </th:block>
+            <th:block th:if="${t.requireCheckIn}">
+              <dt class="col-4 text-muted fw-semibold">체크인</dt><dd class="col-8 mb-0">대회 당일 현장 체크인 필수</dd>
+            </th:block>
+          </dl>
+        </div>
+      </section>
+
+      <section class="panel mb-3">
+        <div class="panel-body">
+          <!-- 내 신청 상태 -->
+          <th:block th:if="${myEntry != null}">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+              <span class="fw-bold">내 참가 신청</span>
+              <span th:replace="~{fragments/ui :: status(${myEntry.status})}"></span>
+            </div>
+            <div class="small text-muted mb-2" th:if="${myEntry.group != null}" th:text="${myEntry.group.name + ' 배정'}"></div>
+            <form th:if="${myEntry.status.active and !board.hasDraw()}" th:action="@{/entries/{id}/cancel(id=${myEntry.id})}" method="post"
+                  data-confirm="참가 신청을 취소할까요?">
+              <button class="btn btn-soft w-100" type="submit">신청 취소</button>
+            </form>
+            <p class="small text-muted mb-0 mt-2" th:if="${myEntry.status.name() == 'APPLIED'}">운영진이 확인하면 '확정'으로 바뀌고 알림이 갑니다.</p>
+          </th:block>
+
+          <th:block th:if="${(myEntry == null or myEntry.withdrawn) and registrationOpen}">
+            <th:block sec:authorize="!isAuthenticated()">
+              <a class="btn btn-primary w-100" th:href="@{/user/login}">로그인하고 참가 신청</a>
+            </th:block>
+            <th:block sec:authorize="isAuthenticated()">
+              <th:block th:if="${myPlayer == null}">
+                <p class="small text-muted">참가 신청 전에 선수 프로필(성별·부수·클럽)을 등록해야 합니다.</p>
+                <a class="btn btn-primary w-100" th:href="@{/me/player}">선수 프로필 등록</a>
+              </th:block>
+              <form th:if="${myPlayer != null}" th:action="@{/tournament/{id}/apply(id=${t.id})}" method="post" data-confirm="이 대회에 참가 신청할까요?">
+                <div class="mb-2" th:if="${t.doubles}">
+                  <label class="form-label" for="partnerId">복식 파트너</label>
+                  <input class="form-control form-control-sm mb-1" type="search" placeholder="이름으로 찾기" data-option-filter="#partnerId">
+                  <select class="form-select" id="partnerId" name="partnerId" required>
+                    <option value="">파트너 선택</option>
+                    <option th:each="p : ${partners}" th:value="${p.id}" th:text="${p.name + ' · ' + p.clubName + ' · ' + p.divisionLabel}">파트너</option>
+                  </select>
+                </div>
+                <button class="btn btn-primary w-100" type="submit"><i class="bi bi-pencil-square me-1"></i>참가 신청</button>
+                <div class="small text-muted mt-2" th:text="${'내 프로필: ' + myPlayer.divisionLabel + ' · ' + myPlayer.clubName}"></div>
+              </form>
+            </th:block>
+          </th:block>
+
+          <th:block th:if="${myEntry == null and !registrationOpen}">
+            <div class="text-muted small" th:switch="${t.status.name()}">
+              <span th:case="'COMPLETED'">종료된 대회입니다.</span>
+              <span th:case="'IN_PROGRESS'">대회가 진행 중입니다. 실시간 결과를 확인하세요.</span>
+              <span th:case="'CANCELLED'">취소된 대회입니다.</span>
+              <span th:case="*">현재 참가 신청을 받지 않습니다.</span>
+            </div>
+          </th:block>
+
+          <div class="d-grid gap-2 mt-3">
+            <a class="btn btn-soft btn-sm" th:href="@{/tournament/{id}/bracket(id=${t.id})}"><i class="bi bi-diagram-3 me-1"></i>대진표</a>
+            <a class="btn btn-soft btn-sm" th:href="@{/tournament/{id}/board(id=${t.id})}" target="_blank"><i class="bi bi-tv me-1"></i>현황판 (대형 화면)</a>
+            <a class="btn btn-accent btn-sm" sec:authorize="hasRole('STAFF')" th:href="@{/manage/tournaments/{id}(id=${t.id})}"><i class="bi bi-sliders me-1"></i>운영 콘솔</a>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+</div>
+<th:block layout:fragment="scripts">
+  <script th:if="${board.live}" th:src="@{/vendor/stomp/stomp.umd.min.js}"></script>
+  <script th:src="@{/js/live.js}"></script>
+</th:block>
+</body>
+</html>

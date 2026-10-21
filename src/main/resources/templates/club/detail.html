@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout}">
+<head><title th:text="${club.name}">클럽</title></head>
+<body>
+<div layout:fragment="content" class="container" style="max-width: 960px">
+  <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-2">
+    <div>
+      <a class="small fw-semibold" th:href="@{/clubs}"><i class="bi bi-chevron-left"></i>클럽</a>
+      <h1 class="mt-1" th:text="${club.name}">클럽</h1>
+      <p class="lead" th:text="${club.region ?: ''}"></p>
+    </div>
+    <div class="d-flex gap-2" sec:authorize="hasRole('STAFF')">
+      <a class="btn btn-soft btn-sm" th:href="@{/manage/clubs/{id}/edit(id=${club.id})}"><i class="bi bi-pencil me-1"></i>수정</a>
+      <form th:action="@{/manage/clubs/{id}/delete(id=${club.id})}" method="post" data-confirm="클럽을 삭제할까요? 소속 선수가 있으면 삭제되지 않습니다.">
+        <button class="btn btn-ghost btn-sm text-danger" type="submit">삭제</button>
+      </form>
+    </div>
+  </div>
+  <section class="panel mb-4" th:if="${club.description != null}">
+    <div class="panel-body pre-wrap" th:text="${club.description}"></div>
+  </section>
+  <section class="panel">
+    <div class="panel-head"><h2>소속 선수 <span class="text-muted fw-normal" th:text="${members.size()}"></span></h2></div>
+    <th:block th:if="${members.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-people', '소속 선수가 없습니다.')}"></div></th:block>
+    <a class="list-row" th:each="p, st : ${members}" th:href="@{/player/{id}(id=${p.id})}">
+      <span class="rank-no" th:text="${st.count}">1</span>
+      <span class="avatar" th:text="${#strings.substring(p.name, 0, 1)}">김</span>
+      <div class="min-w-0 flex-grow-1">
+        <div class="fw-semibold" th:text="${p.name}"></div>
+        <div class="entry-sub" th:text="${p.divisionLabel + ' · ' + p.gender.label}"></div>
+      </div>
+      <span class="rating" th:text="${p.rating}">1500</span>
+    </a>
+  </section>
+</div>
+</body>
+</html>

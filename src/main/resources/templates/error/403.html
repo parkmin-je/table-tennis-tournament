@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>접근 권한이 없습니다</title></head>
+<body>
+<div layout:fragment="content" class="container py-5 text-center" style="max-width: 560px">
+  <div class="display-4 fw-black text-faint mb-2">403</div>
+  <h1 class="h4 fw-bold mb-2">접근 권한이 없습니다</h1>
+  <p class="text-muted mb-4" th:text="${#strings.isEmpty(message) ? '이 화면은 운영진 또는 관리자만 볼 수 있습니다.' : message}">이 화면은 운영진 또는 관리자만 볼 수 있습니다.</p>
+  <div class="d-flex justify-content-center gap-2">
+    <a class="btn btn-primary" th:href="@{/}">홈으로</a>
+    <a class="btn btn-soft" th:href="@{/tournaments}">대회 목록</a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout}">
+<head><title th:text="${player.name}">선수</title></head>
+<body>
+<div layout:fragment="content" class="container" th:with="p=${player}">
+  <div class="page-head d-flex flex-wrap gap-3 align-items-center">
+    <span class="avatar lg" th:text="${#strings.substring(p.name, 0, 1)}">김</span>
+    <div class="flex-grow-1">
+      <h1 th:text="${p.name}">선수</h1>
+      <div class="d-flex flex-wrap gap-2 mt-2">
+        <a class="tag tag-brand" th:if="${p.club != null}" th:href="@{/club/{id}(id=${p.club.id})}" th:text="${p.clubName}"></a>
+        <span class="tag" th:unless="${p.club != null}">무소속</span>
+        <span class="tag" th:text="${p.divisionLabel}"></span>
+        <span class="tag" th:text="${p.gender.label}"></span>
+        <span class="tag" th:if="${p.birthYear != null}" th:text="${p.birthYear + '년생'}"></span>
+      </div>
+    </div>
+    <div class="d-flex gap-2" sec:authorize="hasRole('STAFF')">
+      <a class="btn btn-soft btn-sm" th:href="@{/manage/players/{id}/edit(id=${p.id})}"><i class="bi bi-pencil me-1"></i>수정</a>
+      <form th:action="@{/manage/players/{id}/delete(id=${p.id})}" method="post" data-confirm="선수를 삭제할까요? 대회 기록이 있으면 삭제할 수 없습니다.">
+        <button class="btn btn-ghost btn-sm text-danger" type="submit">삭제</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="panel stat"><div class="label">레이팅</div><div class="value tnum" th:text="${p.rating}">1500</div>
+      <div class="sub" th:text="${p.ratedMatches + '경기 반영'}"></div></div></div>
+    <div class="col-6 col-md-3"><div class="panel stat"><div class="label">전적</div><div class="value tnum" th:text="${stats.wins + '승 ' + stats.losses + '패'}">0승</div>
+      <div class="sub">부전승 제외</div></div></div>
+    <div class="col-6 col-md-3"><div class="panel stat"><div class="label">승률</div><div class="value tnum" th:text="${stats.winRate() + '%'}">0%</div></div></div>
+    <div class="col-6 col-md-3"><div class="panel stat"><div class="label">게임 득실</div><div class="value tnum" th:text="${stats.gamesWon + ':' + stats.gamesLost}">0:0</div></div></div>
+  </div>
+
+  <div class="row g-4">
+    <div class="col-lg-7">
+      <section class="panel">
+        <div class="panel-head"><h2>최근 경기</h2></div>
+        <th:block th:if="${stats.recent.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-clipboard', '아직 경기 기록이 없습니다.')}"></div></th:block>
+        <div class="match-list">
+          <a class="match-item d-flex gap-3 align-items-center text-reset" th:each="line : ${stats.recent}" th:href="@{/tournament/{id}(id=${line.match.tournament.id})}">
+            <span class="tag" th:classappend="${line.won} ? 'tag-success' : 'tag-danger'" th:text="${line.won ? '승' : '패'}">승</span>
+            <div class="min-w-0 flex-grow-1">
+              <div class="fw-semibold truncate" th:text="${'vs ' + (line.opponent != null ? line.opponent.displayName : '-')}"></div>
+              <div class="entry-sub truncate" th:text="${line.match.tournament.title + ' · ' + line.match.roundLabel}"></div>
+            </div>
+            <div class="text-end">
+              <div class="fw-bold tnum" th:text="${line.match.scoreLabel}"></div>
+              <div class="games" th:if="${line.match.finishedAt != null}" th:text="${#temporals.format(line.match.finishedAt, 'yyyy.MM.dd')}"></div>
+            </div>
+          </a>
+        </div>
+      </section>
+    </div>
+    <div class="col-lg-5">
+      <section class="panel mb-4">
+        <div class="panel-head"><h2>레이팅 변동</h2></div>
+        <th:block th:if="${history.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-graph-up', '대회가 끝나면 레이팅이 반영됩니다.')}"></div></th:block>
+        <a class="list-row" th:each="h : ${history}" th:href="@{/tournament/{id}(id=${h.tournament.id})}">
+          <div class="min-w-0 flex-grow-1">
+            <div class="fw-semibold truncate" th:text="${h.tournament.title}"></div>
+            <div class="entry-sub" th:text="${h.matchCount + '경기 ' + h.wins + '승'}"></div>
+          </div>
+          <div class="text-end">
+            <div class="rating" th:text="${h.afterRating}"></div>
+            <div class="small" th:classappend="${h.delta >= 0} ? 'delta-up' : 'delta-down'" th:text="${(h.delta > 0 ? '+' : '') + h.delta}"></div>
+          </div>
+        </a>
+      </section>
+      <section class="panel">
+        <div class="panel-head"><h2>참가 대회</h2></div>
+        <th:block th:if="${entries.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-trophy', '참가한 대회가 없습니다.')}"></div></th:block>
+        <a class="list-row" th:each="e : ${entries}" th:href="@{/tournament/{id}(id=${e.tournament.id})}">
+          <div class="min-w-0 flex-grow-1">
+            <div class="fw-semibold truncate" th:text="${e.tournament.title}"></div>
+            <div class="entry-sub" th:text="${#temporals.format(e.tournament.startAt, 'yyyy.MM.dd') + (e.partner != null ? ' · 복식 ' + e.displayName : '')}"></div>
+          </div>
+          <span th:replace="~{fragments/ui :: status(${e.status})}"></span>
+        </a>
+      </section>
+    </div>
+  </div>
+</div>
+</body>
+</html>

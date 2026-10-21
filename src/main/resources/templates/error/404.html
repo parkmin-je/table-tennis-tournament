@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>페이지를 찾을 수 없습니다</title></head>
+<body>
+<div layout:fragment="content" class="container py-5 text-center" style="max-width: 560px">
+  <div class="display-4 fw-black text-faint mb-2">404</div>
+  <h1 class="h4 fw-bold mb-2">페이지를 찾을 수 없습니다</h1>
+  <p class="text-muted mb-4" th:text="${#strings.isEmpty(message) ? '주소가 바뀌었거나 삭제된 페이지입니다.' : message}">주소가 바뀌었거나 삭제된 페이지입니다.</p>
+  <div class="d-flex justify-content-center gap-2">
+    <a class="btn btn-primary" th:href="@{/}">홈으로</a>
+    <a class="btn btn-soft" th:href="@{/tournaments}">대회 목록</a>
+  </div>
+</div>
+</body>
+</html>

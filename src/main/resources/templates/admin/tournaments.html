@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>대회 관리</title></head>
+<body>
+<div layout:fragment="content" class="container">
+  <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-2">
+    <div><a class="small fw-semibold" th:href="@{/admin}"><i class="bi bi-chevron-left"></i>관리자</a><h1 class="mt-1">대회 관리</h1>
+      <p class="lead">비공개(준비중) 대회까지 모두 표시됩니다.</p></div>
+    <a class="btn btn-primary" th:href="@{/admin/tournaments/new}"><i class="bi bi-plus-lg me-1"></i>대회 만들기</a>
+  </div>
+  <section class="panel">
+    <th:block th:if="${tournaments.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-trophy', '대회가 없습니다.')}"></div></th:block>
+    <div class="table-responsive" th:unless="${tournaments.isEmpty()}">
+      <table class="table table-hover">
+        <thead><tr><th>일시</th><th>대회</th><th>방식</th><th>상태</th><th class="text-end">작업</th></tr></thead>
+        <tbody>
+        <tr th:each="t : ${tournaments}">
+          <td class="text-nowrap small" th:text="${#temporals.format(t.startAt, 'yyyy.MM.dd HH:mm')}"></td>
+          <td><a class="fw-semibold" th:href="@{/manage/tournaments/{id}(id=${t.id})}" th:text="${t.title}"></a>
+            <div class="entry-sub" th:text="${t.venue}"></div></td>
+          <td class="small" th:text="${t.format.label + ' · ' + t.entryType.label}"></td>
+          <td><span th:replace="~{fragments/ui :: status(${t.status})}"></span></td>
+          <td class="text-end text-nowrap">
+            <a class="btn btn-soft btn-xs" th:href="@{/manage/tournaments/{id}(id=${t.id})}">운영</a>
+            <a class="btn btn-soft btn-xs" th:href="@{/admin/tournaments/{id}/edit(id=${t.id})}">설정</a>
+            <form class="d-inline" th:action="@{/admin/tournaments/{id}/delete(id=${t.id})}" method="post"
+                  th:attr="data-confirm=${'[' + t.title + '] 대회를 삭제할까요? 대진이 없는 대회만 삭제됩니다.'}">
+              <button class="btn btn-ghost btn-xs text-danger" type="submit">삭제</button>
+            </form>
+          </td>
+        </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+</body>
+</html>

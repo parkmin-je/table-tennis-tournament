@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>대회 일정</title></head>
+<body>
+<div layout:fragment="content" class="container">
+  <div class="page-head">
+    <div class="eyebrow">Calendar</div>
+    <h1>대회 일정</h1>
+    <div class="d-flex flex-wrap gap-2 mt-2 small">
+      <span class="tag tag-success">접수중</span><span class="tag tag-warning">접수마감</span>
+      <span class="tag tag-live">진행중</span><span class="tag tag-dark">종료</span>
+    </div>
+  </div>
+  <section class="panel panel-body">
+    <div id="calendar"></div>
+  </section>
+</div>
+<th:block layout:fragment="scripts">
+  <script th:src="@{/vendor/fullcalendar/index.global.min.js}"></script>
+  <script th:src="@{/vendor/fullcalendar/ko.global.min.js}"></script>
+  <script th:src="@{/js/calendar.js}"></script>
+</th:block>
+</body>
+</html>

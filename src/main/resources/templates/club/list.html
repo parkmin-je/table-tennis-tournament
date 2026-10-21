@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout}">
+<head><title>클럽</title></head>
+<body>
+<div layout:fragment="content" class="container">
+  <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-2">
+    <div><div class="eyebrow">Clubs</div><h1>클럽</h1><p class="lead">지역 탁구 클럽과 소속 선수를 확인하세요.</p></div>
+    <a class="btn btn-primary" sec:authorize="hasRole('STAFF')" th:href="@{/manage/clubs/new}"><i class="bi bi-plus-lg me-1"></i>클럽 등록</a>
+  </div>
+  <div class="panel" th:if="${clubs.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-house', '등록된 클럽이 없습니다.')}"></div></div>
+  <div class="row g-3">
+    <div class="col-md-6 col-xl-4" th:each="c : ${clubs}">
+      <a class="panel card-link p-3 h-100 d-flex gap-3" th:href="@{/club/{id}(id=${c.club.id})}">
+        <span class="avatar lg" style="width: 56px; height: 56px; font-size: 1.2rem" th:text="${#strings.substring(c.club.name, 0, 1)}">안</span>
+        <div class="min-w-0">
+          <h3 class="h6 fw-bold mb-1 truncate" th:text="${c.club.name}">클럽</h3>
+          <div class="entry-sub mb-2" th:text="${c.club.region ?: '지역 미정'}"></div>
+          <div class="d-flex gap-2">
+            <span class="tag" th:text="${'선수 ' + c.members + '명'}"></span>
+            <span class="tag tag-brand" th:if="${c.members > 0}" th:text="${'평균 ' + c.avgRating}"></span>
+          </div>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

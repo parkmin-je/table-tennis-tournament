@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>로그인</title></head>
+<body>
+<div layout:fragment="content" class="container py-5" style="max-width: 420px">
+  <div class="text-center mb-4">
+    <span class="brand-mark mx-auto mb-3" style="width: 48px; height: 48px; font-size: 1.4rem"><i class="bi bi-lightning-charge-fill"></i></span>
+    <h1 class="h4 fw-black">로그인</h1>
+  </div>
+  <div class="panel panel-body">
+    <div class="alert alert-danger py-2 small" th:if="${param.error}">아이디 또는 비밀번호가 올바르지 않습니다.</div>
+    <div class="alert alert-danger py-2 small" th:if="${param.locked}" th:text="${'로그인 시도가 너무 많아 잠시 차단되었습니다. 약 ' + param.locked[0] + '분 후 다시 시도하세요.'}"></div>
+    <div class="alert alert-warning py-2 small" th:if="${param.disabled}">비활성화된 계정입니다. 관리자에게 문의하세요.</div>
+    <div class="alert alert-info py-2 small" th:if="${param.expired}">권한이 변경되었거나 다른 곳에서 로그아웃되어 다시 로그인이 필요합니다.</div>
+    <form th:action="@{/user/login}" method="post" class="d-grid gap-3" data-allow-resubmit>
+      <div>
+        <label class="form-label" for="username">아이디</label>
+        <input class="form-control" id="username" name="username" required autocomplete="username" autofocus maxlength="50">
+      </div>
+      <div>
+        <label class="form-label" for="password">비밀번호</label>
+        <input class="form-control" id="password" name="password" type="password" required autocomplete="current-password">
+      </div>
+      <button class="btn btn-primary btn-lg" type="submit">로그인</button>
+    </form>
+  </div>
+  <p class="text-center small text-muted mt-3">아직 회원이 아니신가요? <a th:href="@{/user/signup}">회원가입</a></p>
+  <p class="text-center small text-muted">비밀번호를 잊으셨다면 운영진에게 임시 비밀번호 발급을 요청하세요.</p>
+</div>
+</body>
+</html>
