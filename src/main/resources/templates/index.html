@@ -3,135 +3,128 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout}">
 <head><title>홈</title></head>
 <body>
-<div layout:fragment="content" class="container py-4" th:with="h=${home}">
+<div layout:fragment="content" class="container pb-2" th:with="h=${home}">
 
-  <section class="hero mb-4">
-    <div class="hero-table"></div><div class="hero-ball"></div>
-    <div class="position-relative" style="max-width: 640px">
-      <div class="eyebrow text-white-50 mb-2">생활체육 탁구 대회 플랫폼</div>
-      <h1 class="mb-3">접수부터 대진, 실시간 결과까지<br>한 곳에서.</h1>
-      <p class="mb-4">조 편성과 시드 배정은 자동으로, 경기 호출과 결과는 현황판에 바로. 운영진은 콘솔 하나로 대회를 진행합니다.</p>
-      <div class="d-flex flex-wrap gap-2">
-        <a class="btn btn-light" th:href="@{/tournaments}"><i class="bi bi-trophy me-1"></i>대회 둘러보기</a>
-        <a class="btn btn-accent" th:href="@{/user/signup}" sec:authorize="!isAuthenticated()">회원가입</a>
-        <a class="btn btn-accent" th:href="@{/me/player}" sec:authorize="isAuthenticated()">내 선수 프로필</a>
-      </div>
+  <section class="wall-hero d-flex flex-wrap align-items-end justify-content-between gap-3">
+    <div>
+      <h1 th:if="${!h.liveBoards.isEmpty()}">오늘 경기가 진행 중입니다</h1>
+      <h1 th:if="${h.liveBoards.isEmpty()}">안산시 탁구 협회 대회</h1>
+      <p>참가 신청부터 내 경기 호출, 대진표와 결과까지 여기서 확인하세요. 대회장 벽에 붙은 대진표와 같은 내용이 실시간으로 채워집니다.</p>
+    </div>
+    <div class="d-flex flex-wrap gap-2">
+      <a class="btn btn-ink" th:href="@{/tournaments}"><i class="bi bi-trophy me-1"></i>대회 보기</a>
+      <a class="btn btn-soft" th:href="@{/user/signup}" sec:authorize="!isAuthenticated()">회원가입</a>
+      <a class="btn btn-soft" th:href="@{/me}" sec:authorize="isAuthenticated()">내 대회</a>
     </div>
   </section>
 
-  <!-- 진행 중 -->
-  <section class="mb-4" th:if="${!h.live.isEmpty()}">
-    <div class="d-flex align-items-center gap-2 mb-2">
-      <span class="live-dot"></span><h2 class="h5 fw-bold m-0">지금 진행 중</h2>
+  <!-- 진행 중인 대회: 테이블 시간표 + 다음 호출 -->
+  <section class="panel live-sheet mb-4" th:each="bd : ${h.liveBoards}" th:with="t=${bd.tournament()}">
+    <div class="panel-head">
+      <h2><span class="live-dot red pulse"></span><a class="text-reset" th:href="@{/tournament/{id}(id=${t.id})}" th:text="${t.title}">대회</a></h2>
+      <div class="d-flex gap-2">
+        <a class="btn btn-soft btn-sm" th:href="@{/tournament/{id}/bracket(id=${t.id})}">대진표</a>
+        <a class="btn btn-soft btn-sm" th:href="@{/tournament/{id}/board(id=${t.id})}" target="_blank"><i class="bi bi-tv me-1"></i>현황판</a>
+      </div>
     </div>
-    <div class="row g-3">
-      <div class="col-md-6" th:each="t : ${h.live}">
-        <a class="panel card-link t-card" th:href="@{/tournament/{id}(id=${t.id})}">
-          <div class="d-flex justify-content-between align-items-start gap-2">
-            <h3 th:text="${t.title}">대회명</h3>
-            <span th:replace="~{fragments/ui :: status(${t.status})}"></span>
+    <div class="row g-0">
+      <div class="col-lg-8 border-end-lg">
+        <div class="table-responsive">
+          <table class="table align-middle">
+            <thead><tr><th class="text-center" style="width: 84px">테이블</th><th style="width: 110px">라운드</th><th>선수</th><th class="text-center" style="width: 44px"></th><th>선수</th></tr></thead>
+            <tbody>
+            <tr th:each="tb : ${bd.tables()}" th:if="${!tb.free}">
+              <td class="text-center fs-4 fw-black tnum" th:text="${tb.number}">1</td>
+              <td class="fw-semibold" th:text="${tb.match.roundLabel}">8강</td>
+              <td><div th:replace="~{fragments/ui :: entry(${tb.match.entry1})}"></div></td>
+              <td class="text-center fw-bold text-danger small">VS</td>
+              <td><div th:replace="~{fragments/ui :: entry(${tb.match.entry2})}"></div></td>
+            </tr>
+            <tr th:if="${bd.liveCount() == 0}"><td colspan="5" class="text-center text-muted py-4">지금은 모든 테이블이 비어 있습니다.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="col-lg-4">
+        <div class="px-3 pt-3 pb-1 fw-bold"><i class="bi bi-megaphone-fill text-danger me-1" aria-hidden="true"></i>다음 호출</div>
+        <div class="match-list">
+          <div class="match-item" th:each="m, st : ${bd.queue()}" th:if="${st.index < 4}">
+            <div class="row-meta"><span th:text="${m.roundLabel}"></span><span th:text="${st.count + '번째'}"></span></div>
+            <div class="fw-bold"><span th:text="${m.entry1.displayName}"></span> <span class="text-danger small">VS</span> <span th:text="${m.entry2.displayName}"></span></div>
           </div>
-          <div class="t-meta">
-            <span><i class="bi bi-geo-alt"></i><span th:text="${t.venue ?: '장소 미정'}"></span></span>
-            <span><i class="bi bi-diagram-3"></i><span th:text="${t.format.label}"></span></span>
-          </div>
-          <div class="d-flex gap-2 mt-1">
-            <span class="btn btn-soft btn-sm">대진·결과</span>
-          </div>
-        </a>
+          <div class="match-item text-muted" th:if="${bd.queue().isEmpty()}">대기 중인 경기가 없습니다.</div>
+        </div>
       </div>
     </div>
   </section>
 
   <div class="row g-4">
     <div class="col-lg-8">
-      <!-- 실시간 경기 -->
-      <section class="panel mb-4" th:if="${!h.liveMatches.isEmpty()}">
-        <div class="panel-head">
-          <h2><span class="live-dot me-2"></span>진행 중인 경기</h2>
-        </div>
-        <div class="match-list">
-          <a class="match-item d-block text-reset" th:each="m : ${h.liveMatches}" th:href="@{/tournament/{id}(id=${m.tournament.id})}">
-            <div class="d-flex justify-content-between entry-sub mb-1">
-              <span th:text="${m.tournament.title + ' · ' + m.roundLabel}"></span>
-              <span class="fw-bold" th:text="${m.tableNumber + '번 테이블'}"></span>
-            </div>
-            <div th:replace="~{fragments/ui :: matchLine(${m})}"></div>
-          </a>
-        </div>
-      </section>
-
-      <!-- 접수/예정 대회 -->
       <section>
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <h2 class="h5 fw-bold m-0">접수 중 · 예정 대회</h2>
-          <a class="small fw-semibold" th:href="@{/tournaments}">전체 보기 <i class="bi bi-chevron-right"></i></a>
+        <div class="d-flex justify-content-between align-items-baseline mb-3">
+          <h2 class="h4 fw-black m-0">접수 중인 대회</h2>
+          <a class="fw-semibold" th:href="@{/tournaments}">전체 대회</a>
         </div>
         <div class="panel" th:if="${h.upcoming.isEmpty()}">
-          <div th:replace="~{fragments/ui :: empty('bi-calendar-x', '예정된 대회가 없습니다.')}"></div>
+          <div th:replace="~{fragments/ui :: empty('bi-calendar-x', '지금 접수 중이거나 예정된 대회가 없습니다. 일정이 잡히면 여기에 붙습니다.')}"></div>
         </div>
-        <div class="row g-3">
+        <div class="row g-4 pt-2">
           <div class="col-md-6" th:each="t : ${h.upcoming}">
-            <a class="panel card-link t-card" th:href="@{/tournament/{id}(id=${t.id})}">
-              <div class="d-flex gap-3">
+            <a class="panel sheet-link t-sheet pinned" th:href="@{/tournament/{id}(id=${t.id})}">
+              <div class="d-flex gap-3 align-items-start">
                 <div th:replace="~{fragments/ui :: dateChip(${t.startAt})}"></div>
                 <div class="min-w-0 flex-grow-1">
-                  <div class="d-flex justify-content-between gap-2 mb-1">
-                    <h3 class="truncate" th:text="${t.title}">대회명</h3>
-                    <span th:replace="~{fragments/ui :: status(${t.status})}"></span>
-                  </div>
-                  <div class="t-meta">
+                  <h3 class="sheet-title" th:text="${t.title}">대회명</h3>
+                  <div class="t-facts mt-1">
                     <span><i class="bi bi-geo-alt"></i><span th:text="${t.venue ?: '장소 미정'}"></span></span>
                     <span><i class="bi bi-person-check"></i><span th:text="${t.divisionLabel}"></span></span>
-                    <span th:if="${t.registrationDeadline != null}"><i class="bi bi-hourglass-split"></i>
-                      <span th:text="${'마감 ' + #temporals.format(t.registrationDeadline, 'M/d HH:mm')}"></span></span>
                   </div>
                 </div>
+              </div>
+              <div class="t-foot">
+                <span th:replace="~{fragments/ui :: status(${t.status})}"></span>
+                <span class="entry-sub ms-auto" th:if="${t.registrationDeadline != null}"
+                      th:text="${#temporals.format(t.registrationDeadline, 'M월 d일 HH:mm') + ' 마감'}"></span>
               </div>
             </a>
           </div>
         </div>
       </section>
 
-      <section class="mt-4" th:if="${!h.champions.isEmpty()}">
-        <h2 class="h5 fw-bold mb-2">최근 우승자</h2>
-        <div class="row g-3">
-          <div class="col-md-4" th:each="c : ${h.champions}">
-            <a class="panel card-link p-3 h-100" th:href="@{/tournament/{id}/bracket(id=${c.tournament.id})}">
-              <div class="d-flex align-items-center gap-2 mb-1"><span class="fs-4">🏆</span><span class="fw-bold truncate" th:text="${c.name}"></span></div>
-              <div class="entry-sub" th:text="${c.club}"></div>
-              <div class="small text-muted truncate mt-1" th:text="${c.tournament.title}"></div>
-            </a>
-          </div>
+      <section class="mt-5" th:if="${!h.champions.isEmpty()}">
+        <h2 class="h4 fw-black mb-3">최근 우승</h2>
+        <div class="panel">
+          <a class="list-row" th:each="c : ${h.champions}" th:href="@{/tournament/{id}/bracket(id=${c.tournament.id})}">
+            <i class="bi bi-trophy text-danger fs-5" aria-hidden="true"></i>
+            <div class="min-w-0 flex-grow-1">
+              <div class="fw-bold truncate" th:text="${c.name}"></div>
+              <div class="entry-sub truncate" th:text="${c.club}"></div>
+            </div>
+            <span class="small text-muted text-end truncate" style="max-width: 50%" th:text="${c.tournament.title}"></span>
+          </a>
         </div>
       </section>
     </div>
 
     <div class="col-lg-4">
       <section class="panel mb-4">
-        <div class="panel-head">
-          <h2>레이팅 TOP 5</h2>
-          <a class="small fw-semibold" th:href="@{/ranking}">랭킹</a>
-        </div>
-        <th:block th:if="${h.topPlayers.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-bar-chart', '대회가 끝나면 레이팅 순위가 표시됩니다.')}"></div></th:block>
+        <div class="panel-head"><h2>레이팅 상위</h2><a class="back-link" th:href="@{/ranking}">랭킹 전체</a></div>
+        <th:block th:if="${h.topPlayers.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-bar-chart', '대회가 끝나면 레이팅 순위가 생깁니다.')}"></div></th:block>
         <a class="list-row" th:each="p, st : ${h.topPlayers}" th:href="@{/player/{id}(id=${p.id})}">
           <span class="rank-no" th:classappend="${st.index < 3} ? 'top'" th:text="${st.count}">1</span>
           <div class="min-w-0 flex-grow-1">
-            <div class="fw-semibold truncate" th:text="${p.name}"></div>
-            <div class="entry-sub" th:text="${p.clubName + ' · ' + p.divisionLabel}"></div>
+            <div class="fw-bold truncate" th:text="${p.name}"></div>
+            <div class="entry-sub" th:text="${p.clubName + ', ' + p.divisionLabel}"></div>
           </div>
-          <span class="rating" th:text="${p.rating}">1500</span>
+          <span class="rating tnum" th:text="${p.rating}">1500</span>
         </a>
       </section>
 
       <section class="panel">
-        <div class="panel-head">
-          <h2>공지사항</h2>
-          <a class="small fw-semibold" th:href="@{/board(category='NOTICE')}">더보기</a>
-        </div>
+        <div class="panel-head"><h2>공지사항</h2><a class="back-link" th:href="@{/board(category='NOTICE')}">공지 전체</a></div>
         <th:block th:if="${h.notices.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-megaphone', '공지사항이 없습니다.')}"></div></th:block>
         <a class="list-row" th:each="n : ${h.notices}" th:href="@{/board/{id}(id=${n.id})}">
-          <i class="bi" th:classappend="${n.pinned} ? 'bi-pin-angle-fill text-danger' : 'bi-megaphone text-faint'"></i>
+          <i class="bi" th:classappend="${n.pinned} ? 'bi-pin-angle-fill text-danger' : 'bi-megaphone text-muted'" aria-hidden="true"></i>
           <div class="min-w-0 flex-grow-1">
             <div class="fw-semibold truncate" th:text="${n.title}"></div>
             <div class="entry-sub" th:text="${#temporals.format(n.createdAt, 'yyyy.MM.dd')}"></div>

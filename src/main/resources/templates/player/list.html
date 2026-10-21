@@ -5,7 +5,7 @@
 <body>
 <div layout:fragment="content" class="container">
   <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-2">
-    <div><div class="eyebrow">Players</div><h1>선수</h1><p class="lead">등록된 선수와 소속 클럽, 부수, 레이팅을 확인하세요.</p></div>
+    <div><h1>선수</h1><p class="lead">등록된 선수와 소속 클럽, 부수, 레이팅을 확인하세요.</p></div>
     <a class="btn btn-primary" sec:authorize="hasRole('STAFF')" th:href="@{/manage/players/new}"><i class="bi bi-person-plus me-1"></i>선수 등록</a>
   </div>
 

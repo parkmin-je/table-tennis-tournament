@@ -5,7 +5,7 @@
 <body>
 <div layout:fragment="content" class="container" style="max-width: 860px">
   <div class="page-head">
-    <a class="small fw-semibold" th:href="@{/board(category=${post.category})}"><i class="bi bi-chevron-left"></i><span th:text="${post.category.label}"></span></a>
+    <a class="back-link" th:href="@{/board(category=${post.category})}"><i class="bi bi-chevron-left"></i><span th:text="${post.category.label}"></span></a>
     <h1 class="mt-2" th:text="${post.title}">제목</h1>
     <div class="d-flex flex-wrap gap-3 small text-muted mt-2">
       <span><i class="bi bi-person me-1"></i><span th:text="${post.author.name}"></span></span>
@@ -26,7 +26,7 @@
         </form>
         <a class="btn btn-soft btn-sm" th:if="${canEdit}" th:href="@{/board/{id}/edit(id=${post.id})}">수정</a>
         <form th:if="${canEdit}" th:action="@{/board/{id}/delete(id=${post.id})}" method="post" data-confirm="글을 삭제할까요?">
-          <button class="btn btn-ghost btn-sm text-danger" type="submit">삭제</button>
+          <button class="btn btn-danger-outline btn-sm" type="submit">삭제</button>
         </form>
       </div>
     </div>
@@ -42,7 +42,7 @@
           <span class="entry-sub" th:text="${#temporals.format(c.createdAt, 'MM.dd HH:mm')}"></span>
           <form class="ms-auto" th:if="${currentUser != null and (c.isWrittenBy(currentUser) or currentUser.staff)}"
                 th:action="@{/board/comments/{id}/delete(id=${c.id})}" method="post" data-confirm="댓글을 삭제할까요?">
-            <button class="btn btn-ghost btn-xs text-danger" type="submit">삭제</button>
+            <button class="btn btn-danger-outline btn-xs" type="submit">삭제</button>
           </form>
         </div>
         <div class="pre-wrap" th:text="${c.content}"></div>

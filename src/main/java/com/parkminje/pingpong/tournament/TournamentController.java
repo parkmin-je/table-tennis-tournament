@@ -53,6 +53,7 @@ public class TournamentController {
         TournamentBoard board = publicBoard(id, user);
         model.addAttribute("board", board);
         model.addAttribute("t", board.tournament());
+        model.addAttribute("mine", mine(board, user));
         Optional<Player> myPlayer = user == null ? Optional.empty() : playerService.findByUser(user.getId());
         model.addAttribute("myPlayer", myPlayer.orElse(null));
         Entry myEntry = myPlayer.flatMap(p -> board.entries().stream()
@@ -76,6 +77,7 @@ public class TournamentController {
         TournamentBoard board = publicBoard(id, user);
         model.addAttribute("board", board);
         model.addAttribute("t", board.tournament());
+        model.addAttribute("mine", mine(board, user));
         return "tournament/bracket";
     }
 
@@ -97,6 +99,7 @@ public class TournamentController {
         TournamentBoard board = publicBoard(id, user);
         model.addAttribute("board", board);
         model.addAttribute("t", board.tournament());
+        model.addAttribute("mine", mine(board, user));
         return "tournament/fragments :: " + name;
     }
 
@@ -115,6 +118,15 @@ public class TournamentController {
         entryService.cancelByUser(entryId, user);
         ra.addFlashAttribute("success", "참가 신청을 취소했습니다.");
         return "redirect:/tournament/" + tournamentId;
+    }
+
+    /** 로그인한 회원이 속한 엔트리 ID (화면에서 형광펜으로 표시) */
+    private static java.util.Set<Long> mine(TournamentBoard board, User user) {
+        if (user == null) {
+            return java.util.Set.of();
+        }
+        return board.entries().stream().filter(e -> e.belongsTo(user)).map(Entry::getId)
+                .collect(java.util.stream.Collectors.toSet());
     }
 
     /** 준비중(비공개) 대회는 운영진만 볼 수 있다 */

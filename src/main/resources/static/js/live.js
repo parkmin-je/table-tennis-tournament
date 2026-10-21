@@ -37,13 +37,31 @@
             var doc = new DOMParser().parseFromString(html, 'text/html');
             var fresh = doc.body.firstElementChild;
             if (fresh) {
-              box.replaceChildren(document.importNode(fresh, true));
+              // 바뀐 줄만 형광펜으로 한 번 칠한다 (열과 줄 위치는 그대로)
+              var before = {};
+              box.querySelectorAll('[data-row]').forEach(function (row) {
+                before[row.getAttribute('data-row')] = sig(row);
+              });
+              var node = document.importNode(fresh, true);
+              var hadRows = Object.keys(before).length > 0;
+              node.querySelectorAll('[data-row]').forEach(function (row) {
+                var key = row.getAttribute('data-row');
+                if (hadRows && before[key] !== sig(row)) row.classList.add('changed');
+              });
+              box.replaceChildren(node);
               updateElapsed();
             }
           })
           .catch(function () {});
       });
     }, 350);
+  }
+
+  /** 경과 시간처럼 저절로 바뀌는 값은 빼고 비교 */
+  function sig(row) {
+    var copy = row.cloneNode(true);
+    copy.querySelectorAll('[data-started]').forEach(function (n) { n.textContent = ''; });
+    return copy.textContent.replace(/\s+/g, ' ').trim();
   }
 
   function toast(message) {

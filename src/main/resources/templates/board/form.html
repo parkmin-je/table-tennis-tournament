@@ -5,7 +5,7 @@
 <body>
 <div layout:fragment="content" class="container" style="max-width: 860px">
   <div class="page-head">
-    <a class="small fw-semibold" th:href="${post == null ? '/board' : '/board/' + post.id}"><i class="bi bi-chevron-left"></i>돌아가기</a>
+    <a class="back-link" th:href="${post == null ? '/board' : '/board/' + post.id}"><i class="bi bi-chevron-left"></i>돌아가기</a>
     <h1 class="mt-1" th:text="${post == null ? '글쓰기' : '글 수정'}">글쓰기</h1>
   </div>
   <form class="panel panel-body" method="post" th:object="${form}"

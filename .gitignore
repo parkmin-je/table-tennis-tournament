@@ -51,3 +51,6 @@ out/
 
 ### Env ###
 .env
+
+### Impeccable 리뷰 캡처 ###
+.impeccable/review/

@@ -19,7 +19,7 @@
     <div class="d-flex gap-2" sec:authorize="hasRole('STAFF')">
       <a class="btn btn-soft btn-sm" th:href="@{/manage/players/{id}/edit(id=${p.id})}"><i class="bi bi-pencil me-1"></i>수정</a>
       <form th:action="@{/manage/players/{id}/delete(id=${p.id})}" method="post" data-confirm="선수를 삭제할까요? 대회 기록이 있으면 삭제할 수 없습니다.">
-        <button class="btn btn-ghost btn-sm text-danger" type="submit">삭제</button>
+        <button class="btn btn-danger-outline btn-sm" type="submit">삭제</button>
       </form>
     </div>
   </div>
@@ -43,7 +43,7 @@
             <span class="tag" th:classappend="${line.won} ? 'tag-success' : 'tag-danger'" th:text="${line.won ? '승' : '패'}">승</span>
             <div class="min-w-0 flex-grow-1">
               <div class="fw-semibold truncate" th:text="${'vs ' + (line.opponent != null ? line.opponent.displayName : '-')}"></div>
-              <div class="entry-sub truncate" th:text="${line.match.tournament.title + ' · ' + line.match.roundLabel}"></div>
+              <div class="entry-sub truncate" th:text="${line.match.tournament.title + ', ' + line.match.roundLabel}"></div>
             </div>
             <div class="text-end">
               <div class="fw-bold tnum" th:text="${line.match.scoreLabel}"></div>
@@ -74,7 +74,7 @@
         <a class="list-row" th:each="e : ${entries}" th:href="@{/tournament/{id}(id=${e.tournament.id})}">
           <div class="min-w-0 flex-grow-1">
             <div class="fw-semibold truncate" th:text="${e.tournament.title}"></div>
-            <div class="entry-sub" th:text="${#temporals.format(e.tournament.startAt, 'yyyy.MM.dd') + (e.partner != null ? ' · 복식 ' + e.displayName : '')}"></div>
+            <div class="entry-sub" th:text="${#temporals.format(e.tournament.startAt, 'yyyy.MM.dd') + (e.partner != null ? ', 복식 ' + e.displayName : '')}"></div>
           </div>
           <span th:replace="~{fragments/ui :: status(${e.status})}"></span>
         </a>

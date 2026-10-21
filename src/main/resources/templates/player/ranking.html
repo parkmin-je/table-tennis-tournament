@@ -5,7 +5,6 @@
 <body>
 <div layout:fragment="content" class="container" style="max-width: 900px">
   <div class="page-head">
-    <div class="eyebrow">Ranking</div>
     <h1>레이팅 랭킹</h1>
     <p class="lead">대회 단식 경기 결과로 계산한 Elo 레이팅입니다. (기본 1500 · 부전승·BYE 제외 · 30경기 미만은 변동 폭이 큽니다)</p>
   </div>
@@ -17,7 +16,7 @@
       <span class="avatar" th:text="${#strings.substring(p.name, 0, 1)}">김</span>
       <div class="min-w-0 flex-grow-1">
         <div class="fw-bold truncate" th:text="${p.name}"></div>
-        <div class="entry-sub" th:text="${p.clubName + ' · ' + p.divisionLabel + ' · ' + p.ratedMatches + '경기'}"></div>
+        <div class="entry-sub" th:text="${p.clubName + ', ' + p.divisionLabel + ', ' + p.ratedMatches + '경기'}"></div>
       </div>
       <span class="rating fs-5" th:text="${p.rating}">1500</span>
     </a>

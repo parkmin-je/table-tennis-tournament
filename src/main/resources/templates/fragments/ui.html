@@ -7,16 +7,16 @@
   <span class="live-dot" th:if="${s.tone == 'live'}"></span><span th:text="${s.label}">상태</span>
 </span>
 
-<!-- 엔트리 이름 + 소속 -->
-<div th:fragment="entry(e)" class="min-w-0">
+<!-- 이름표: 이름 위, 소속 아래. 내 엔트리는 형광펜, 기권은 빨간 취소선 -->
+<div th:fragment="entry(e)" class="plate"
+     th:classappend="${e != null and mine != null and mine.contains(e.id)} ? 'mine' : ''">
   <th:block th:if="${e != null}">
-    <div class="entry-name truncate">
-      <span th:text="${e.displayName}">이름</span>
-      <span class="tag tag-secondary ms-1" th:if="${e.withdrawn}">기권</span>
+    <div class="entry-name truncate" th:classappend="${e.withdrawn} ? 'is-withdrawn'">
+      <span th:text="${e.displayName}">이름</span><span class="tag tag-secondary ms-1" th:if="${e.withdrawn}">기권</span>
     </div>
     <div class="entry-sub truncate" th:text="${e.subLabel}">클럽</div>
   </th:block>
-  <div class="entry-name text-faint fst-italic" th:if="${e == null}">미정</div>
+  <div class="entry-name text-faint" th:if="${e == null}">미정</div>
 </div>
 
 <!-- 날짜 칩 -->
@@ -38,9 +38,9 @@
   </div>
   <div class="text-center">
     <div class="score tnum" th:if="${m.completed}" th:text="${m.scoreLabel}">3 : 1</div>
-    <div class="tag tag-live" th:if="${m.inProgress}"><span class="live-dot"></span><span th:text="${m.tableNumber} + '번'">1번</span></div>
+    <div class="tag tag-live" th:if="${m.inProgress}"><span class="live-dot"></span><span th:text="${m.tableNumber + '번 테이블'}">1번 테이블</span></div>
     <div class="score text-faint" th:if="${m.scheduled}">vs</div>
-    <div class="games" th:if="${m.gameScores != null}" th:text="${#strings.replace(m.gameScores, ',', ' · ')}">11-9 · 8-11</div>
+    <div class="games" th:if="${m.gameScores != null}" th:text="${#strings.replace(m.gameScores, ',', '  ')}">11-9 · 8-11</div>
   </div>
   <div class="side right" th:classappend="${m.completed and m.isWinner(m.entry2)} ? 'is-winner'">
     <div th:replace="~{fragments/ui :: entry(${m.entry2})}"></div>

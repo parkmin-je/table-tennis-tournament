@@ -6,14 +6,14 @@
 <div layout:fragment="content" class="container" style="max-width: 960px">
   <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-2">
     <div>
-      <a class="small fw-semibold" th:href="@{/clubs}"><i class="bi bi-chevron-left"></i>클럽</a>
+      <a class="back-link" th:href="@{/clubs}"><i class="bi bi-chevron-left"></i>클럽</a>
       <h1 class="mt-1" th:text="${club.name}">클럽</h1>
       <p class="lead" th:text="${club.region ?: ''}"></p>
     </div>
     <div class="d-flex gap-2" sec:authorize="hasRole('STAFF')">
       <a class="btn btn-soft btn-sm" th:href="@{/manage/clubs/{id}/edit(id=${club.id})}"><i class="bi bi-pencil me-1"></i>수정</a>
       <form th:action="@{/manage/clubs/{id}/delete(id=${club.id})}" method="post" data-confirm="클럽을 삭제할까요? 소속 선수가 있으면 삭제되지 않습니다.">
-        <button class="btn btn-ghost btn-sm text-danger" type="submit">삭제</button>
+        <button class="btn btn-danger-outline btn-sm" type="submit">삭제</button>
       </form>
     </div>
   </div>
@@ -28,7 +28,7 @@
       <span class="avatar" th:text="${#strings.substring(p.name, 0, 1)}">김</span>
       <div class="min-w-0 flex-grow-1">
         <div class="fw-semibold" th:text="${p.name}"></div>
-        <div class="entry-sub" th:text="${p.divisionLabel + ' · ' + p.gender.label}"></div>
+        <div class="entry-sub" th:text="${p.divisionLabel + ', ' + p.gender.label}"></div>
       </div>
       <span class="rating" th:text="${p.rating}">1500</span>
     </a>

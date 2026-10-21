@@ -2,30 +2,28 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <body>
 
-<!-- ── 진행 요약 ────────────────────────────────────────────── -->
-<div th:fragment="stats" class="row g-3">
-  <div class="col-6 col-md-3"><div class="panel stat"><div class="label">참가</div>
-    <div class="value tnum" th:text="${board.activeEntries().size()}">0</div><div class="sub">확정·신청 엔트리</div></div></div>
-  <div class="col-6 col-md-3"><div class="panel stat"><div class="label">진행률</div>
-    <div class="value tnum" th:text="${board.progressPercent() + '%'}">0%</div>
-    <div class="progress-thin mt-1"><span th:style="'width:' + ${board.progressPercent()} + '%'"></span></div></div></div>
-  <div class="col-6 col-md-3"><div class="panel stat"><div class="label">완료 경기</div>
-    <div class="value tnum"><span th:text="${board.playableDone()}">0</span><span class="fs-6 text-faint" th:text="${' / ' + board.playableTotal()}"></span></div><div class="sub">BYE 제외</div></div></div>
-  <div class="col-6 col-md-3"><div class="panel stat"><div class="label">진행 중</div>
-    <div class="value tnum"><span th:text="${board.liveCount()}">0</span><span class="fs-6 text-faint" th:text="${' / ' + board.tables().size() + ' 테이블'}"></span></div>
-    <div class="sub" th:text="${'대기 ' + board.queue().size() + '경기'}">대기</div></div></div>
+<!-- ── 진행 한 줄 ───────────────────────────────────────────── -->
+<div th:fragment="stats" class="panel progress-strip">
+  <div class="fig"><b class="tnum" th:text="${board.playableDone()}">0</b><span th:text="${'/ ' + board.playableTotal() + '경기 끝남'}">/ 0경기 끝남</span></div>
+  <div class="fig"><b class="tnum" th:text="${board.liveCount()}">0</b><span th:text="${'/ ' + board.tables().size() + '테이블 경기 중'}">테이블</span></div>
+  <div class="fig"><b class="tnum" th:text="${board.queue().size()}">0</b><span>경기 바로 시작 가능</span></div>
+  <div class="bar" th:attr="aria-label=${'진행률 ' + board.progressPercent() + '%'}">
+    <div class="progress-thin"><span th:style="'width:' + ${board.progressPercent()} + '%'"></span></div>
+  </div>
 </div>
 
 <!-- ── 테이블 현황 (공개) ───────────────────────────────────── -->
 <div th:fragment="tables" class="tables-grid">
-  <div class="ttable" th:each="tb : ${board.tables()}" th:classappend="${tb.free} ? 'free' : 'busy'">
+  <div class="ttable" th:each="tb : ${board.tables()}" th:classappend="${tb.free} ? 'free' : 'busy'"
+       th:attr="data-row=${'t' + tb.number + '-' + (tb.free ? 'free' : tb.match.id)}">
     <th:block th:if="${tb.free}">
-      <div class="fw-bold"><span th:text="${tb.number}">1</span>번 테이블</div>
+      <div class="fw-bold" th:text="${tb.number + '번 테이블'}">1번 테이블</div>
       <div class="small">비어 있음</div>
     </th:block>
     <th:block th:unless="${tb.free}" th:with="m=${tb.match}">
-      <div class="no"><b th:text="${tb.number}">1</b>번 테이블 <span class="tag tag-live ms-auto"><span class="live-dot"></span><span th:attr="data-started=${m.startedAtIso}">진행</span></span></div>
-      <div class="entry-sub" th:text="${m.roundLabel}">8강</div>
+      <div class="no"><b th:text="${tb.number}">1</b><span>번 테이블</span>
+        <span class="ms-auto entry-sub" th:attr="data-started=${m.startedAtIso}"></span></div>
+      <div class="entry-sub fw-semibold" th:text="${m.roundLabel}">8강</div>
       <div th:replace="~{fragments/ui :: entry(${m.entry1})}"></div>
       <div class="vs">VS</div>
       <div th:replace="~{fragments/ui :: entry(${m.entry2})}"></div>
@@ -35,12 +33,10 @@
 
 <!-- ── 다음 경기 ────────────────────────────────────────────── -->
 <div th:fragment="queue">
-  <th:block th:if="${board.queue().isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-hourglass', '대기 중인 경기가 없습니다.')}"></div></th:block>
+  <th:block th:if="${board.queue().isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-hourglass', '지금 시작할 수 있는 경기가 없습니다. 앞 경기가 끝나면 여기에 올라옵니다.')}"></div></th:block>
   <div class="match-list">
     <div class="match-item" th:each="m, st : ${board.queue()}">
-      <div class="d-flex justify-content-between entry-sub mb-1">
-        <span th:text="${m.roundLabel}">라운드</span><span th:text="${'대기 ' + st.count}">대기</span>
-      </div>
+      <div class="row-meta"><span th:text="${m.roundLabel}">라운드</span><span th:text="${st.count + '번째 대기'}">대기</span></div>
       <div th:replace="~{fragments/ui :: matchLine(${m})}"></div>
     </div>
   </div>
@@ -51,7 +47,7 @@
   <th:block th:if="${board.recent().isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-clipboard', '아직 끝난 경기가 없습니다.')}"></div></th:block>
   <div class="match-list">
     <div class="match-item" th:each="m : ${board.recent()}">
-      <div class="d-flex justify-content-between entry-sub mb-1">
+      <div class="row-meta">
         <span th:text="${m.roundLabel}">라운드</span>
         <span th:text="${m.finishedAt != null ? #temporals.format(m.finishedAt, 'HH:mm') : ''}">10:20</span>
       </div>
@@ -63,23 +59,23 @@
 <!-- ── 조별 리그 ────────────────────────────────────────────── -->
 <div th:fragment="groups">
   <th:block th:if="${board.groups().isEmpty()}">
-    <div class="panel"><div th:replace="~{fragments/ui :: empty('bi-grid-3x3', '조 편성 전입니다.')}"></div></div>
+    <div class="panel"><div th:replace="~{fragments/ui :: empty('bi-grid-3x3', '조 편성 전입니다. 대진이 발표되면 조별 순위가 여기에 나옵니다.')}"></div></div>
   </th:block>
   <div class="group-grid">
     <section class="panel" th:each="g : ${board.groups()}">
       <div class="panel-head">
         <h3 th:text="${g.group().name}">A조</h3>
-        <span class="tag" th:classappend="${g.finished} ? 'tag-success'" th:text="${g.completed() + '/' + g.total() + ' 경기'}">0/6</span>
+        <span class="meta" th:text="${g.finished ? '리그 종료' : g.completed() + ' / ' + g.total() + '경기'}">0/6</span>
       </div>
       <div class="table-responsive">
         <table class="table standings">
-          <thead><tr><th class="text-center">#</th><th>선수</th><th class="text-center">승-패</th><th class="text-center">승점</th><th class="text-center">게임</th></tr></thead>
+          <thead><tr><th class="text-center">순위</th><th>선수</th><th class="text-center">승패</th><th class="text-center">승점</th><th class="text-center">게임</th></tr></thead>
           <tbody>
           <tr th:each="row : ${g.rows()}"
               th:classappend="${(g.finished and row.rank() <= t.advancePerGroup and !row.entry().withdrawn) ? 'qualified' : ''} + ' ' + ${row.entry().withdrawn ? 'withdrawn' : ''}">
-            <td class="rank" th:text="${row.rank()}">1</td>
+            <td class="rank"><span class="rank-ring" th:text="${row.rank()}">1</span></td>
             <td><div th:replace="~{fragments/ui :: entry(${row.entry()})}"></div></td>
-            <td class="text-center tnum" th:text="${row.wins() + '-' + row.losses()}">2-1</td>
+            <td class="text-center tnum" th:text="${row.wins() + '승 ' + row.losses() + '패'}">2승 1패</td>
             <td class="text-center tnum fw-bold" th:text="${row.matchPoints()}">5</td>
             <td class="text-center tnum text-muted" th:text="${row.gamesWon() + ':' + row.gamesLost()}">7:4</td>
           </tr>
@@ -87,10 +83,10 @@
         </table>
       </div>
       <details class="border-top">
-        <summary class="px-3 py-2 small fw-semibold text-muted">경기 결과 보기</summary>
+        <summary class="px-3 py-2 small fw-semibold text-muted">경기 결과</summary>
         <div class="match-list">
           <div class="match-item" th:each="m : ${board.groupMatchesOf(g.group().id)}">
-            <div class="entry-sub mb-1" th:text="${m.roundNo + '라운드'}">1라운드</div>
+            <div class="row-meta"><span th:text="${m.roundNo + '라운드'}">1라운드</span></div>
             <div th:replace="~{fragments/ui :: matchLine(${m})}"></div>
           </div>
         </div>
@@ -102,27 +98,34 @@
 <!-- ── 본선 대진표 ──────────────────────────────────────────── -->
 <div th:fragment="bracket">
   <th:block th:if="${!board.hasKnockout()}">
-    <div class="panel"><div th:replace="~{fragments/ui :: empty('bi-diagram-3', ${t.hasGroupStage() ? '예선 리그가 끝나면 본선 대진이 발표됩니다.' : '대진 발표 전입니다.'})}"></div></div>
+    <div class="panel"><div th:replace="~{fragments/ui :: empty('bi-diagram-3', ${t.hasGroupStage() ? '예선 리그가 끝나면 본선 대진이 이 종이에 그려집니다.' : '대진이 발표되면 여기에 그려집니다.'})}"></div></div>
   </th:block>
   <th:block th:if="${board.hasKnockout()}">
-    <div class="podium mb-3" th:if="${t.champion != null}" th:with="fin=${board.finalMatch()}">
-      <div class="p gold"><div class="medal">🏆</div><div class="fw-black fs-5" th:text="${t.champion.displayName}">우승</div><div class="small" th:text="${'우승 · ' + t.champion.subLabel}"></div></div>
-      <div class="p" th:if="${fin.loser != null}"><div class="medal">🥈</div><div class="fw-bold" th:text="${fin.loser.displayName}">준우승</div><div class="small text-muted">준우승</div></div>
-      <div class="p" th:each="e : ${board.thirdPlaces()}"><div class="medal">🥉</div><div class="fw-bold" th:text="${e.displayName}">3위</div><div class="small text-muted">공동 3위</div></div>
-    </div>
-    <div class="panel">
+    <section class="panel champion mb-3" th:if="${t.champion != null}" th:with="fin=${board.finalMatch()}">
+      <i class="bi bi-trophy-fill fs-2 text-danger" aria-hidden="true"></i>
+      <div>
+        <div class="entry-sub fw-semibold mb-1">우승</div>
+        <span class="ring" th:text="${t.champion.displayName}">우승자</span>
+      </div>
+      <div class="podium-list ms-lg-3">
+        <span th:if="${fin.loser != null}">준우승 <b th:text="${fin.loser.displayName}">준우승</b></span>
+        <span th:each="e : ${board.thirdPlaces()}">공동 3위 <b th:text="${e.displayName}">3위</b></span>
+      </div>
+    </section>
+    <div class="bracket-sheet">
       <div class="bracket-scroll">
-        <div class="bracket">
-          <div class="bk-col" th:each="r : ${board.rounds()}">
+        <div class="bracket" th:with="last=${board.rounds().size() - 1}">
+          <div class="bk-col" th:each="r, rs : ${board.rounds()}"
+               th:classappend="${rs.index == last ? 'final' : 'depth-' + (last - rs.index > 2 ? 1 : 4 - (last - rs.index))}">
             <div class="bk-col-head" th:text="${r.label()}">8강</div>
             <div class="bk-col-body" th:with="n=${r.matches().size()}">
               <th:block th:if="${n == 1}">
-                <div class="bk-pair single"><div class="bk-cell"><div th:replace="~{tournament/fragments :: bkMatch(${r.matches()[0]})}"></div></div></div>
+                <div class="bk-pair single"><th:block th:replace="~{tournament/fragments :: bkCell(${r.matches()[0]})}"></th:block></div>
               </th:block>
               <th:block th:if="${n > 1}">
                 <div class="bk-pair" th:each="i : ${#numbers.sequence(0, n / 2 - 1)}">
-                  <div class="bk-cell"><div th:replace="~{tournament/fragments :: bkMatch(${r.matches()[i * 2]})}"></div></div>
-                  <div class="bk-cell"><div th:replace="~{tournament/fragments :: bkMatch(${r.matches()[i * 2 + 1]})}"></div></div>
+                  <th:block th:replace="~{tournament/fragments :: bkCell(${r.matches()[i * 2]})}"></th:block>
+                  <th:block th:replace="~{tournament/fragments :: bkCell(${r.matches()[i * 2 + 1]})}"></th:block>
                 </div>
               </th:block>
             </div>
@@ -133,62 +136,75 @@
   </th:block>
 </div>
 
-<!-- 대진표 경기 카드 -->
-<div th:fragment="bkMatch(m)" class="bk-match" th:classappend="${m.inProgress} ? 'live'">
-  <th:block th:each="slot : ${ {1, 2} }" th:with="e=${m.entryAt(slot)}">
-    <div class="bk-line"
-         th:classappend="${(m.completed and m.winnerSide() == slot) ? 'win' : ''} + ' ' + ${e == null ? (m.bye ? 'bye' : 'tbd') : ''}">
-      <span class="seed" th:if="${e != null and e.seed != null}" th:text="${e.seed}">1</span>
-      <span class="nm" th:if="${e != null}" th:text="${e.displayName}" th:title="${e.displayName + ' (' + e.subLabel + ')'}">이름</span>
-      <span class="nm" th:if="${e == null}" th:text="${m.bye ? 'BYE' : '미정'}">미정</span>
-      <span class="sc tnum" th:if="${m.completed and !m.bye and m.resultType.name() != 'WALKOVER'}" th:text="${slot == 1 ? m.games1 : m.games2}">3</span>
-      <span class="sc" th:if="${m.completed and m.resultType.name() == 'WALKOVER' and m.winnerSide() == slot}">W</span>
+<!-- 대진표 칸: 끝난 경기는 승자 선이 빨간색으로 다음 칸까지 이어진다 -->
+<div th:fragment="bkCell(m)" class="bk-cell"
+     th:classappend="${(m.completed and m.winner != null ? 'advanced ' : '') + (m.entry1 != null or m.entry2 != null ? 'reached' : '')}">
+  <div class="bk-match" th:classappend="${m.inProgress ? 'live' : ''} + ' ' + ${m.bye ? 'bye-match' : ''}">
+    <th:block th:each="slot : ${ {1, 2} }" th:with="e=${m.entryAt(slot)}">
+      <div class="bk-line"
+           th:classappend="${(m.completed and m.winnerSide() == slot) ? 'win' : (m.completed ? 'lose' : '')} + ' ' + ${e == null ? (m.bye ? 'bye' : 'tbd') : ''} + ' ' + ${e != null and e.withdrawn ? 'out' : ''} + ' ' + ${e != null and mine != null and mine.contains(e.id) ? 'mine' : ''}">
+        <span class="seed" th:if="${e != null and e.seed != null}" th:text="${e.seed}">1</span>
+        <span class="nm" th:if="${e != null}" th:title="${e.displayName + ' (' + e.subLabel + ')'}"><span th:text="${e.displayName}">이름</span></span>
+        <span class="nm" th:if="${e == null}" th:text="${m.bye ? '부전승' : '미정'}">미정</span>
+        <span class="sc tnum" th:if="${m.completed and !m.bye and m.resultType.name() != 'WALKOVER'}" th:text="${slot == 1 ? m.games1 : m.games2}">3</span>
+        <span class="sc" th:if="${m.completed and m.resultType.name() == 'WALKOVER' and m.winnerSide() == slot}">부전</span>
+      </div>
+    </th:block>
+    <div class="bk-meta" th:if="${m.inProgress or (m.completed and !m.bye)}">
+      <span th:if="${m.inProgress}" class="text-danger fw-bold" th:text="${m.tableNumber + '번 테이블 경기 중'}">진행</span>
+      <span th:if="${m.completed}" th:text="${m.gameScores != null ? #strings.replace(m.gameScores, ',', '  ') : m.resultType.label}">11-9</span>
     </div>
-  </th:block>
-  <div class="bk-meta" th:if="${m.inProgress or (m.completed and !m.bye)}">
-    <span th:if="${m.inProgress}" class="text-danger fw-bold" th:text="${m.tableNumber + '번 테이블 진행 중'}">진행</span>
-    <span th:if="${m.completed}" th:text="${m.gameScores != null ? #strings.replace(m.gameScores, ',', ' ') : m.resultType.label}">11-9</span>
   </div>
 </div>
 
 <!-- ── 현황판 진행률 ────────────────────────────────────────── -->
 <div th:fragment="progress">
-  <div class="small text-white-50 mb-1" th:text="${'진행 ' + board.playableDone() + ' / ' + board.playableTotal() + ' 경기'}">진행</div>
+  <div class="tv-progress-label" th:text="${board.playableDone() + ' / ' + board.playableTotal() + '경기 끝남'}">진행</div>
   <div class="progress-thin"><span th:style="'width:' + ${board.progressPercent()} + '%'"></span></div>
 </div>
 
-<!-- ── 현황판 본문 (TV) ─────────────────────────────────────── -->
+<!-- ── 현황판 본문 (TV): 열은 고정, 값만 바뀐다 ──────────────── -->
 <div th:fragment="board" class="tv-body">
-  <div>
-    <div class="tv-tables">
-      <div class="tvt" th:each="tb : ${board.tables()}" th:classappend="${tb.free} ? 'free' : 'busy'">
-        <th:block th:if="${tb.free}"><span th:text="${tb.number + '번 테이블 · 대기'}">1번</span></th:block>
-        <th:block th:unless="${tb.free}" th:with="m=${tb.match}">
-          <div class="no"><span><b th:text="${tb.number}">1</b> 번 테이블</span><span th:text="${m.roundLabel}">8강</span></div>
-          <div class="nm mt-2" th:text="${m.entry1.displayName}">선수1</div>
-          <div class="club" th:text="${m.entry1.subLabel}">클럽</div>
-          <div class="vs">VS</div>
-          <div class="nm" th:text="${m.entry2.displayName}">선수2</div>
-          <div class="club" th:text="${m.entry2.subLabel}">클럽</div>
+  <section class="tv-board" aria-label="테이블 현황">
+    <table>
+      <thead><tr><th class="text-center">테이블</th><th>라운드</th><th>선수</th><th></th><th>선수</th><th class="text-end">경과</th></tr></thead>
+      <tbody>
+      <tr th:each="tb : ${board.tables()}" th:classappend="${tb.free} ? 'free' : 'busy'"
+          th:attr="data-row=${'t' + tb.number + '-' + (tb.free ? 'free' : tb.match.id)}">
+        <td class="tno tnum" th:text="${tb.number}">1</td>
+        <th:block th:if="${tb.free}">
+          <td class="round">대기</td><td colspan="4">다음 경기를 기다리는 중</td>
         </th:block>
+        <th:block th:unless="${tb.free}" th:with="m=${tb.match}">
+          <td class="round" th:text="${m.roundLabel}">8강</td>
+          <td><span th:text="${m.entry1.displayName}">선수1</span><span class="club" th:text="${m.entry1.subLabel}">클럽</span></td>
+          <td class="vs">VS</td>
+          <td><span th:text="${m.entry2.displayName}">선수2</span><span class="club" th:text="${m.entry2.subLabel}">클럽</span></td>
+          <td class="elapsed" th:attr="data-started=${m.startedAtIso}"></td>
+        </th:block>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+  <aside class="tv-side">
+    <h2><i class="bi bi-megaphone-fill text-danger" aria-hidden="true"></i>다음 경기</h2>
+    <div class="tv-list">
+      <div class="item" th:if="${board.queue().isEmpty()}">대기 중인 경기가 없습니다</div>
+      <div class="item" th:each="m, st : ${board.queue()}" th:if="${st.index < 6}" th:attr="data-row=${'q' + m.id}">
+        <span class="r" th:text="${st.count + '. ' + m.roundLabel}">1. 8강</span>
+        <span th:text="${m.entry1.displayName}">선수1</span> <span class="text-danger fs-6 fw-bold">VS</span> <span th:text="${m.entry2.displayName}">선수2</span>
       </div>
     </div>
-  </div>
-  <div class="side">
-    <h2>다음 경기</h2>
-    <div class="item" th:if="${board.queue().isEmpty()}">대기 중인 경기가 없습니다.</div>
-    <div class="item" th:each="m, st : ${board.queue()}" th:if="${st.index < 7}">
-      <div class="r" th:text="${st.count + '. ' + m.roundLabel}">1. 8강</div>
-      <b th:text="${m.entry1.displayName}">선수1</b> <span class="text-white-50">vs</span> <b th:text="${m.entry2.displayName}">선수2</b>
+    <h2><i class="bi bi-check2-square" aria-hidden="true"></i>방금 끝난 경기</h2>
+    <div class="tv-list">
+      <div class="item" th:if="${board.recent().isEmpty()}">아직 끝난 경기가 없습니다</div>
+      <div class="item" th:each="m, st : ${board.recent()}" th:if="${st.index < 5}" th:attr="data-row=${'r' + m.id}">
+        <span class="r" th:text="${m.roundLabel + ', ' + m.scoreLabel}">8강, 3:1</span>
+        <span class="w" th:text="${m.winner.displayName}">승자</span> 승
+        <span class="l" th:if="${m.loser != null}" th:text="${'vs ' + m.loser.displayName}"></span>
+      </div>
     </div>
-    <h2 class="mt-4">최근 결과</h2>
-    <div class="item" th:if="${board.recent().isEmpty()}">아직 끝난 경기가 없습니다.</div>
-    <div class="item" th:each="m, st : ${board.recent()}" th:if="${st.index < 6}">
-      <div class="r" th:text="${m.roundLabel + ' · ' + m.scoreLabel}">8강 · 3:1</div>
-      <b th:text="${m.winner.displayName}">승자</b> <span class="text-white-50">승</span>
-      <span class="text-white-50" th:if="${m.loser != null}" th:text="${'vs ' + m.loser.displayName}"></span>
-    </div>
-  </div>
+  </aside>
 </div>
 
 </body>

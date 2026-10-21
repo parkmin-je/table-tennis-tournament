@@ -8,8 +8,8 @@
   <meta name="_csrf" th:content="${_csrf?.token}">
   <meta name="_csrf_header" th:content="${_csrf?.headerName}">
   <meta name="description" content="생활체육 탁구 대회 접수·대진·실시간 결과">
-  <meta name="theme-color" content="#1f4fd8">
-  <title layout:title-pattern="$CONTENT_TITLE · $LAYOUT_TITLE" th:text="${appName ?: '탁구 대회'}">탁구 대회</title>
+  <meta name="theme-color" content="#15181d">
+  <title layout:title-pattern="$CONTENT_TITLE - $LAYOUT_TITLE" th:text="${appName ?: '탁구 대회'}">탁구 대회</title>
   <link rel="icon" type="image/svg+xml" th:href="@{/favicon.svg}">
   <link rel="manifest" th:href="@{/manifest.json}">
   <script th:src="@{/js/theme.js}"></script>
@@ -23,12 +23,17 @@
 <nav class="navbar navbar-expand-lg app-nav">
   <div class="container">
     <a class="navbar-brand" th:href="@{/}">
-      <span class="brand-mark"><i class="bi bi-lightning-charge-fill"></i></span>
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true">
+        <circle cx="13" cy="13" r="10.5" fill="#d42a1f"/>
+        <circle cx="13" cy="13" r="10.5" fill="none" stroke="#f4f6f4" stroke-width="1.5"/>
+        <rect x="18.5" y="19" width="5" height="11" rx="2.2" transform="rotate(-45 21 24.5)" fill="#f4f6f4"/>
+        <circle cx="26.5" cy="6" r="3.2" fill="#ffe45c"/>
+      </svg>
       <span th:text="${appName}">탁구 대회</span>
     </a>
     <div class="d-flex align-items-center gap-2 order-lg-last ms-auto ms-lg-0">
       <button class="search-trigger d-none d-xl-flex" type="button" data-search-open>
-        <i class="bi bi-search"></i> 대회·선수 검색 <kbd>Ctrl K</kbd>
+        <i class="bi bi-search"></i> 대회, 선수 찾기 <kbd>Ctrl K</kbd>
       </button>
       <button class="icon-btn d-xl-none" type="button" data-search-open aria-label="검색"><i class="bi bi-search"></i></button>
       <button class="icon-btn" type="button" data-theme-toggle aria-label="다크 모드 전환"><i class="bi bi-circle-half"></i></button>
@@ -59,10 +64,10 @@
           </ul>
         </div>
       </th:block>
-      <th:block sec:authorize="!isAuthenticated()">
+      <span class="nav-auth d-flex gap-2" sec:authorize="!isAuthenticated()">
         <a class="btn btn-soft btn-sm d-none d-sm-inline-block" th:href="@{/user/login}">로그인</a>
         <a class="btn btn-primary btn-sm" th:href="@{/user/signup}">회원가입</a>
-      </th:block>
+      </span>
       <button class="navbar-toggler border-0 px-1" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-label="메뉴">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -101,7 +106,7 @@
 
 <footer class="app-footer">
   <div class="container d-flex flex-wrap gap-3 justify-content-between">
-    <span>&copy; <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span> <span th:text="${appName}"></span></span>
+    <span><span th:text="${appName}"></span>, <span th:text="${#temporals.format(#temporals.createNow(), 'yyyy')}">2026</span></span>
     <span class="d-flex gap-3">
       <a class="text-faint" th:href="@{/tournaments}">대회</a>
       <a class="text-faint" th:href="@{/board(category='NOTICE')}">공지사항</a>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security" layout:decorate="~{layout}">
-<head><title th:text="${'운영 · ' + t.title}">운영 콘솔</title></head>
+<head><title th:text="${t.title + ' 운영'}">운영 콘솔</title></head>
 <body>
 <div layout:fragment="content" class="container-xl"
      th:with="st=${t.status.name()},
@@ -12,9 +12,8 @@
   <!-- 헤더 -->
   <div class="page-head">
     <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
-      <span class="eyebrow">운영 콘솔</span>
       <span th:replace="~{fragments/ui :: status(${t.status})}"></span>
-      <span class="tag" th:text="${t.format.label + ' · ' + t.entryType.label + ' · ' + t.bestOfLabel}"></span>
+      <span class="tag" th:text="${t.format.label + ', ' + t.entryType.label + ', ' + t.bestOfLabel}"></span>
     </div>
     <div class="d-flex flex-wrap gap-2 justify-content-between align-items-end">
       <h1 th:text="${t.title}">대회</h1>
@@ -51,17 +50,17 @@
       <div class="flex-grow-1 min-w-0" th:switch="${st}">
         <div th:case="'DRAFT'"><div class="fw-bold">대회가 비공개 상태입니다.</div><div class="small text-muted">설정을 확인한 뒤 접수를 시작하면 대회 목록에 공개됩니다.</div></div>
         <div th:case="'RECRUITING'"><div class="fw-bold">참가 신청을 받는 중입니다.</div>
-          <div class="small text-muted" th:text="${'신청 ' + board.appliedCount() + ' · 확정 ' + board.confirmedCount() + (t.maxEntries != null ? ' · 정원 ' + t.maxEntries : '')}"></div></div>
+          <div class="small text-muted" th:text="${'신청 ' + board.appliedCount() + ', 확정 ' + board.confirmedCount() + (t.maxEntries != null ? ', 정원 ' + t.maxEntries : '')}"></div></div>
         <div th:case="'CLOSED'"><div class="fw-bold">접수 마감 — 대진 생성 준비</div>
           <div class="small text-muted"><span th:text="${'대진에 들어갈 엔트리: ' + drawable + '팀'}"></span>
             <span th:if="${t.requireCheckIn}"> (확정 + 체크인 완료 기준)</span></div></div>
         <div th:case="'IN_PROGRESS'">
           <div class="fw-bold" th:if="${board.canCreateKnockout()}">예선 리그가 모두 끝났습니다. 본선 대진을 생성하세요.</div>
-          <div class="fw-bold" th:unless="${board.canCreateKnockout()}" th:text="${'진행 중 · ' + board.playableDone() + '/' + board.playableTotal() + ' 경기 완료'}"></div>
+          <div class="fw-bold" th:unless="${board.canCreateKnockout()}" th:text="${'진행 중, ' + board.playableDone() + '/' + board.playableTotal() + ' 경기 완료'}"></div>
           <div class="progress-thin mt-2" style="max-width: 360px"><span th:style="'width:' + ${board.progressPercent()} + '%'"></span></div>
         </div>
         <div th:case="'COMPLETED'">
-          <div class="fw-bold" th:text="${'대회 종료 · 우승 ' + (t.champion != null ? t.champion.displayName : '-')}"></div>
+          <div class="fw-bold" th:text="${'대회 종료, 우승 ' + (t.champion != null ? t.champion.displayName : '-')}"></div>
           <div class="small text-muted">결과가 레이팅에 반영되었습니다. 결승 결과를 수정하면 자동으로 다시 계산됩니다.</div>
         </div>
         <div th:case="*"></div>
@@ -117,12 +116,12 @@
   <div class="tab-content">
     <!-- ═════════ 엔트리 ═════════ -->
     <div class="tab-pane fade" th:classappend="${tab == 'entries'} ? 'show active'" id="tab-entries" role="tabpanel">
-      <div class="row g-3 mb-3">
-        <div class="col-6 col-md"><div class="panel stat"><div class="label">신청</div><div class="value tnum" th:text="${board.appliedCount()}">0</div></div></div>
-        <div class="col-6 col-md"><div class="panel stat"><div class="label">확정</div><div class="value tnum" th:text="${board.confirmedCount()}">0</div></div></div>
-        <div class="col-6 col-md"><div class="panel stat"><div class="label">체크인</div><div class="value tnum" th:text="${board.checkedInCount()}">0</div><div class="sub">확정 중</div></div></div>
-        <div class="col-6 col-md"><div class="panel stat"><div class="label">입금 확인</div><div class="value tnum" th:text="${board.paidCount()}">0</div>
-          <div class="sub" th:if="${t.entryFee > 0}" th:text="${#numbers.formatInteger(board.paidCount() * t.entryFee, 1, 'COMMA') + '원'}"></div></div></div>
+      <div class="panel progress-strip mb-3">
+        <div class="fig"><b class="tnum" th:text="${board.appliedCount()}">0</b><span>신청</span></div>
+        <div class="fig"><b class="tnum" th:text="${board.confirmedCount()}">0</b><span>확정</span></div>
+        <div class="fig"><b class="tnum" th:text="${board.checkedInCount()}">0</b><span>체크인 (확정 중)</span></div>
+        <div class="fig"><b class="tnum" th:text="${board.paidCount()}">0</b>
+          <span th:text="${t.entryFee > 0 ? '입금 확인, ' + #numbers.formatInteger(board.paidCount() * t.entryFee, 1, 'COMMA') + '원' : '입금 확인'}">입금 확인</span></div>
       </div>
 
       <!-- 엔트리 추가 -->
@@ -142,13 +141,13 @@
                 <input class="form-control form-control-sm" type="search" placeholder="선수 이름·클럽으로 찾기" data-option-filter="#regPlayer">
                 <select class="form-select" id="regPlayer" name="playerId" required>
                   <option value="">선수 선택</option>
-                  <option th:each="p : ${players}" th:value="${p.id}" th:text="${p.name + ' · ' + p.clubName + ' · ' + p.divisionLabel + ' · ' + p.gender.label}">선수</option>
+                  <option th:each="p : ${players}" th:value="${p.id}" th:text="${p.name + ', ' + p.clubName + ', ' + p.divisionLabel + ', ' + p.gender.label}">선수</option>
                 </select>
                 <th:block th:if="${t.doubles}">
                   <input class="form-control form-control-sm" type="search" placeholder="파트너 찾기" data-option-filter="#regPartner">
                   <select class="form-select" id="regPartner" name="partnerId" required>
                     <option value="">파트너 선택</option>
-                    <option th:each="p : ${players}" th:value="${p.id}" th:text="${p.name + ' · ' + p.clubName + ' · ' + p.divisionLabel}">파트너</option>
+                    <option th:each="p : ${players}" th:value="${p.id}" th:text="${p.name + ', ' + p.clubName + ', ' + p.divisionLabel}">파트너</option>
                   </select>
                 </th:block>
                 <div class="form-check">
@@ -239,7 +238,7 @@
               <td class="text-end">
                 <form th:if="${e.status.active and st != 'COMPLETED'}" th:action="@{/manage/entries/{id}/withdraw(id=${e.id})}" method="post"
                       th:attr="data-confirm=${e.displayName + ' 기권 처리할까요?' + (st == 'IN_PROGRESS' ? ' 남은 경기는 상대 부전승이 됩니다.' : '')}">
-                  <button class="btn btn-ghost btn-xs text-danger" type="submit">기권</button>
+                  <button class="btn btn-danger-outline btn-xs" type="submit">기권</button>
                 </form>
               </td>
             </tr>
@@ -294,7 +293,7 @@
           <div class="match-list">
             <div class="match-item d-flex flex-wrap gap-2 align-items-center" th:each="m : ${board.queue()}">
               <div class="flex-grow-1 min-w-0" style="min-width: 260px">
-                <div class="entry-sub mb-1" th:text="${'#' + m.playOrder + ' · ' + m.roundLabel}"></div>
+                <div class="entry-sub mb-1" th:text="${'#' + m.playOrder + ', ' + m.roundLabel}"></div>
                 <div th:replace="~{fragments/ui :: matchLine(${m})}"></div>
               </div>
               <form class="d-flex gap-1" th:action="@{/manage/matches/{id}/start(id=${m.id})}" method="post">
@@ -348,7 +347,7 @@
                             th:attr="data-result=${m.id}, data-e1=${m.entry1.displayName}, data-e2=${m.entry2.displayName}, data-bestof=${t.bestOf}, data-round=${m.roundLabel}">수정</button>
                     <form class="d-inline" th:action="@{/manage/matches/{id}/reset(id=${m.id})}" method="post" data-confirm="결과를 취소하고 대기 상태로 되돌릴까요?">
                       <input type="hidden" name="returnTo" th:value="${returnTo}">
-                      <button class="btn btn-ghost btn-xs text-danger" type="submit">취소</button>
+                      <button class="btn btn-danger-outline btn-xs" type="submit">취소</button>
                     </form>
                   </th:block>
                 </td>
@@ -384,7 +383,7 @@
           <input type="hidden" name="correction" value="false">
           <input type="hidden" name="returnTo" th:value="${returnTo}">
           <div class="modal-header">
-            <h5 class="modal-title fw-bold" data-modal-title>결과 입력</h5>
+            <h2 class="modal-title fs-5 fw-bold" data-modal-title>결과 입력</h2>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="닫기"></button>
           </div>
           <div class="modal-body">

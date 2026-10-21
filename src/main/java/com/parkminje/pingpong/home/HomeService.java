@@ -2,9 +2,6 @@ package com.parkminje.pingpong.home;
 
 import com.parkminje.pingpong.board.Post;
 import com.parkminje.pingpong.board.PostService;
-import com.parkminje.pingpong.match.Match;
-import com.parkminje.pingpong.match.MatchRepository;
-import com.parkminje.pingpong.match.MatchStatus;
 import com.parkminje.pingpong.player.Player;
 import com.parkminje.pingpong.player.PlayerService;
 import com.parkminje.pingpong.tournament.Tournament;
@@ -25,13 +22,13 @@ public class HomeService {
     public record Champion(Tournament tournament, String name, String club) {
     }
 
-    public record HomeView(List<Tournament> live, List<Tournament> upcoming, List<Match> liveMatches,
+    public record HomeView(List<Tournament> live, List<Tournament> upcoming, List<com.parkminje.pingpong.live.TournamentBoard> liveBoards,
                            List<Player> topPlayers, List<Post> notices, List<Champion> champions) {
     }
 
     private final TournamentService tournamentService;
     private final TournamentRepository tournamentRepository;
-    private final MatchRepository matchRepository;
+    private final com.parkminje.pingpong.live.TournamentBoardService boardService;
     private final PlayerService playerService;
     private final PostService postService;
 
@@ -45,7 +42,8 @@ public class HomeService {
         return new HomeView(
                 featured.stream().filter(t -> t.getStatus() == TournamentStatus.IN_PROGRESS).toList(),
                 featured.stream().filter(t -> t.getStatus() != TournamentStatus.IN_PROGRESS).limit(6).toList(),
-                matchRepository.findByStatusOrderByStartedAtAsc(MatchStatus.IN_PROGRESS).stream().limit(8).toList(),
+                featured.stream().filter(t -> t.getStatus() == TournamentStatus.IN_PROGRESS)
+                        .map(t -> boardService.load(t.getId())).toList(),
                 playerService.topRanked(5),
                 postService.latestNotices(),
                 champions);

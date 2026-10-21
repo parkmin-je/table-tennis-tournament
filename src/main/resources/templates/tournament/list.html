@@ -6,23 +6,22 @@
 <div layout:fragment="content" class="container">
   <div class="page-head d-flex flex-wrap align-items-end justify-content-between gap-3">
     <div>
-      <div class="eyebrow">Tournaments</div>
       <h1>대회</h1>
       <p class="lead">참가 신청, 대진표, 실시간 결과를 확인하세요.</p>
     </div>
     <a class="btn btn-primary" sec:authorize="hasRole('ADMIN')" th:href="@{/admin/tournaments/new}"><i class="bi bi-plus-lg me-1"></i>대회 만들기</a>
   </div>
 
-  <form class="panel p-2 mb-3 d-flex flex-wrap gap-2 align-items-center" method="get" th:action="@{/tournaments}">
-    <div class="d-flex flex-wrap gap-1">
-      <a class="btn btn-sm" th:classappend="${status == null} ? 'btn-primary' : 'btn-ghost'" th:href="@{/tournaments(q=${q})}">전체</a>
-      <a class="btn btn-sm" th:each="s : ${statuses}" th:classappend="${status == s} ? 'btn-primary' : 'btn-ghost'"
+  <form class="mb-4 d-flex flex-wrap gap-3 align-items-center" method="get" th:action="@{/tournaments}">
+    <div class="filter-row">
+      <a class="btn btn-soft" th:classappend="${status == null} ? 'on' : ''" th:href="@{/tournaments(q=${q})}">전체</a>
+      <a class="btn btn-soft" th:each="s : ${statuses}" th:classappend="${status == s} ? 'on' : ''"
          th:href="@{/tournaments(status=${s}, q=${q})}" th:text="${s.label}">접수중</a>
     </div>
     <input type="hidden" name="status" th:value="${status}" th:if="${status != null}">
     <div class="ms-auto d-flex gap-2" style="min-width: 240px">
-      <input class="form-control form-control-sm" type="search" name="q" th:value="${q}" placeholder="대회명·장소 검색" maxlength="50">
-      <button class="btn btn-soft btn-sm" type="submit" aria-label="검색"><i class="bi bi-search"></i></button>
+      <input class="form-control" type="search" name="q" th:value="${q}" placeholder="대회 이름이나 장소" maxlength="50">
+      <button class="btn btn-ink" type="submit" aria-label="검색"><i class="bi bi-search"></i></button>
     </div>
   </form>
 
@@ -30,26 +29,27 @@
     <div th:replace="~{fragments/ui :: empty('bi-trophy', '조건에 맞는 대회가 없습니다.')}"></div>
   </div>
 
-  <div class="row g-3">
+  <div class="row g-4 pt-2">
     <div class="col-md-6 col-xl-4" th:each="t : ${page.content}">
-      <a class="panel card-link t-card" th:href="@{/tournament/{id}(id=${t.id})}">
-        <div class="d-flex gap-3">
+      <a class="panel sheet-link t-sheet" th:classappend="${t.status.name() == 'RECRUITING'} ? 'pinned'" th:href="@{/tournament/{id}(id=${t.id})}">
+        <div class="d-flex gap-3 align-items-start">
           <div th:replace="~{fragments/ui :: dateChip(${t.startAt})}"></div>
           <div class="min-w-0 flex-grow-1">
-            <div class="mb-1"><span th:replace="~{fragments/ui :: status(${t.status})}"></span></div>
-            <h3 th:text="${t.title}">대회명</h3>
+            <h2 class="sheet-title" th:text="${t.title}">대회명</h2>
+            <div class="t-facts mt-1">
+              <span><i class="bi bi-geo-alt"></i><span th:text="${t.venue ?: '장소 미정'}"></span></span>
+              <span><i class="bi bi-clock"></i><span th:text="${#temporals.format(t.startAt, 'E HH:mm')}"></span></span>
+            </div>
           </div>
         </div>
-        <div class="t-meta">
-          <span><i class="bi bi-geo-alt"></i><span th:text="${t.venue ?: '장소 미정'}"></span></span>
-          <span><i class="bi bi-clock"></i><span th:text="${#temporals.format(t.startAt, 'M월 d일 (E) HH:mm')}"></span></span>
+        <div class="t-facts">
+          <span th:text="${t.entryType.label + ', ' + t.format.label}">단식</span>
+          <span th:text="${t.divisionLabel}">부수</span>
+          <span th:if="${t.genderRestriction.name() != 'ANY'}" th:text="${t.genderRestriction.label}">남자부</span>
+          <span th:if="${t.entryFee > 0}" th:text="${'참가비 ' + #numbers.formatInteger(t.entryFee, 1, 'COMMA') + '원'}">참가비</span>
         </div>
-        <div class="d-flex flex-wrap gap-1 mt-auto pt-1">
-          <span class="tag tag-brand" th:text="${t.entryType.label}">단식</span>
-          <span class="tag" th:text="${t.format.label}">방식</span>
-          <span class="tag" th:text="${t.divisionLabel}">부수</span>
-          <span class="tag" th:if="${t.genderRestriction.name() != 'ANY'}" th:text="${t.genderRestriction.label}">남자부</span>
-          <span class="tag tag-accent" th:if="${t.entryFee > 0}" th:text="${#numbers.formatInteger(t.entryFee, 1, 'COMMA') + '원'}">10,000원</span>
+        <div class="t-foot">
+          <span th:replace="~{fragments/ui :: status(${t.status})}"></span>
         </div>
       </a>
     </div>

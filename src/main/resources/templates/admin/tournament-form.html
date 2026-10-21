@@ -5,7 +5,7 @@
 <body>
 <div layout:fragment="content" class="container" style="max-width: 880px">
   <div class="page-head">
-    <a class="small fw-semibold" th:href="${tournament == null ? '/admin/tournaments' : '/manage/tournaments/' + tournament.id}"><i class="bi bi-chevron-left"></i>돌아가기</a>
+    <a class="back-link" th:href="${tournament == null ? '/admin/tournaments' : '/manage/tournaments/' + tournament.id}"><i class="bi bi-chevron-left"></i>돌아가기</a>
     <h1 class="mt-1" th:text="${tournament == null ? '대회 만들기' : '대회 설정'}">대회</h1>
     <p class="lead" th:if="${tournament == null}">만든 직후에는 비공개(준비중) 상태입니다. 운영 콘솔에서 '접수 시작'을 누르면 공개됩니다.</p>
   </div>
@@ -15,7 +15,7 @@
     <div th:replace="~{fragments/ui :: globalErrors}"></div>
 
     <div class="form-section">
-      <h3>기본 정보</h3>
+      <h2 class="h6 fw-bold mb-3">기본 정보</h2>
       <div class="mb-3">
         <label class="form-label" for="title">대회명</label>
         <input class="form-control" id="title" th:field="*{title}" th:errorclass="is-invalid" required maxlength="200" placeholder="예: 2026 안산시장배 생활체육 탁구대회 (남자 3~5부)">
@@ -48,7 +48,7 @@
     </div>
 
     <div class="form-section">
-      <h3>경기 방식</h3>
+      <h2 class="h6 fw-bold mb-3">경기 방식</h2>
       <div class="choice-grid mb-3">
         <div class="choice" th:each="f : ${formats}">
           <input type="radio" th:id="${'fmt-' + f}" th:field="*{format}" th:value="${f}">
@@ -87,7 +87,7 @@
     </div>
 
     <div class="form-section">
-      <h3>참가 조건</h3>
+      <h2 class="h6 fw-bold mb-3">참가 조건</h2>
       <div class="row g-3">
         <div class="col-6 col-md-3">
           <label class="form-label" for="divisionMin">부수 (상위)</label>

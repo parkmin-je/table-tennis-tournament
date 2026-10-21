@@ -32,17 +32,17 @@
             <div class="mb-3" data-fragment="stats"><div th:replace="~{tournament/fragments :: stats}"></div></div>
           </th:block>
           <section class="panel mb-3" th:if="${board.live}">
-            <div class="panel-head"><h2><span class="live-dot me-2"></span>테이블 현황</h2>
+            <div class="panel-head"><h2><span class="live-dot red pulse"></span>테이블 현황</h2>
               <a class="btn btn-soft btn-sm" th:href="@{/tournament/{id}/board(id=${t.id})}" target="_blank"><i class="bi bi-tv me-1"></i>현황판</a></div>
             <div class="panel-body" data-fragment="tables"><div th:replace="~{tournament/fragments :: tables}"></div></div>
           </section>
-          <div class="row g-3 mb-3" th:if="${board.hasDraw()}">
+          <div class="row g-3 mb-3 align-items-start" th:if="${board.hasDraw()}">
             <div class="col-md-6">
-              <section class="panel h-100"><div class="panel-head"><h2>다음 경기</h2></div>
+              <section class="panel"><div class="panel-head"><h2>다음 경기</h2></div>
                 <div data-fragment="queue"><div th:replace="~{tournament/fragments :: queue}"></div></div></section>
             </div>
             <div class="col-md-6">
-              <section class="panel h-100"><div class="panel-head"><h2>최근 결과</h2></div>
+              <section class="panel"><div class="panel-head"><h2>최근 결과</h2></div>
                 <div data-fragment="recent"><div th:replace="~{tournament/fragments :: recent}"></div></div></section>
             </div>
           </div>
@@ -117,7 +117,7 @@
     </div>
 
     <!-- 우측: 정보 & 신청 -->
-    <aside class="col-lg-4 order-1 order-lg-2">
+    <aside class="col-lg-4 order-1 order-lg-2"><div class="sticky-aside">
       <section class="panel mb-3">
         <div class="panel-body">
           <dl class="row small mb-0 gy-2">
@@ -131,7 +131,7 @@
               <div class="text-muted" th:if="${t.hasGroupStage()}" th:text="${t.groupSize + '인 1조 · 조별 상위 ' + t.advancePerGroup + '명 본선'}"></div>
             </dd>
             <dt class="col-4 text-muted fw-semibold">참가 자격</dt>
-            <dd class="col-8 mb-0" th:text="${t.divisionLabel + ' · ' + t.genderRestriction.label}">부수</dd>
+            <dd class="col-8 mb-0" th:text="${t.divisionLabel + ', ' + t.genderRestriction.label}">부수</dd>
             <dt class="col-4 text-muted fw-semibold">참가비</dt>
             <dd class="col-8 mb-0" th:text="${t.entryFee > 0 ? #numbers.formatInteger(t.entryFee, 1, 'COMMA') + '원' : '무료'}">무료</dd>
             <dt class="col-4 text-muted fw-semibold">정원</dt>
@@ -178,11 +178,11 @@
                   <input class="form-control form-control-sm mb-1" type="search" placeholder="이름으로 찾기" data-option-filter="#partnerId">
                   <select class="form-select" id="partnerId" name="partnerId" required>
                     <option value="">파트너 선택</option>
-                    <option th:each="p : ${partners}" th:value="${p.id}" th:text="${p.name + ' · ' + p.clubName + ' · ' + p.divisionLabel}">파트너</option>
+                    <option th:each="p : ${partners}" th:value="${p.id}" th:text="${p.name + ', ' + p.clubName + ', ' + p.divisionLabel}">파트너</option>
                   </select>
                 </div>
                 <button class="btn btn-primary w-100" type="submit"><i class="bi bi-pencil-square me-1"></i>참가 신청</button>
-                <div class="small text-muted mt-2" th:text="${'내 프로필: ' + myPlayer.divisionLabel + ' · ' + myPlayer.clubName}"></div>
+                <div class="small text-muted mt-2" th:text="${'내 프로필: ' + myPlayer.divisionLabel + ', ' + myPlayer.clubName}"></div>
               </form>
             </th:block>
           </th:block>
@@ -203,7 +203,7 @@
           </div>
         </div>
       </section>
-    </aside>
+    </div></aside>
   </div>
 </div>
 <th:block layout:fragment="scripts">

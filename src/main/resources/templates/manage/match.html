@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 <html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout}">
-<head><title th:text="${'경기 · ' + m.roundLabel}">경기</title></head>
+<head><title th:text="${m.roundLabel + ' 경기'}">경기</title></head>
 <body>
 <div layout:fragment="content" class="container py-3" style="max-width: 560px"
      th:with="back=${'/manage/matches/' + m.id}">
-  <a class="small fw-semibold" th:href="@{/manage/tournaments/{id}(id=${t.id}, tab='matches')}"><i class="bi bi-chevron-left"></i>운영 콘솔</a>
+  <a class="back-link" th:href="@{/manage/tournaments/{id}(id=${t.id}, tab='matches')}"><i class="bi bi-chevron-left"></i>운영 콘솔</a>
   <div class="d-flex align-items-center gap-2 mt-2 mb-3">
     <h1 class="h4 fw-black m-0" th:text="${m.roundLabel}">8강</h1>
     <span th:replace="~{fragments/ui :: status(${m.status})}"></span>
     <span class="tag tag-live" th:if="${m.inProgress}" th:text="${m.tableNumber + '번 테이블'}"></span>
   </div>
-  <p class="small text-muted" th:text="${t.title + ' · ' + t.bestOfLabel}"></p>
+  <p class="small text-muted" th:text="${t.title + ', ' + t.bestOfLabel}"></p>
 
   <section class="panel mb-3">
     <div class="panel-body">

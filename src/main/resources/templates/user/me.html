@@ -8,7 +8,7 @@
     <span class="avatar lg" th:text="${#strings.substring(user.name, 0, 1)}">김</span>
     <div class="flex-grow-1">
       <h1 th:text="${user.name}">이름</h1>
-      <div class="small text-muted" th:text="${user.username + ' · ' + user.role.label}"></div>
+      <div class="small text-muted" th:text="${user.username + ', ' + user.role.label}"></div>
     </div>
     <a class="btn btn-soft btn-sm" th:href="@{/me/password}"><i class="bi bi-key me-1"></i>비밀번호 변경</a>
   </div>
@@ -53,13 +53,13 @@
 
     <div class="col-lg-7">
       <section class="panel">
-        <div class="panel-head"><h2>내 대회</h2><a class="small fw-semibold" th:href="@{/tournaments(status='RECRUITING')}">접수 중인 대회</a></div>
+        <div class="panel-head"><h2>내 대회</h2><a class="back-link" th:href="@{/tournaments(status='RECRUITING')}">접수 중인 대회</a></div>
         <th:block th:if="${entries == null or entries.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-trophy', '참가 신청한 대회가 없습니다.')}"></div></th:block>
         <a class="list-row" th:each="e : ${entries}" th:href="@{/tournament/{id}(id=${e.tournament.id})}">
           <div th:replace="~{fragments/ui :: dateChip(${e.tournament.startAt})}"></div>
           <div class="min-w-0 flex-grow-1">
             <div class="fw-semibold truncate" th:text="${e.tournament.title}"></div>
-            <div class="entry-sub" th:text="${e.tournament.status.label + (e.partner != null ? ' · ' + e.displayName : '')}"></div>
+            <div class="entry-sub" th:text="${e.tournament.status.label + (e.partner != null ? ', ' + e.displayName : '')}"></div>
           </div>
           <span th:replace="~{fragments/ui :: status(${e.status})}"></span>
         </a>

@@ -6,9 +6,9 @@
 <div layout:fragment="content" class="container-fluid px-3 px-lg-4" th:attr="data-live-tournament=${board.live ? t.id : null}">
   <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-3">
     <div>
-      <a class="small fw-semibold no-print" th:href="@{/tournament/{id}(id=${t.id})}"><i class="bi bi-chevron-left"></i>대회 정보</a>
+      <a class="back-link no-print" th:href="@{/tournament/{id}(id=${t.id})}"><i class="bi bi-chevron-left"></i>대회 정보</a>
       <h1 class="mt-1" th:text="${t.title}">대회</h1>
-      <p class="lead" th:text="${#temporals.format(t.startAt, 'yyyy.M.d (E)') + ' · ' + (t.venue ?: '') + ' · ' + t.bestOfLabel}"></p>
+      <p class="lead" th:text="${#temporals.format(t.startAt, 'yyyy.M.d (E)') + ', ' + (t.venue ?: '') + ', ' + t.bestOfLabel}"></p>
     </div>
     <div class="d-flex gap-2 no-print align-items-center">
       <span class="tv-conn" data-conn th:if="${board.live}"><span class="conn-dot"></span><span data-conn-label>연결 중…</span></span>

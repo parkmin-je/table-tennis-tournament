@@ -5,7 +5,7 @@
 <body>
 <div layout:fragment="content" class="container" style="max-width: 640px">
   <div class="page-head">
-    <a class="small fw-semibold" th:href="${club == null ? '/clubs' : '/club/' + club.id}"><i class="bi bi-chevron-left"></i>돌아가기</a>
+    <a class="back-link" th:href="${club == null ? '/clubs' : '/club/' + club.id}"><i class="bi bi-chevron-left"></i>돌아가기</a>
     <h1 class="mt-1" th:text="${club == null ? '클럽 등록' : '클럽 수정'}">클럽</h1>
   </div>
   <form class="panel panel-body" method="post" th:object="${form}"

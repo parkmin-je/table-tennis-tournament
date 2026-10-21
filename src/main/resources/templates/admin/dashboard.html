@@ -5,7 +5,7 @@
 <body>
 <div layout:fragment="content" class="container">
   <div class="page-head d-flex flex-wrap justify-content-between align-items-end gap-2">
-    <div><div class="eyebrow">Admin</div><h1>관리자 대시보드</h1></div>
+    <div><h1>관리자 대시보드</h1></div>
     <div class="d-flex gap-2">
       <a class="btn btn-soft" th:href="@{/admin/users}"><i class="bi bi-people me-1"></i>회원·권한</a>
       <a class="btn btn-soft" th:href="@{/manage/clubs/new}"><i class="bi bi-house-add me-1"></i>클럽 등록</a>
@@ -24,13 +24,13 @@
   <div class="row g-4">
     <div class="col-lg-7">
       <section class="panel">
-        <div class="panel-head"><h2>대회</h2><a class="small fw-semibold" th:href="@{/admin/tournaments}">전체</a></div>
+        <div class="panel-head"><h2>대회</h2><a class="back-link" th:href="@{/admin/tournaments}">전체</a></div>
         <th:block th:if="${tournaments.isEmpty()}"><div th:replace="~{fragments/ui :: empty('bi-trophy', '대회가 없습니다.')}"></div></th:block>
         <a class="list-row" th:each="t : ${tournaments}" th:href="@{/manage/tournaments/{id}(id=${t.id})}">
           <div th:replace="~{fragments/ui :: dateChip(${t.startAt})}"></div>
           <div class="min-w-0 flex-grow-1">
             <div class="fw-semibold truncate" th:text="${t.title}"></div>
-            <div class="entry-sub" th:text="${t.format.label + ' · ' + t.entryType.label}"></div>
+            <div class="entry-sub" th:text="${t.format.label + ', ' + t.entryType.label}"></div>
           </div>
           <span th:replace="~{fragments/ui :: status(${t.status})}"></span>
         </a>
